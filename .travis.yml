@@ -1,0 +1,23 @@
+language: ruby
+rvm:
+- 2.1.6
+script:
+- bundle exec rake --trace
+before_deploy:
+- bundle exec rake after_build --trace
+deploy:
+  provider: rubygems
+  gem: aws-achitect
+  api_key:
+    secure: Tfn1n5j7NDqogGG5ngE2Qy49Ep1gkyajyEoho46zgDlnFhdK98bQG5nO7Wu/6TUVN8QQk9X788qrLdWrmFMy46DOb9moOzMpnKQ1XsyzLQbUcmPWU77NMv5jQFVmNQujXG2Mbu6RyPbNNzqc8m/nP0dbjW0AaRF+km6tGtR4OIMqNFBJauB2ggX16hg7x6eBcgRfI8/p4ppdj6KTqGsfWZ//zNJh/xQQmlIi1Kl/ovMCiv7JCkYZu9Wx9sHLX1ri4ZelPKy24ega50j7k11+5Ys5mtQr7rBgQH39zU16Xl/22tHcS0pn5TT9U0CaitY8zjMMxFvBpY2/8Q+RWsoMGpBbuYpUOiKLagCGi4mgM4jaTB48PWvYrVC8OAYGZWJlllaDCzhqxqc0na0UMsM03hVVVqqzhL+tQ57kmSj91eZNfAIcewMnkQMSbgE06LFp9+J6G3/b8SmkNdniwMW5L2r+tOvykyOTtXBzGN5jzXGxZxk1RhWPW96gAwG5KF/+PWIJ8IsnSAVk6u966yHLSLsBmIm40GDYBbPDt0OIbIs54kF9ss8iSCL33tj3UvYd3xdLSw0fYUcn7Mij6/wZd+YcHB9Vg+bYThyS4vBNJKIOtDNY7y/1yWOWdpVVR7OMu429uUajcK5HsiF8tUCFMGQCo3dsrkYgiE+DLxY1MHY=
+  skip_cleanup: true
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH != master
+branches:
+  only:
+  - master
+  - /^release.*/
+env:
+  global:
+  - secure: Z/MEwKpThF3K1i1u1u418dwIbIgjXeFU/GxXDGzquuIot5q3Z0E/9po/zAD3WXlBLXA9f9uArxl/vBtCq8i12kf5UC9eloWj1EtXgDf5XhRcDT6dXIo4Fz0Tmwbelge1suPSDFZGFyxwVHI5Ns185Ya7qQmxY5HwicXUtCv0Cb+G6G3cn56sikz+SVrfv9czbENhVu0r2uuP959n2NHuzKmjXkDcPd4mJtP0/As7ZHRYjeJvJdvZ0Q5Vg78pGRBssvKvrt3Tcar2Di3R+Rmn3rw3UlynMwqgbkHlf7Rge3CPhYtN0t0+6cmduzgn8XQW+MBANA+qAcfIYpKVVRCuPfjsAY6BrxXPfal7nlULyiV7kPjMZnTLA6uIBFyzdG7VstF+XGUdb4diZfzAWpFKC/vUSgZ8K/goj1CgCkwZHYMbH6qhx1EEtj8uGpw0qei+SJjA6b3dC5xp1fosDcqCUBb+sTeNJ5vutLnZfjnh075d8fKUVmdYH/z88ArJPvgU4F/cnliVvqKSAZfHgZsgSWtQ9T+ec0nd5ZjSFthfRXQIuecxrlhenGRcsBxtCy4JnCz3Ni3+Bdks2Bdyfh+84H+cg69fTUKCrHQzJ9PX9pgSLOX+hcCSTWYpsJaWaATBcN6Fsfi38cYMimwESqFkeechblga2Jgv5LZ1dKqsJ2U=
