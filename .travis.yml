@@ -1,15 +1,11 @@
-language: ruby
-rvm:
-- 2.1.6
-script:
-- bundle exec rake --trace
-before_deploy:
-- bundle exec rake after_build --trace
+language: node_js
+node_js:
+- '4.1'
 deploy:
-  provider: rubygems
-  gem: aws-architect
+  provider: npm
+  email: wparad@gmail.com
   api_key:
-    secure: idq8J4XCMzkyHXQTRr50ZtC5lVT/J2DzIB4XSqBTWG+Rtm+OSlopoLoE6RXUOb5+p2tmmuEYYZcPRhGcDhuQm85oyl1d5LMyiqBPiOl7B7FbxybJE/MmVAoJXw5JQ8ByBXofMVnaZWEC6Gioy//HUJVH47gYRpFc2uV5F2466jVrk5tvyh7FJ3yPiggHHlEfWp9ZUGX5jRC9YaqCm2sCqvG/83NUJ8WxA+m59nyoNYNdr/rl/1iPX9yGx9inUQkmKIDR6+ra+SN1DodNqjgiHcosRr+PRjP5mQODSX2ZNu1zKME7MtRTOHj478lF54izJL4yZ3ILYEQUswpe9ZrltnRdQIZM0FKjxBogGOLMwse3E1DtOXCjbnhZziIRipl6A+Xj55Y79ei8wSF4aE633NxpOMmYB8K6InmyiLh+Xhs3u2VNF5rIHmjpqRD8+klnaEvHNv54nIhmIoJAFK5JyEpvio9NP4DmpJS0mqD8zjditl7/FNGN3TmKbzhF+JKcXafpRr4v7trRcMG7xb7QQXkx0BK24TRr2Zo6E3fC4+sF3ZlBdVaWdF5xNRDem/D3HcP39Q6Eu5HEQPspYWrMmUS8WJvayN1XW8cnKGHsxio0RyHQyYWgOnxDFdAsXoUD3VJN4dBWF0huP3k/LkVU/QmUWw1PiGIfrx4WrcW+5zE=
+    secure: eoi4PvDkxcN7tqsXExJJ56qscZyTW4A09Be3O276XA+BsG9F+3BDS/DUmuw8z3pIECy4JM78SrOIb9JQexp/NUUHXhj9u/4hYK9386KJ4vd4KCiGcvZz/A/i8ow+l2VAG2Zw9F9jYKiMo/dUgdJ7XutN0qEyfNieqaHdek16K/T0IK8xIg/DF+EDGsDieVQoEhI3SHAayeXdn2DJVI/UZxPlSDM++VG7lQJn0G0Niv5c7MUdcTPy1i71Qcb+8N9l1Kktf9s7wo+XMQnOKJQpa5r6ojZPw1q4cfkg1QonPreWdR3BFvV7WSjpNm8JcduTAvJuosCE17mLbHhEvTJ4ce8/kM7TIzGEhUpzU/s8Nvv4JNVp2m/YECe8P1WVc7Dl7jV/xxiim+OipjgWvZyvF36PbjcfMOrGe4ai03qwoOGvjMZ4tzncTkHTGsJcyrDPX0O+ShxM9Ro48FAA5yZikDXK52FNYZh8AQHjB7JJ1e9UFjl19y1rQyWRRFbSkO2PbQmg8Z7Hw+dbx5L3e1XxtvgUBMQ/D18w+ive1Ia5dSVQsvCq1hN1fXNPYP4jNV8ZBst4TtGvXtFLWo7L5lBhYevdLPNrQD20KCVAg5D5OnovT8h/kMSADb4L/BtvmGi6E+P3Orm4thNtwHNt8X9r5ZlyWwlECe2sF5R0/VsJoKg=
   skip_cleanup: true
   on:
     all_branches: true

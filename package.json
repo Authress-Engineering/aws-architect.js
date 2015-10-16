@@ -1,0 +1,29 @@
+{
+  "name": "aws-architect",
+  "version": "0.0.0",
+  "description": "AWS Architect is a ruby gem to configure and deploy AWS-based microservices.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wparad/AWS-Architect.git"
+  },
+  "keywords": [
+    "aws",
+    "cloudfront",
+    "package",
+    "creation",
+    "microservice",
+    "lambda",
+    "api",
+    "gateway"
+  ],
+  "author": "Warren Parad <wparad@gmail.com> (http://wparad.github.io)",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/wparad/AWS-Architect/issues"
+  },
+  "homepage": "https://github.com/wparad/AWS-Architect#readme"
+}
