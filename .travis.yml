@@ -1,6 +1,10 @@
 language: node_js
 node_js:
 - '4.1'
+before_script:
+- node make.js build
+before_deploy:
+- node make.js after_build
 deploy:
   provider: npm
   email: wparad@gmail.com

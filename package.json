@@ -2,15 +2,24 @@
   "name": "aws-architect",
   "version": "0.0.0",
   "description": "AWS Architect is a ruby gem to configure and deploy AWS-based microservices.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "files": [
     "LICENSE",
     "CHANGELOG.md",
     "README.md",
-    "index.js"
+    "lib"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "mocha test -R spec"
+  },
+  "dependencies" : {
+    "travis-build-tools": "^1.0.28"
+  },
+  "devDependencies": {
+    "commander": "^2.5.0",
+    "chai": "^3.2.0",
+    "mocha": "^2.2.5",
+    "sinon": "^1.17.1"
   },
   "repository": {
     "type": "git",
@@ -19,12 +28,16 @@
   "keywords": [
     "aws",
     "cloudfront",
-    "package",
-    "creation",
+    "package creation",
     "microservice",
+    "api gateway",
+    "serverless",
+    "api gateway",
     "lambda",
-    "api",
-    "gateway"
+    "aws lambda",
+    "amazon",
+    "amazon web services",
+    "dynamodb"
   ],
   "author": "Warren Parad <wparad@gmail.com> (http://wparad.github.io)",
   "license": "BSD-3-Clause",
