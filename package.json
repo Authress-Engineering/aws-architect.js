@@ -1,13 +1,9 @@
 {
   "name": "aws-architect",
-  "preferGlobal": true,
   "version": "0.0.0",
   "description": "AWS Architect is a ruby gem to configure and deploy AWS-based microservices.",
   "main": "lib/index.js",
   "files": [
-    "LICENSE",
-    "CHANGELOG.md",
-    "README.md",
     "lib",
     "bin"
   ],
