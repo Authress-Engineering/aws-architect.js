@@ -15,11 +15,13 @@
     "test": "mocha test -R spec"
   },
   "bin": {
-    "arch": "./bin/aws-architect.js"
+    "aws-architect": "./bin/aws-architect.js"
+  },
+  "dependencies": {
+    "commander": "^2.5.0"
   },
   "devDependencies": {
     "travis-build-tools": "^1.0.28",
-    "commander": "^2.5.0",
     "chai": "^3.2.0",
     "mocha": "^2.2.5",
     "sinon": "^1.17.1"
