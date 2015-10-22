@@ -8,7 +8,8 @@
     "LICENSE",
     "CHANGELOG.md",
     "README.md",
-    "lib"
+    "lib",
+    "bin"
   ],
   "scripts": {
     "test": "mocha test -R spec"
