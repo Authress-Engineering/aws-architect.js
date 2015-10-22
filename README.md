@@ -7,4 +7,8 @@ Node NPM AWS Architect library.
 
 ### Usage
 
-	npm install aws-architect
+#### Creating microservice `init`
+
+* Create git repository and clone locally
+* `sudo npm install aws-architect -g`
+* `aws-architect init`

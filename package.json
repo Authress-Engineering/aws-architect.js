@@ -1,5 +1,6 @@
 {
   "name": "aws-architect",
+  "preferGlobal": true,
   "version": "0.0.0",
   "description": "AWS Architect is a ruby gem to configure and deploy AWS-based microservices.",
   "main": "lib/index.js",
@@ -11,6 +12,9 @@
   ],
   "scripts": {
     "test": "mocha test -R spec"
+  },
+  "bin": {
+    "arch": "./bin/aws-architect.js"
   },
   "dependencies" : {
     "travis-build-tools": "^1.0.28"
