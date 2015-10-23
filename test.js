@@ -3,7 +3,8 @@
 var mocha = require('mocha');
 var assert = require('chai').assert;
 
-var index = require('./lib/index.js');
+var api_gateway = require('./lib/api-gateway.js');
+var lambda_factory = require('./lib/lambda-factory.js');
 
 describe('index', function() {
 	describe('#Version()', function () {
