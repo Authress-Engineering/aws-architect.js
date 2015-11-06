@@ -1,5 +1,4 @@
 
-
 var mocha = require('mocha');
 var assert = require('chai').assert;
 var api_gateway = require('../lib/api-gateway.js');
