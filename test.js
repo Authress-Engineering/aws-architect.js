@@ -1,15 +1,19 @@
 'use strict';
 
-var mocha = require('mocha');
-var assert = require('chai').assert;
+var glob = require('glob');
 
-var api_gateway = require('./lib/api-gateway.js');
-var lambda_factory = require('./lib/lambda-factory.js');
+var path = require('path');
 
-describe('index', function() {
-	describe('#Version()', function () {
-		it('Should exist', function(){
-			//assert.fail('failure');
-		});
-	});
+
+describe('Tests', function() {
+  describe('setup', function () {
+    it('runner', function(){
+      var tests = path.join(path.dirname(__filename), 'tests/**/*.js');
+      glob(tests, {}, function (er, files) {
+        if(er != null) { throw new {detail: 'No test files found in the "test" directory.'}; }
+        files.map(function(file) { require(file); });
+      });
+    });
+  });
 });
+
