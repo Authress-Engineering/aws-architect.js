@@ -1,0 +1,36 @@
+{
+  "name": "@REPLACE@",
+  "version": "0.0.0",
+  "description": "@REPLACE@",
+  "main": "index.js",
+  "files": [
+    "lib",
+  ],
+  "scripts": {
+    "test": "mocha tests/**/*.js -R spec"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.2.12"
+  },
+  "devDependencies": {
+    "travis-build-tools": "^1.0.28",
+    "chai": "^3.2.0",
+    "commander": "^2.5.0",
+    "glob": "^5.0.0",
+    "mocha": "^2.2.5",
+    "sinon": "^1.17.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "@REPLACE@"
+  },
+  "keywords": [
+    "aws lambda microservice"
+  ],
+  "author": "@REPLACE@",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "@REPLACE@"
+  },
+  "homepage": "@REPLACE@"
+}
