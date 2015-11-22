@@ -37,5 +37,18 @@ The pieces needed to run microservices but are not part of the service itself ar
 
 Using Amazon's AWS ensures elimination of high cost low value infrastructure management.
 
-### Using AWS to create microservices
+### Using AWS to create serverless microservices
+When thinking about a microservice breaking down the components makes it easier to talk about:
 
+!(microservice)[./microservice.png]
+
+Using AWS to emulate this is easy:
+
+!(AWS microservice)[./aws_microservice.png]
+
+As you can see the exact same components used to make up a microservice can be exactly emulated in AWS, without altering the architcture.  The advantage of course is the integration of pieces and the support of infrastrucutre is free*.
+
+#### AWS Alternatives
+AWS offers other services which could be used to support microservices, such as EC2 and ELB.  However, using these does not extinguish the responsibilities of managing servers, which is wha we really want to avoid here.  We want to build server-less microservices.
+
+`*AWS is not free, you are trading support of infrastructure for money.  This is an argument for cloud technology, which is not discussed here.`
