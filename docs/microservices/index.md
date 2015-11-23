@@ -40,11 +40,11 @@ Using Amazon's AWS ensures elimination of high cost low value infrastructure man
 ### Using AWS to create serverless microservices
 When thinking about a microservice breaking down the components makes it easier to talk about:
 
-!(microservice)[./microservice.png]
+![microservice](./microservice.png)
 
 Using AWS to emulate this is easy:
 
-!(AWS microservice)[./aws_microservice.png]
+![AWS microservice](./aws_microservice.png)
 
 As you can see the exact same components used to make up a microservice can be exactly emulated in AWS, without altering the architcture.  The advantage of course is the integration of pieces and the support of infrastrucutre is free*.
 
