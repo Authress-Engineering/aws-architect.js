@@ -48,6 +48,13 @@ Using AWS to emulate this is easy:
 
 As you can see the exact same components used to make up a microservice can be exactly emulated in AWS, without altering the architcture.  The advantage of course is the integration of pieces and the support of infrastrucutre is free*.
 
+* [API Gateway](https://aws.amazon.com/api-gateway/) - Rounting HTTP Requests
+* [Lambda Functions](https://aws.amazon.com/lambda/) - Business Logic functions
+* [S3 Buckets](https://aws.amazon.com/s3/) - Stores static content distributed through a CDN ([CloudFrount](https://aws.amazon.com/cloudfront/))
+* [DynamoDB](https://aws.amazon.com/dynamodb/) - Database & persistent data store
+* [CloudWatch](https://aws.amazon.com/cloudwatch/) - Logging
+* [Cognito](https://aws.amazon.com/cognito/) - Map users to tokens for authorization.
+
 #### AWS Alternatives
 AWS offers other services which could be used to support microservices, such as EC2 and ELB.  However, using these does not extinguish the responsibilities of managing servers, which is wha we really want to avoid here.  We want to build server-less microservices.
 
