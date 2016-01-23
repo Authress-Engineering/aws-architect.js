@@ -13,3 +13,8 @@ Node NPM AWS Architect library.
 * Create git repository and clone locally
 * `sudo npm install aws-architect -g`
 * `aws-architect init`
+
+### AWS
+
+* [Lambda](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html)
+* [Node SDK](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
