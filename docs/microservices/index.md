@@ -56,6 +56,8 @@ As you can see the exact same components used to make up a microservice can be e
 * [Cognito](https://aws.amazon.com/cognito/) - Map users to tokens for authorization.
 
 #### AWS Alternatives
-AWS offers other services which could be used to support microservices, such as EC2 and ELB.  However, using these does not extinguish the responsibilities of managing servers, which is wha we really want to avoid here.  We want to build server-less microservices.
+AWS offers other services which could be used to support microservices, such as EC2 and ELB.  However, using these does not extinguish the responsibilities of managing servers, which is what we really want to avoid here.  We want to build server-less microservices.  In the case of using one of these architectures the best approach would be to at the very least implement:
+
+![NodeJS](./nodejs.png)
 
 `*AWS is not free, you are trading support of infrastructure for money.  This is an argument for cloud technology, which is not discussed here.`
