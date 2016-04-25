@@ -6,15 +6,92 @@ Node NPM AWS Architect library.
 
 ## [Microservices](./docs/microservices/index.md)
 
-### Usage
+## Usage
 
-#### Creating microservice `init`
+### Creating microservice `init`
+This will also configure your aws account to allow your build system to automatically deploy to AWS.  It does this by creating a deployer role, which will have access to modifying the necessary resources.
 
 * Create git repository and clone locally
 * `sudo npm install aws-architect -g`
 * `aws-architect init`
 
-### AWS
+## Built-in functionality (A.K.A. Why use `AWS-Architect`?)
+
+* Authorization flow created in index.html for the website
+* conventioned based static S3 website using the `/content` directory
+* conventioned based lambda functions in `/lambda` directory (with `/lambda/lib` being all shared code.)
+* Lambda/API Gateway setup to create `/login` for the service automatically (with `?access_token` and `?refresh_token` query parameters allowed.)
+* Automatically packages the necessary files into .tar.gz for S3 publishing.
+* Automatic creation of AWS resources when using `new require('aws-architect').Publisher()`. Including:
+	* S3 static website (updates static content, and sets up bucket for website hosting.)
+	* Lambda functions
+	* API Gateway resources
+	* IAM User and Service Roles
+	* IdentityPool setup and configuration in Cognito
+	* Environments for managing resources in AWS
+	* DynamoDB tables used by service, and management with environments
+* Local user testing platform, to run lambdas and static content as a local Node.js service.
+
+### Service Configuration
+See [template service documentation](./bin/template/README.md) for how individual parts of the service are configured.
+
+## Setup
+
+* Create a security policy to use for the local user testing and for the AWS Role
+* Create a role for your AWS Lambda's
+
+### Architect Execution Steps
+Architect creates new lambda functions and API Gateway resources according to the following conventions:
+
+* Create ServiceRole to execute Lambda functions as, this may not be needed if the authentication is passed through API gateway.  Should have access to the DynamoDB, S3, and necessary services.
+* Create API Gateway Resource request with Lambda function:
+	* Authorization: AWS_IAM
+	* Invoke with Caller Credentials: true
+	* Add Method Response For all HTTP Codes
+	* Add Integration Responses For all HTTP Codes which map: `.*"statusCode":HTTP_STATUS_CODE.*` to `HTTP_STATUS_CODE`.
+		* For each have Body-Mapping Template set to be `$input.path('$.errorMessage')`
+
+#### Also
+
+* Yes all lambda funciton returns contain `{ ErrorMessage: 'result'}`.	That is because AWS still doesn't allow passing anything other than an envelop back to API Gateway.	Don't let the `ErrorMessage` part bother you.	Instead it might as well say `LambdaReturnJson`.
+
+### Authentication
+After finding the provider you are interested in using and integrating that into the static content don'tforget to prevent access to the identity pool in the Web Federated Authorization Provider.
+
+## Additional Information
+
+### Authorization Flow used by AWS-Architect microservices
+
+* Each Login Attempt:
+	* User clicks the login (or website checks to see if authorization has already occured automatically) for the specific Web Federation (Google, Twitter, etc...) and is directed to a login prompt.
+	* Successful login redirects the user back to your site (or wherever your redirect url specifies.)
+	* Take the response access_token (id_token), and send it Cognito to receive user credentials, receive back IdentityId.
+	* Using the AWS Credentials get AWS IAM role to call API Gateway.
+* Logout
+	* REST API call to the Web Federated service to revoke the refresh token. `GET https://accounts.google.com/o/oauth2/revoke?token=REFRESH_TOKEN`
+
+## FAQs
+
+* Do I need to have `/login`?:
+	* Do we take the google federated login token, pass it to the back end and instead of doing validation on it on every request, pass it to `/login`.	Login in would validate the token and then return Cognito AWS credentials, isn't that the point of Cognito, can that happen directly from the browser? Yes it can.  The browser will automatically get login credentials from the Web Federated provider, or ask the user to login again.  From there, just take the response access_code or id_token and reauthenticate against cognito.
+* Shouldn't Cognito IDs expire, what happens if someone else gets by Cognito ID?
+	* That means they can bypass the login to my provider, and instead log directly into AWS service using my Cognito ID.  Or they can log in with theirs, and then use mine to get my user data.  Can A request like this really be done?  Or does the credentials being set have to match the call to the Cognito Sync.  So questions [and Answers](http://stackoverflow.com/questions/36685734/what-does-aws-cognitosync-listdatasets-require-identityid):
+		* Can you login in directly without the Federation flow, if you already have the Cognito ID?  If yes, I can access Sync, if No then:
+* Why use the IAM login, it seems like unneccesary authentication?
+	* It is, since the service could be public instead, but this way guarantees user authentication against AWS API Gateway resources.  Instead of relying on the user sending the IdentityId, auth can pull this information out the request.  And without AWS credentials, the service could be the target of a DoS attack.
+
+### AWS Documentation
 
 * [Lambda](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html)
 * [Node SDK](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
+
+### Future Features
+
+#### Setup Build Server for microservice management `auto`
+This will configure your aws account to allow your build system to automatically deploy to AWS.  It does this by creating a deployer role, which will have access to modifying the necessary resources.
+
+### Do all necessary setup defaults `full`
+This will complete all of the actions necessary to design, manage, and use a new microservice. This will run `init` and `auto`.
+
+### Discovery Documents
+Links should not be hardcoded to providers, but instead use the discovery documents specified at [Google](https://accounts.google.com/.well-known/openid-configuration).
