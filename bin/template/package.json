@@ -1,18 +1,17 @@
 {
-  "name": "@REPLACE@",
+  "name": "package-name",
   "version": "0.0.0",
-  "description": "@REPLACE@",
+  "description": "Description of the package",
   "main": "index.js",
-  "files": [
-    "lib",
-  ],
   "scripts": {
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {
-    "aws-sdk": "^2.2.12"
+
   },
   "devDependencies": {
+    "aws-architect": "~1",
+    "aws-sdk": "^2.2.12",
     "travis-build-tools": "^1.0.28",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
@@ -22,15 +21,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "@REPLACE@"
+    "url": "https://source-code.com"
   },
   "keywords": [
     "aws lambda microservice"
   ],
-  "author": "@REPLACE@",
+  "author": "Author",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "@REPLACE@"
+    "url": "https://source-code.com"
   },
-  "homepage": "@REPLACE@"
+  "homepage": "https://source-code.com"
 }
