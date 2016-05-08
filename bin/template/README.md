@@ -67,9 +67,18 @@ Visit the [changelog](CHANGELOG.md).
 						"execute-api:Invoke"
 					],
 					"Resource": [
-						"arn:aws:execute-api:*:*:API_ID/production/*
+						"arn:aws:execute-api:*:*:API_ID/production/*"
 					]
-				}
+				},
+				{
+					"Effect": "Allow",
+					"Action": [
+						"lambda:InvokeFunction"
+					],
+					"Resource": [
+						"arn:aws:lambda:*:*:*:API_NAME_*"
+					]
+				},
 			]
 		}
 		```
