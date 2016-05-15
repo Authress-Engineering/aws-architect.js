@@ -16,6 +16,7 @@
   "dependencies": {
     "aws-sdk": "^2.3.5",
     "commander": "^2.5.0",
+    "esprima": "^2.7.2",
     "mustache": "^2.2.1",
     "request": "^2.72.0"
   },

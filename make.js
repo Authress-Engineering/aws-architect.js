@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 'use strict';
 
 /**
@@ -42,4 +41,10 @@ commander
 		travis.MergeDownstream('release/', 'master');
 	});
 
-commander.parse(process.argv);
+commander.on('*', function() {
+	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
+	console.log('Unknown Command: ' + commander.args.join(' '));
+	commander.help();
+	process.exit(0);
+});
+commander.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));

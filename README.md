@@ -66,6 +66,25 @@ See [template service documentation](./bin/template/README.md) for how individua
 Architect creates new lambda functions and API Gateway resources according to the following conventions:
 
 * Create ServiceRole to execute Lambda functions as, this may not be needed if the authentication is passed through API gateway.  Should have access to the DynamoDB, S3, and necessary services.
+* Create the necessary DynamoDB tables
+* Create Lambda Functions (Source from lambda files)
+	* Pack in `lib` directory along with each lambda into a zip archive.
+	* Deploy a new version of all the lambda functions
+	* First time: Allow API Gateway to access lambda function using [aws sdk](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property) or Commandline
+	```
+	aws lambda add-permission \
+		--region us-west-2 \
+		--function-name helloworld \
+		--statement-id 5 \
+		--principal apigateway.amazonaws.com \
+		--action lambda:InvokeFunction \
+		--source-arn arn:aws:execute-api:region:account-id:api-id/stage/method/resource-path" \
+		--profile adminuser
+
+	aws lambda get-policy \
+		--function-name example \
+		--profile adminuser
+	```
 * Create API Gateway Resource request with Lambda function (Source from lambda files):
 	* Authorization: AWS_IAM
 	* Invoke with Caller Credentials: true
@@ -74,7 +93,7 @@ Architect creates new lambda functions and API Gateway resources according to th
 		* Headers: `Access-Control-Allow-Origin`
 	* Add Integration Responses For all HTTP Codes which map: `.*"statusCode":HTTP_STATUS_CODE.*` to `HTTP_STATUS_CODE`.
 		* For each have Body-Mapping Template set to be `$input.path('$.errorMessage')`
-		* `Access-Control-Allow-Origin`: `'*'`
+		* `Access-Control-Allow-Origin`: `'http://localhost'`
 	* Add CORS setup
 		* Add OPTIONS Verb:
 			* Auth: None
@@ -91,26 +110,11 @@ Architect creates new lambda functions and API Gateway resources according to th
 				* Access-Control-Allow-Origin	'http://localhost'	
 				* Access-Control-Allow-Credentials	'true'	
 				* Access-Control-Allow-Methods	'GET,PUT,POST,PATCH,DELETE,HEAD,OPTIONS'
-
-* Create Lambda Functions (Source from lambda files)
-	* Allow API Gateway to access lambda function using [aws sdk](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property) or Commandline
-	```
-	aws lambda add-permission \
-		--region us-west-2 \
-		--function-name helloworld \
-		--statement-id 5 \
-		--principal apigateway.amazonaws.com \
-		--action lambda:InvokeFunction \
-		--source-arn arn:aws:execute-api:region:account-id:api-id/stage/method/resource-path" \
-		--profile adminuser
-
-	aws lambda get-policy \
-		--function-name example \
-		--profile adminuser
-	```
+	* Link the lambda functions to the API Gateway resources.
+	* Automatically deploy to production
 * Create S3 bucket and upload static files from the content directory.
 	* Set permissions to be global for use as a website.
-	* Set hostname on DNS if specified in the `aws.config.json`
+	* Set hostname on DNS if specified in the `aws-config.json`
 #### Also
 
 * Yes all lambda funciton returns contain `{ ErrorMessage: 'result'}`.	That is because AWS still doesn't allow passing anything other than an envelop back to API Gateway.	Don't let the `ErrorMessage` part bother you.	Instead it might as well say `LambdaReturnJson`.
