@@ -16,12 +16,10 @@ commander.version(version);
 commander
 	.command('build')
 	.description('Setup require build files for npm package.')
-	.action(function() {
+	.action(() => {
 		var package_metadata = require('./package.json');
 		package_metadata.version = version;
-		fs.writeFile('./package.json', JSON.stringify(package_metadata, null, 2), function(err) {
-			if(err) { throw err; }
-		});
+		fs.writeFileSync('./package.json', JSON.stringify(package_metadata, null, 2));
 
 		console.log("Building package %s (%s)", package_metadata.name, version);
 		console.log('');
@@ -33,7 +31,7 @@ commander
 commander
 	.command('after_build')
 	.description('Publishes git tags and reports failures.')
-	.action(function() {
+	.action(() => {
 		var package_metadata = require('./package.json');
 		console.log("After build package %s (%s)", package_metadata.name, version);
 		console.log('');
@@ -41,7 +39,7 @@ commander
 		travis.MergeDownstream('release/', 'master');
 	});
 
-commander.on('*', function() {
+commander.on('*', () => {
 	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
 	console.log('Unknown Command: ' + commander.args.join(' '));
 	commander.help();

@@ -14,6 +14,8 @@ Visit the [changelog](CHANGELOG.md).
 	curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
 	sudo apt-get install -y nodejs
 ```
+* Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
+
 
 * Run the microservice locally, depending on the use of aws-sdk may write to dynamoDB tables directly.	Check for the local flag in the context.
 

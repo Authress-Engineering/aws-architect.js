@@ -1,32 +1,32 @@
-#!/usr/bin/env node
 'use strict';
 
 var commander = require('commander');
 var fs = require('fs');
-//var shell = function(func) { return require('child_process').execSync(func, { encoding: 'utf8' }); };
+var path = require('path');
 
-var version = require('./../package.json').version;
-console.log('AWS Architect (%s)', version);
-console.log('---------------------------')
+var version = require(path.join(__dirname, '../package.json')).version;
 commander.version(version);
+
+var displayHeader = () => {
+	console.log('AWS Architect (%s)', version);
+	console.log('---------------------------');
+};
 
 commander
 	.command('init')
 	.description('Setup microservice package from template.')
-	.action(function() {
-		
+	.action(() => {
+		displayHeader();
 		console.log("Creating new microservice.");
 		console.log('');
 	});
 
-commander
-	.command('*')
-    .action(function(cmd){
-      console.error('Unknown command: %s', cmd);
-    });
+commander.on('*', () => {
+	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
+	displayHeader();
+	console.log('Unknown Command: ' + commander.args.join(' '));
+	commander.help();
+	process.exit(0);
+});
 
-commander.parse(process.argv);
-
-if (process.argv.length == 2) {
-  commander.outputHelp();
-}
+commander.parse(process.argv[2] ? process.argv : process.argv.concat(['init']));

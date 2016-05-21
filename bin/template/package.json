@@ -10,9 +10,9 @@
 
   },
   "devDependencies": {
-    "aws-architect": "~1",
-    "aws-sdk": "^2.2.12",
-    "travis-build-tools": "^1.0.28",
+    "aws-architect": "",
+    "aws-sdk": "^2.2.32",
+    "travis-build-tools": "",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
     "glob": "^5.0.0",

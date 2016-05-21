@@ -4,6 +4,7 @@
   "description": "AWS Architect is a node based tool to configure and deploy AWS-based microservices.",
   "main": "index.js",
   "files": [
+    "index.js",
     "lib",
     "bin"
   ],
@@ -14,15 +15,20 @@
     "aws-architect": "./bin/aws-architect.js"
   },
   "dependencies": {
-    "aws-sdk": "^2.3.5",
+    "archiver": "^1.0.0",
+    "aws-sdk": "^2.3.14",
+    "body-parser": "^1.15.1",
     "commander": "^2.5.0",
-    "esprima": "^2.7.2",
+    "cookie-parser": "^1.4.2",
+    "express": "^4.13.4",
+    "morgan": "^1.7.0",
     "mustache": "^2.2.1",
     "request": "^2.72.0"
   },
   "devDependencies": {
     "travis-build-tools": "^1.0.28",
     "chai": "^3.5.0",
+    "esprima": "^2.7.2",
     "glob": "^5.0.15",
     "mocha": "^2.4.5",
     "sinon": "^1.17.3"
