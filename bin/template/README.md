@@ -15,7 +15,11 @@ Visit the [changelog](CHANGELOG.md).
 	sudo apt-get install -y nodejs
 ```
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
-
+* Your user will need access to the following resources (or the continuously deployment user):
+	* IAM: create users/roles/groups/policies
+	* Create Lambda Functions
+	* Create API Gateway environments
+	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)
 
 * Run the microservice locally, depending on the use of aws-sdk may write to dynamoDB tables directly.	Check for the local flag in the context.
 
@@ -116,6 +120,7 @@ Visit the [changelog](CHANGELOG.md).
 * `content/index.html`:
 	* Update google usercontent token (`google-signin-client_id`) in the index.html with client id.
 	* Update `IDENTITY_POOL_ID` with the identityPoolId
+	* Set the redirect on auth to be the s3 bucket (so localhost and also the actual S3 bucket and optionally cloudfront)
 
 ## Development
 

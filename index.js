@@ -31,52 +31,51 @@ AwsArchitect.prototype.PublishPromise = function() {
 			archive.pipe(zipStream);
 			archive.bulk([{
 				expand: true,
-				src: [path.join(lambdaPath, '**/*.*'), path.join('node_modules', '**/*.*')],
+				src: [path.join('node_modules', '**/*.*')],
 				dot: true,
 				cwd: this.RootDirectory
+			},
+			{
+				expand: true,
+				src: ['**/*.*'],
+				dot: true,
+				cwd: path.join(this.RootDirectory, lambdaPath)
 			}]);
 			archive.finalize();
 		});
 	}).then((zipInformation) => {
 		var awsLambdaPublisher = new aws.Lambda({region: this.Config.awsConfig.regions[0]});
-		this.Config.lambdas.map((lambda) => {
+		return Promise.all(this.Config.lambdas.map((lambda) => {
 			var lambdaName = path.basename(lambda.filename, '.js');
 			var lambdaRole = `arn:aws:iam::${this.Config.awsConfig.accountId}:role/${this.Config.awsConfig.role}`;
-			//path.join(this.RootDirectory, lambdaPath, lambda.filename)
-			//if lambda is not created yet, then create it
-			var params = {
-				FunctionName: `${this.ServiceName}-${lambdaName}`,
-				Code: {
-					ZipFile: zipInformation.Archive
-				},
-				Handler: lambdaName, /* required */
-				Role: lambdaRole, /* required */
-				Runtime: 'nodejs4.3',
-				Description: `${this.ServiceName}-${lambdaName}`,
-				MemorySize: 128,
-				Publish: true,
-				Timeout: 3
-				/*
-				VpcConfig: {
-					SecurityGroupIds: [
-						'STRING_VALUE'
-					],
-					SubnetIds: [
-						'STRING_VALUE'
-					]
-				}
-				*/
-			};
-			awsLambdaPublisher.createFunction(params)
-			.promise((data) => {
-				console.log(data);
+			var functionName = `${this.ServiceName}-${lambdaName}`;
+
+			return awsLambdaPublisher.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then((data) => {
+				return awsLambdaPublisher.updateFunctionCode({
+					FunctionName: functionName,
+					Publish: true,
+					ZipFile: fs.readFileSync(zipInformation.Archive)
+				}).promise();
+			}).catch((failure) => {
+				return awsLambdaPublisher.createFunction({
+					FunctionName: functionName,
+					Code: { ZipFile:  fs.readFileSync(zipInformation.Archive) },
+					Handler: `${lambdaName}.handler`,
+					Role: lambdaRole,
+					Runtime: 'nodejs4.3',
+					Description: functionName,
+					MemorySize: 128,
+					Publish: true,
+					Timeout: 3
+				}).promise();
 			})
 			.catch((error) => {
-				console.log(error, error.stack);
+				return Promise.reject({Error: error, Detail: error.stack});
 			});
-			console.log(lambdaName);
+		}))
+		.then((responses) => {
+			return {Title: 'Uploaded Lambdas', Result: responses};
 		});
-		return {Title: 'Uploaded Lambdas'};
 	});
 };
 

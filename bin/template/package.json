@@ -1,5 +1,5 @@
 {
-  "name": "package-name",
+  "name": "example-microservice",
   "version": "0.0.0",
   "description": "Description of the package",
   "main": "index.js",
