@@ -1,10 +1,8 @@
 # AWS Architect
-Node NPM AWS Architect library.
+It should be easy, and it also should be automated. But both of those things usually aren't free.  The ideal world has magic AI which can communicate with each other to a such a degree which doesn't require software architects to think about what the global picture has to be before an organization and deliver something of value.  The AWS Architect, attempts to eliminate the burden of projecting your vision of software to AWS.  AWS Architects your service using [Microservices](./docs/microservices/index.md).
 
 [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
 [![Build Status](https://travis-ci.org/wparad/AWS-Architect.svg?branch=master)](https://travis-ci.org/wparad/AWS-Architect)
-
-## [Microservices](./docs/microservices/index.md)
 
 ## Usage
 
@@ -15,7 +13,7 @@ This will also configure your aws account to allow your build system to automati
 * `sudo npm install aws-architect -g`
 * `aws-architect init`
 
-## Built-in functionality (A.K.A. Why use `AWS-Architect`?)
+## Built-in functionality (What `AWS-Architect` does for you?)
 
 * Authorization flow created in index.html for the website
 * conventioned based static S3 website using the `/content` directory

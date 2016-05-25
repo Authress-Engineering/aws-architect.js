@@ -10,24 +10,49 @@ Visit the [changelog](CHANGELOG.md).
 
 * Install NodeJS & npm
 
-```bash
-	curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
-	sudo apt-get install -y nodejs
-```
+	```bash
+		curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+		sudo apt-get install -y nodejs
+	```
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
-	* IAM: create users/roles/groups/policies
-	* Create Lambda Functions
-	* Create API Gateway environments
+	* Development time resources (identical for deployment CI)
+		```
+		{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Effect": "Allow",
+					"Action": "iam:*",
+					"Resource": "*"
+				},
+				{
+					"Effect": "Allow",
+					"Action": "lambda:*",
+					"Resource": "*"
+				},
+				{
+					"Effect": "Allow",
+					"Action": "dynamoDB:*",
+					"Resource": "*"
+				},
+				{
+					"Effect": "Allow",
+					"Action": "apigateway:*",
+					"Resource": "*"
+				}
+			]
+		}
+		```
 	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)
 
 * Run the microservice locally, depending on the use of aws-sdk may write to dynamoDB tables directly.	Check for the local flag in the context.
 
-```bash
-	npm install
-	npm make.js
-	sudo npm start
-```
+	```bash
+		npm install
+		npm make.js
+		sudo npm start
+	```
 
 ### Setup
 
