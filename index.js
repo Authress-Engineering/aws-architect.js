@@ -6,13 +6,14 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 
-var Server = require('./lib/server');var aws = require('aws-sdk');
+var Server = require('./lib/server');
+var aws = require('aws-sdk');
 
-function AwsArchitect(awsConfig, serviceName, rootDirectory) {
+function AwsArchitect(awsConfig, serviceConfig, serviceName, rootDirectory) {
 	aws.config = awsConfig;
 	this.RootDirectory = path.resolve(rootDirectory || '.');
 	this.ServiceName = serviceName || require(path.join(this.RootDirectory, 'package.json')).name;
-	this.Config = require(path.join(this.RootDirectory, 'aws-config.json'));
+	this.Config = serviceConfig;
 }
 
 AwsArchitect.prototype.PublishPromise = function() {
@@ -80,15 +81,15 @@ AwsArchitect.prototype.PublishPromise = function() {
 };
 
 AwsArchitect.prototype.Run = function() {
-		try {
-			var contentDirectory = path.join(this.RootDirectory, 'content');
-			var lambdaDirectory = path.join(this.RootDirectory, 'lambda');
-			new Server(contentDirectory, lambdaDirectory, this.Config).Run();
-			return Promise.resolve({Message: 'Server started successfully'});
-		}
-		catch (exception) {
-			return Promise.reject({Error: 'Failed to start server', Exception: exception});
-		}
+	try {
+		var contentDirectory = path.join(this.RootDirectory, 'content');
+		var lambdaDirectory = path.join(this.RootDirectory, 'lambda');
+		new Server(contentDirectory, lambdaDirectory, this.Config).Run();
+		return Promise.resolve({Message: 'Server started successfully'});
+	}
+	catch (exception) {
+		return Promise.reject({Error: 'Failed to start server', Exception: exception});
+	}
 };
 
 

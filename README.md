@@ -20,9 +20,9 @@ This will also configure your aws account to allow your build system to automati
 * Authorization flow created in index.html for the website
 * conventioned based static S3 website using the `/content` directory
 * conventioned based lambda functions in `/lambda` directory (with `/lambda/lib` being all shared code.)
-* Lambda/API Gateway setup to create `/login` for the service automatically (with `?access_token` and `?refresh_token` query parameters allowed.)
+* Lambda/API Gateway setup for seemless integration.
 * Automatically packages the necessary files into .tar.gz for S3 publishing.
-* Automatic creation of AWS resources when using `new require('aws-architect').Publisher()`. Including:
+* Automatic creation of AWS resources when using `AwsArchitect.PublishPromise()`. Including:
 	* S3 static website (updates static content, and sets up bucket for website hosting.)
 	* Lambda functions
 	* API Gateway resources

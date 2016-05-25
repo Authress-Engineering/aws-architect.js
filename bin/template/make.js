@@ -10,7 +10,7 @@ var glob = require('glob');
 var https = require('https');
 var path = require('path');
 
-var AwsArchitect = require('aws-architect/index');
+var AwsArchitect = require('aws-architect');
 var travis = require('travis-build-tools')(process.env.GIT_TAG_PUSHER);
 var version = travis.GetVersion();
 var commander = require('commander');
@@ -20,7 +20,8 @@ commander.version(version);
 var aws = require('aws-sdk');
 aws.config.update({ region: 'us-east-1' });
 
-var awsArchitect = new AwsArchitect(aws.config);
+var serviceConfig = require('./aws-config.json');
+var awsArchitect = new AwsArchitect(aws.config, serviceConfig);
 var packageMetadataFile = path.join(__dirname, 'package.json');
 commander
 	.command('build')
