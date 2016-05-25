@@ -37,10 +37,6 @@ commander
 		console.log('Running tests')
 		var test = exec('npm test');
 		console.log(' ' + test);
-
-		awsArchitect.PublishPromise()
-		.then((result) => console.log(JSON.stringify(result, null, 2)))
-		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});
 
 commander
@@ -57,6 +53,10 @@ commander
 	.description('Deploy to AWS.')
 	.action(() => {
 		var package_metadata = require(packageMetadataFile);
+
+		awsArchitect.PublishPromise()
+		.then((result) => console.log(`${result} - ${JSON.stringify(result, null, 2)}`))
+		.catch((failure) => console.log(`${failure} - ${JSON.stringify(failure, null, 2)}`));
 	});
 
 commander.on('*', () => {

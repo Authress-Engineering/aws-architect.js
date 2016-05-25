@@ -37,16 +37,15 @@
 	<script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.3.min.js"></script>
 
 	<script>
+		var AWS_REGION = 'us-east-1';
+		AWS.config.region = AWS_REGION;
+
 		var IDENTITY_POOL_ID = 'IDENTITY_POOL_ID';
 		var GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID';
 		var GOOGLE_CLIENT_SCOPES = 'openid email profile';
 		function startApp() {
 			gapi.load('auth', () => {
-				if(IDENTITY_POOL_ID == 'IDENTITY_POOL_ID' || GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID') {
-					alert('Set the IDENTITY_POOL_ID and GOOGLE_CLIENT_ID in the content/index.html file.');
-					return;
-				}
-				//if there is an error, then the url header will look like: url/#error_subtype=access_denied&error=interaction_required
+				setCookie('GoogleAuthState', 'auto', 100);
 				gapi.auth.authorize({client_id: GOOGLE_CLIENT_ID, scope: GOOGLE_CLIENT_SCOPES, response_type: 'token id_token', immediate: true}, (authResult) => {
 					var authorizeButton = document.getElementById('google-signin-button');
 					if (authResult && !authResult.error) {
@@ -61,13 +60,27 @@
 			});
 		}
 
+
+		function gup(parameterName) {
+			var name = parameterName.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+			var regexS = "[\\?&#]" + name + "=([^&#]*)";
+			var regex = new RegExp(regexS);
+			var results = regex.exec(window.location.href);
+			return results ? results[1] : null;
+		}
+
 		var module = angular.module('Index', ['ngSanitize', 'angular-loading-bar', 'ngAnimate']);
 		module.controller('mainController', function($scope, $http, $timeout) {
 			$scope.page = {
 				cognitoLogin: (idToken) => {
 					console.log('Starting Cognito Login.');
+					//if there is an error, then the url header will look like: url/#error_subtype=access_denied&error=interaction_required
 					console.log(`ID TOKEN: ${idToken}`);
-
+					var nonce = getCookie('GoogleAuthState');
+					if(nonce != gup('nonce') && nonce != 'auto') {
+						console.error(`Nonce does not match what was sent to Google, authentication rejected.`);
+						return;
+					}
 					var params = {
 						IdentityPoolId: IDENTITY_POOL_ID,
 						Logins: {
@@ -77,7 +90,6 @@
 
 					//TODO: Get profile information: https://www.googleapis.com/plus/v1/people/me/openIdConnect
 
-					AWS.config.region = 'us-east-1';
 					AWS.config.credentials = new AWS.CognitoIdentityCredentials(params);
 				},
 				sync: () => {
@@ -125,12 +137,13 @@
 					}
 
 					var guid = createGuid();
+					setCookie('GoogleAuthState', guid, 1);
 					var paramString = $.param({
 						response_type:'id_token',
 						scope: GOOGLE_CLIENT_SCOPES,
 						client_id: GOOGLE_CLIENT_ID,
 						nonce: guid,
-						redirect_uri: 'http://localhost'
+						redirect_uri: window.location.href
 					});
 					window.open(`https://accounts.google.com/o/oauth2/v2/auth?${paramString}`, null, null, true);
 				}

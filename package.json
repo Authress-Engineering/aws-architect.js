@@ -22,7 +22,8 @@
     "cookie-parser": "^1.4.2",
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
-    "morgan": "^1.7.0"
+    "morgan": "^1.7.0",
+    "uuid": "^2.0.2"
   },
   "devDependencies": {
     "travis-build-tools": "^1.0.28",

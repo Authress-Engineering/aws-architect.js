@@ -4,9 +4,7 @@ This is a Node based lambda microservic package created by AWS-Architect.
 ## Recent Changes
 Visit the [changelog](CHANGELOG.md).
 
-## Development
-
-### Prerequisites
+## Prerequisites
 
 * Install NodeJS & npm
 
@@ -16,43 +14,21 @@ Visit the [changelog](CHANGELOG.md).
 	```
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
-	* Development time resources (identical for deployment CI)
-		```json
-		{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Action": "iam:*",
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": "lambda:*",
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": "dynamoDB:*",
-					"Resource": "*"
-				},
-				{
-					"Effect": "Allow",
-					"Action": "apigateway:*",
-					"Resource": "*"
-				}
-			]
-		}
-		```
+	* Development time resources (identical for deployment CI), [example security policy](./bin/deployment-policy.json)
 	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)
 
-* Run the microservice locally, depending on the use of aws-sdk may write to dynamoDB tables directly.	Check for the local flag in the context.
+## Development
+Development is templated using the make.js file. All the needed actions are present there. For ease, the AWS Architect to managed as a npm package. So all functionality is available directly from native nodejs, no having to write shell scripts just do some simple development.
 
-	```bash
-		npm install
-		npm make.js
-		sudo npm start
-	```
+* Website is created from the content directory.
+* Lambda functions are created from the lambda directory
+	* Each directory will create a lambda function with the same name as it.
+	* When testing locally (using the builtin to run as a local service instead of lambda function), the handler will be assumed to be called index.js iside the directory.
+
+* `npm install`: Install necessary dependencies.
+* `node make.js` or `node make.js build`: Builds and run unit tests.
+* `sudo npm start`: Runs the microservice locally, it inhabits the api and lambda functions using nodejs express.
+* `node make.js deploy`: Deploys the package to AWS.
 
 ### Setup
 
@@ -145,15 +121,6 @@ Visit the [changelog](CHANGELOG.md).
 * `content/index.html`:
 	* Update google usercontent token (`google-signin-client_id`) in the index.html with client id.
 	* Update `IDENTITY_POOL_ID` with the identityPoolId
-	* Set the redirect on auth to be the s3 bucket (so localhost and also the actual S3 bucket and optionally cloudfront)
-
-## Development
-
-* Website is created from the content directory.
-* Lambda functions are created from the lambda directory
-	* Each directory will create a lambda function with the same name as it.
-	* When testing locally (using the builtin to run as a local service instead of lambda function), the handler will be assumed to be called index.js iside the directory.
-	* Special directory called lib inside lambda directory which contains all shared code, non-shared lambda code goes in the handler directory.
 
 TL;DL
 
