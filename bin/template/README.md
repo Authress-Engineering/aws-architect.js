@@ -17,7 +17,7 @@ Visit the [changelog](CHANGELOG.md).
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
 	* Development time resources (identical for deployment CI)
-		```
+		```json
 		{
 			"Version": "2012-10-17",
 			"Statement": [
@@ -65,7 +65,7 @@ Visit the [changelog](CHANGELOG.md).
 	* Add in the google client to the IdentityPool
 * Create a UserRole, set it to have access to API Gateway and Cognito Sync using the IdentityPoolId
 	* Set the Trust Policy to be (based on [Amazon Docs](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)):
-		```
+		```json
 		{
 			"Version": "2012-10-17",
 			"Statement": [
@@ -88,7 +88,7 @@ Visit the [changelog](CHANGELOG.md).
 		}
 		```
 	* Set the permission policy to be (Depending on the security model, it is possible to allow multiple levels, i.e. use a gateway.):
-		```
+		```json
 		{
 			"Version": "2012-10-17",
 			"Statement": [
@@ -114,7 +114,7 @@ Visit the [changelog](CHANGELOG.md).
 		}
 		```
 * Create a ServiceRole, to have access to the back end AWS needed resources:
-	```
+	```json
 	{
 		"Version": "2012-10-17",
 		"Statement": [
