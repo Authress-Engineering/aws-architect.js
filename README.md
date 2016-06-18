@@ -66,8 +66,6 @@ Architect creates new lambda functions and API Gateway resources according to th
 * Create ServiceRole to execute Lambda functions as, this may not be needed if the authentication is passed through API gateway.  Should have access to the DynamoDB, S3, and necessary services.
 * Create the necessary DynamoDB tables
 * Create Lambda Functions (Source from lambda files)
-	* Pack in `lib` directory along with each lambda into a zip archive.
-	* Deploy a new version of all the lambda functions
 	* First time: Allow API Gateway to access lambda function using [aws sdk](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#addPermission-property) or Commandline
 	```
 	aws lambda add-permission \
