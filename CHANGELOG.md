@@ -1,5 +1,8 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 1.1 ##
+* Lambdas are not all specified in the file specified by the constructor call.  Default is the `src/index.js` file in `make.js`.  `aws-config.js` will be removed in version 2.0, and all configuration can be specified in the index.js composition root.
+
 ## 1.0 ##
-Introduced commandline ruby tool `aws-architect` for configuring a AWS Microservice instance using Cloud Formation and AWS API.
+* Introduced commandline ruby tool `aws-architect` for configuring a AWS Microservice instance using Cloud Formation and AWS API.

@@ -21,17 +21,17 @@ var aws = require('aws-sdk');
 aws.config.update({ region: 'us-east-1' });
 
 var serviceConfig = require('./aws-config.json');
-var awsArchitect = new AwsArchitect(aws.config, serviceConfig);
 var packageMetadataFile = path.join(__dirname, 'package.json');
+var packageMetadata = require(packageMetadataFile)
+var awsArchitect = new AwsArchitect(serviceConfig, packageMetadata.name, path.join(__dirname, 'content'), path.join(__dirname, 'src'));
 commander
 	.command('build')
 	.description('Setup require build files for npm package.')
 	.action(() => {
-		var package_metadata = require(packageMetadataFile);
-		package_metadata.version = version;
-		fs.writeFileSync(packageMetadataFile, JSON.stringify(package_metadata, null, 2));
+		packageMetadata.version = version;
+		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
 
-		console.log("Building package %s (%s)", package_metadata.name, version);
+		console.log("Building package %s (%s)", packageMetadata.name, version);
 		console.log('');
 
 		console.log('Running tests')
@@ -43,7 +43,8 @@ commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
-		awsArchitect.Run()
+		//Optionally specify the location of the lambda.js file, by default is the full path of index.js in the awsArchitect src directory specified.
+		awsArchitect.Run(/* path.join(__dirname, 'src', index.js) */)
 		.then((result) => console.log(JSON.stringify(result, null, 2)))
 		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});
@@ -52,8 +53,6 @@ commander
 	.command('deploy')
 	.description('Deploy to AWS.')
 	.action(() => {
-		var package_metadata = require(packageMetadataFile);
-
 		awsArchitect.PublishPromise()
 		.then((result) => console.log(`${result} - ${JSON.stringify(result, null, 2)}`))
 		.catch((failure) => console.log(`${failure} - ${JSON.stringify(failure, null, 2)}`));

@@ -1,5 +1,5 @@
 # AWS Microservice package
-This is a Node based lambda microservic package created by AWS-Architect.
+This is a Node based lambda microservice package created by AWS-Architect.
 
 ## Recent Changes
 Visit the [changelog](CHANGELOG.md).
@@ -9,7 +9,7 @@ Visit the [changelog](CHANGELOG.md).
 * Install NodeJS & npm
 
 	```bash
-		curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+		curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
 		sudo apt-get install -y nodejs
 	```
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
@@ -21,15 +21,31 @@ Visit the [changelog](CHANGELOG.md).
 Development is templated using the make.js file. All the needed actions are present there. For ease, the AWS Architect to managed as a npm package. So all functionality is available directly from native nodejs, no having to write shell scripts just do some simple development.
 
 * Website is created from the content directory.
-* Lambda functions are created from the lambda directory
-	* Each directory will create a lambda function with the same name as it.
-	* When testing locally (using the builtin to run as a local service instead of lambda function), the handler will be assumed to be called index.js iside the directory.
-
+* Lambda functions are created from the `src/index.js` source.
 * `npm install`: Install necessary dependencies.
 * `node make.js` or `node make.js build`: Builds and run unit tests.
 * `sudo npm start`: Runs the microservice locally, it inhabits the api and lambda functions using nodejs express.
 * `node make.js deploy`: Deploys the package to AWS.
 
+### Building
+
+	```bash
+		npm install
+		npm make.js
+	```
+### Running server locally
+AWS Architect uses [OpenAPI Factory]() to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
+
+	```bash
+		npm install
+		npm make.js run
+	```
+### Deploying to AWS
+
+	```bash
+		npm install
+		npm make.js deploy
+	```
 ### Setup
 
 #### Setting up Google authentication, Cognito, and API Gateway
@@ -124,6 +140,5 @@ Development is templated using the make.js file. All the needed actions are pres
 
 TL;DL
 
-* Static content => `content`
-* Lambda functions => `lambda`
-* Prevent code duplication with `lambda/lib`
+* Static content => `content/index.html`
+* Lambda functions => `src/index.js`
