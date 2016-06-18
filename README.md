@@ -7,7 +7,7 @@ It should be easy, and it also should be automated. But both of those things usu
 ## Usage
 
 ### Creating microservice `init`
-This will also configure your aws account to allow your build system to automatically deploy to AWS.	It does this by creating a deployer role, which will have access to modifying the necessary resources.
+This will also configure your aws account to allow your build system to automatically deploy to AWS.  It does this by creating a deployer role, which will have access to modifying the necessary resources.
 
 * Create git repository and clone locally
 * `sudo npm install aws-architect -g`
@@ -17,7 +17,7 @@ This will also configure your aws account to allow your build system to automati
 
 * Authorization flow created in index.html for the website
 * conventioned based static S3 website using the `/content` directory
-* conventioned based lambda functions in `/lambda` directory (with `/lambda/lib` being all shared code.)
+* conventioned based lambda functions specified as an argument to the associated functions.
 * Lambda/API Gateway setup for seemless integration.
 * Automatically packages the necessary files into .tar.gz for S3 publishing.
 * Automatic creation of AWS resources when using `AwsArchitect.PublishPromise()`. Including:

@@ -3,8 +3,8 @@ var util = require('util');
 
 exports.handler = (event, context, callback) => {
     try {
-        console.log(event);
-        console.log(context);
+        console.log(`event: ${event}`);
+        console.log(`context: ${JSON.stringify(context, null, 2)}`);
         if(!context.identity || !context.identity.cognitoIdentityId) {
              return callback(JSON.stringify({statusCode: 400, title: 'User Identity must be defined "context.identity.cognitoIdentityId"'}));
         }

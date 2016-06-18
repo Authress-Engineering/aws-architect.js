@@ -1,12 +1,10 @@
 {
 	"awsConfig": {
-		"accountId": "ACCOUNT_ID",
 		"regions": ["us-east-1"],
 		"role": "IAM_SERVICE_ROLE"
 	},
 	"lambdas": [
 		{
-			"filename": "GetExample.js",
 			"resource": "example-resource",
 			"verbs": ["GET"]
 		}

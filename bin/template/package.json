@@ -7,7 +7,7 @@
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {
-
+    "openapi-factory": "~1.0"
   },
   "devDependencies": {
     "aws-architect": "",
