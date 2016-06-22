@@ -163,14 +163,13 @@ After finding the provider you are interested in using and integrating that into
 
 ### Future Features
 
-#### Setup Build Server for microservice management `auto`
-This will configure your aws account to allow your build system to automatically deploy to AWS.	It does this by creating a deployer role, which will have access to modifying the necessary resources.
-
-####
 * [Use Lambda alias for API Gateway versions](https://aws.amazon.com/blogs/compute/using-api-gateway-stage-variables-to-manage-lambda-functions/)
 * Set up Cloudfront for the Bucket so that caching happens using edge locations.
 
-### Do all necessary setup defaults `full`
+#### Setup Build Server for microservice management `auto`
+This will configure your aws account to allow your build system to automatically deploy to AWS.	It does this by creating a deployer role, which will have access to modifying the necessary resources.
+
+#### Do all necessary setup defaults `full`
 This will complete all of the actions necessary to design, manage, and use a new microservice. This will run `init` and `auto`.
 
 ### Discovery Documents
