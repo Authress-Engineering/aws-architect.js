@@ -20,10 +20,9 @@ commander.version(version);
 var aws = require('aws-sdk');
 aws.config.update({ region: 'us-east-1' });
 
-var serviceConfig = require('./aws-config.json');
 var packageMetadataFile = path.join(__dirname, 'package.json');
 var packageMetadata = require(packageMetadataFile)
-var awsArchitect = new AwsArchitect(serviceConfig, packageMetadata.name, path.join(__dirname, 'content'), path.join(__dirname, 'src'));
+var awsArchitect = new AwsArchitect(path.join(__dirname, 'content'), path.join(__dirname, 'src'));
 commander
 	.command('build')
 	.description('Setup require build files for npm package.')
@@ -54,8 +53,8 @@ commander
 	.description('Deploy to AWS.')
 	.action(() => {
 		awsArchitect.PublishPromise()
-		.then((result) => console.log(`${result} - ${JSON.stringify(result, null, 2)}`))
-		.catch((failure) => console.log(`${failure} - ${JSON.stringify(failure, null, 2)}`));
+		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+		.catch((failure) => console.log(`${JSON.stringify(failure, null, 2)}`));
 	});
 
 commander.on('*', () => {

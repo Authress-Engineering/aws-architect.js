@@ -14,7 +14,8 @@ describe('make.js', function() {
 				assert(true);
 			}
 			catch(e) {
-				assert(false, JSON.stringify(e));
+				console.log(e.stack);
+				assert(false, e.toString());
 			}
 		});
 		it('Should be valid node', function(){
@@ -23,7 +24,8 @@ describe('make.js', function() {
 				assert(true);
 			}
 			catch(e) {
-				assert(false, JSON.stringify(e));
+				console.log(e.stack);
+				assert(false, e.toString());
 			}
 		});
 	});

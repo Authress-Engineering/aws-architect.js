@@ -2,7 +2,8 @@
 
 var archiver = require('archiver');
 var aws = require('aws-sdk');
-var fs = require('fs');
+var exec = require('child_process').exec;
+var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
 var uuid = require('uuid');
@@ -10,11 +11,10 @@ var uuid = require('uuid');
 var Server = require('./lib/server');
 var aws = require('aws-sdk');
 
-function AwsArchitect(serviceConfig, serviceName, contentDirectory, sourceDirectory) {
-	this.Config = serviceConfig;
-	this.ServiceName = serviceName;
+function AwsArchitect(contentDirectory, sourceDirectory) {
 	this.ContentDirectory = contentDirectory;
 	this.SourceDirectory = sourceDirectory;
+	this.Api = require(path.join(sourceDirectory, 'index'));
 }
 
 function GetAccountIdPromise() {
@@ -22,12 +22,17 @@ function GetAccountIdPromise() {
 }
 
 AwsArchitect.prototype.PublishPromise = function() {
-	var apigateway = new aws.APIGateway({region: this.Config.awsConfig.regions[0]});
+	var region = this.Api.Configuration.Regions[0];
+	//TODO: Assume that the src directory is one level down from root, figure out how to find this automatically by the current location.
+	var packageMetadataFile = path.join(path.dirname(this.SourceDirectory), 'package.json');
+	var packageMetaData = require(packageMetadataFile);
+	var serviceName = packageMetaData.name;
+	var apigateway = new aws.APIGateway({region: region});
 	var apiGatewayCreatePromise = apigateway.getRestApis({ limit: 500 }).promise()
 	.then((apis) => {
-		var serviceApi = apis.items.find((api) => api.name === this.ServiceName);
+		var serviceApi = apis.items.find((api) => api.name === serviceName);
 		if(!serviceApi) {
-			return apigateway.createRestApi({ name: this.ServiceName }).promise()
+			return apigateway.createRestApi({ name: serviceName }).promise()
 			.then((data) => {
 				return { Id: data.id, Name: data.name };
 			}, (error) => {
@@ -37,36 +42,46 @@ AwsArchitect.prototype.PublishPromise = function() {
 		return { Id: serviceApi.id, Name: serviceApi.name };
 	});
 
-	var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
-	var lambdaPromise = new Promise((s, f) => { fs.mkdir(tmpDir, (error) => { return error ? f({Error: `Could not make temporary director: ${error}`}) : s(null); }); })
-	//call npm install --production in the temporary directory after copying in the package.json file
-	.then(() => {
-		var zipArchivePath = path.join(tmpDir, 'lambda.zip');
-		return new Promise((s, f) => {
-			fs.stat(this.SourceDirectory, (error, stats) => {
-				if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
-				if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
-
-				var zipStream = fs.createWriteStream(zipArchivePath);
-				zipStream.on('close', () => s({Archive: zipArchivePath}));
-
-				var archive = archiver.create('zip', {});
-				archive.on('error', (e) => f({Error: e}));
-				archive.pipe(zipStream);
-				archive.bulk([
-				{
-					expand: true,
-					src: ['**/*.*'],
-					dot: true,
-					cwd: this.SourceDirectory
-				}]);
-				archive.finalize();
-			});
+	return Promise.resolve(null)
+	.then(() => new Promise((s, f) => {
+		fs.stat(this.SourceDirectory, (error, stats) => {
+			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
+			if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
+			return s(null);
 		});
-	}).then((zipInformation) => {
-		var awsLambdaPublisher = new aws.Lambda({region: this.Config.awsConfig.regions[0]});
-		var lambdaName = 'index';
-		var functionName = `${this.ServiceName}-${lambdaName}`;
+	}))
+	.then(() => new Promise((s, f) => {
+		var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
+		fs.copy(this.SourceDirectory, tmpDir, error => {
+			return error ? f(error) : s(tmpDir);
+		});
+	}))
+	.then((tmpDir) => new Promise((s, f) => {
+		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(packageMetaData), (error, data) => {
+			return error ? f({Error: 'Failed writing production package.json file.', Details: error}) : s(tmpDir);
+		})
+	}))
+	.then((tmpDir) => new Promise((s, f) => {
+		exec('npm install --production', { cwd: tmpDir }, (error, stdout, stderr) => {
+			if(error) { return f({Error: 'Failed installing production npm modules.', Details: error}) }
+			return s(tmpDir);
+		});
+	}))
+	.then((tmpDir) => new Promise((s, f) => {
+		var zipArchivePath = path.join(tmpDir, 'lambda.zip');
+		var zipStream = fs.createWriteStream(zipArchivePath);
+		zipStream.on('close', () => s({Archive: zipArchivePath}));
+
+		var archive = archiver.create('zip', {});
+		archive.on('error', (e) => f({Error: e}));
+		archive.pipe(zipStream);
+		archive.glob('**', {dot: true, cwd: tmpDir, ignore: 'lambda.zip'});
+		archive.finalize();
+	}))
+	.then((zipInformation) => {
+		var awsLambdaPublisher = new aws.Lambda({region: region});
+		var configuration = this.Api.Configuration;
+		var functionName = `${serviceName}-${configuration.FunctionName}`;
 
 		return awsLambdaPublisher.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then((data) => {
 			return awsLambdaPublisher.updateFunctionCode({
@@ -79,13 +94,13 @@ AwsArchitect.prototype.PublishPromise = function() {
 				return awsLambdaPublisher.createFunction({
 					FunctionName: functionName,
 					Code: { ZipFile:  fs.readFileSync(zipInformation.Archive) },
-					Handler: `${lambdaName}.handler`,
-					Role: `arn:aws:iam::${accountId}:role/${this.Config.awsConfig.role}`,
-					Runtime: 'nodejs4.3',
-					Description: functionName,
-					MemorySize: 128,
-					Publish: true,
-					Timeout: 3
+					Handler: configuration.Handler,
+					Role: `arn:aws:iam::${accountId}:role/${configuration.Role}`,
+					Runtime: configuration.Runtime,
+					Description: configuration.Description,
+					MemorySize: configuration.MemorySize,
+					Publish: configuration.Publish,
+					Timeout: configuration.Timeout
 				}).promise()
 			});
 		})
@@ -100,9 +115,9 @@ AwsArchitect.prototype.PublishPromise = function() {
 	return Promise.all([lambdaPromise, apiGatewayCreatePromise]);
 };
 
-AwsArchitect.prototype.Run = function(mainIndexFile) {
+AwsArchitect.prototype.Run = function() {
 	try {
-		new Server(this.ContentDirectory, mainIndexFile || path.join(this.SourceDirectory, 'index.js'), this.Config).Run();
+		new Server(this.ContentDirectory, this.Api).Run();
 		return Promise.resolve({Message: 'Server started successfully'});
 	}
 	catch (exception) {
