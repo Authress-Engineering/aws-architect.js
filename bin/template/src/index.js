@@ -1,5 +1,5 @@
 var aws = require('aws-sdk');
-var Api = require('node-openapi-factory');
+var Api = require('openapi-factory');
 
 var api = new Api({
   description: 'This is the description of the lambda function',
@@ -38,8 +38,8 @@ api.post('/test', (request) => {
 });
 
 //Specialized return type to handle status and headers
-api.get('/orders', (request) => {
-  return Api.Response({Id: 1}, {'X-Custom-Header': 'HeaderValue'}, 200);
+api.get('/orders/{id}', (request) => {
+  return Api.Response({Id: request.params.id}, {'X-Custom-Header': 'HeaderValue'}, 200);
 });
 
 //Use a promise
@@ -47,6 +47,7 @@ api.get('/ordersAsync', (request) => {
   console.log(request.headers);
   console.log(request.body);
   console.log(request.queryString);
+  console.log(request.params);
 
   //AWS Lambda Context
   console.log(request.context);

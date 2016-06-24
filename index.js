@@ -116,24 +116,16 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var lambdaVersion = lambda.Version;
 			var apiGateway = result[1];
 			var apiGatewayId = apiGateway.Id;
-			//find all resources/verbs and publish them to API gateway
-			Object.keys(this.Api.Routes).map(method => {
-				Object.keys(this.Api.Routes[method]).map(resourcePath => {
 
-				});
-			});
-			var lambdaArn = lambdaArn;
-
+			var lambdaArnStagedVersioned = lambdaArn; //lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
+			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
+			console.log(lambdaFullArn);
 			var updateRestApiPromise = apiGatewayFactory.putRestApi({
-				body: JSON.stringify(SwaggerBody(this.PackageMetaData.name, this.PackageMetaData.version, lambdaArn)),
+				body: JSON.stringify(SwaggerBody(this.Api, this.PackageMetaData.name, this.PackageMetaData.version, lambdaFullArn)),
 				restApiId: apiGatewayId,
 				failOnWarnings: true,
 				mode: 'overwrite'
 			}).promise();
-
-			if(this.Api.Authorizer.Options.AuthorizationHeaderName) {
-				//Set the authorizer for each route as well.
-			}
 
 			console.log(JSON.stringify(result, null, 2));
 			return updateRestApiPromise;
@@ -144,95 +136,21 @@ AwsArchitect.prototype.PublishPromise = function() {
 	});
 };
 
-function SwaggerBody (name, version, lambdaArn) {
-	return {
+AwsArchitect.prototype.DeployStagePromise = function() {
+
+};
+
+function SwaggerBody (api, name, version, lambdaArn) {
+	if(api.Authorizer.Options.AuthorizationHeaderName) {
+		//Set the authorizer for each route as well.
+		//`method.request.header.${this.Api.Authorizer.Options.AuthorizationHeaderName}`;
+	}
+
+	var swaggerTemplate = {
 		swagger: '2.0',
 		info: {
 			'version': `${version}.${new Date().toISOString()}`,
 			'title': name
-		},
-		paths: {
-			'/': {
-				'get': {
-					'consumes': ['application/json'],
-					'produces': ['application/json'],
-					'parameters': [
-						{
-							'name': 'Content-Type',
-							'in': 'header',
-							'required': false,
-							'type': 'string'
-						},
-						{
-							'name': 'id',
-							'in': 'query',
-							'required': false,
-							'type': 'string'
-						}
-					],
-					'responses': {
-						'200': {
-							'description': '200 response',
-							'schema': {
-								'$ref': '#/definitions/Empty'
-							}
-						},
-						'300': {
-							'description': '300 response',
-							'schema': {
-								'$ref': '#/definitions/Empty'
-							}
-						},
-						'400': {
-							'description': '400 response',
-							'schema': {
-								'$ref': '#/definitions/Empty'
-							}
-						},
-						'500': {
-							'description': '500 response',
-							'schema': {
-								'$ref': '#/definitions/Empty'
-							}
-						}
-					},
-					'x-amazon-apigateway-integration': {
-						'responses': {
-							'default': {
-								'statusCode': '200',
-								'responseParameters': {
-									//'method.response.header.Access-Control-Allow-Origin': '\'*\''
-								}
-							},
-							'.*\"statusCode\":300.*': {
-								'statusCode': '300',
-								'responseParameters': {
-									//'method.response.header.Access-Control-Allow-Origin': '\'*\''
-								}
-							},
-							'.*\"statusCode\":400.*': {
-								'statusCode': '400',
-								'responseParameters': {
-									//'method.response.header.Access-Control-Allow-Origin': "'*'"
-								}
-							},
-							'.*\"statusCode\":500.*': {
-								'statusCode': '500',
-								'responseParameters': {
-									//'method.response.header.Access-Control-Allow-Origin': "'*'"
-								}
-							},
-						},
-						'uri': lambdaArn,
-						/* Authorizer: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html
-							'authorizerUri': lambdaArn,
-						*/
-						'passthroughBehavior': 'when_no_templates',
-						'httpMethod': 'POST',
-						'type': 'aws'
-					}
-				}
-			}
 		},
 		'securityDefinitions': {
 			'sigv4': {
@@ -246,8 +164,109 @@ function SwaggerBody (name, version, lambdaArn) {
 			'Empty': {
 				'type': 'object'
 			}
-		}
+		},
+		paths: {}
 	};
+
+	//find all resources/verbs and publish them to API gateway
+	var defaultResponses = {};
+	var defaultAmazonIntegrations = { default: { statusCode: '200' } };
+
+	[200, 201, 202, 203, 204, 205, 206,
+	300, 301, 302, 303, 304, 305, 307, 308,
+	400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 421, 426, 428, 429, 431,
+	500, 501, 502, 503, 504, 505, 506, 507, 511].map(code => {
+		defaultResponses[code] = {
+			description: `${code} response`
+		};
+		defaultAmazonIntegrations[`.*"statusCode":${code}.*`] = {
+			'statusCode': code.toString(),
+			'responseParameters': {
+				//'method.response.header.Access-Control-Allow-Origin': '\'*\''
+			}
+		};
+	});
+	Object.keys(api.Routes).map(method => {
+		Object.keys(api.Routes[method]).map(resourcePath => {
+			if(!swaggerTemplate.paths[resourcePath]) {
+				swaggerTemplate.paths[resourcePath] = {
+				/*
+					'options': {
+						'consumes': ['application/json'],
+						'produces': ['application/json'],
+						'responses': {
+							'200': {
+								'description': '200 response',
+								'schema': {
+									'$ref': '#/definitions/Empty'
+								},
+								'headers': {
+									'Access-Control-Allow-Origin': { 'type': 'string' },
+									'Access-Control-Allow-Methods': { 'type': 'string' },
+									'Access-Control-Allow-Credentials': { 'type': 'string' },
+									'Access-Control-Allow-Headers': { 'type': 'string' }
+								}
+							}
+						},
+						'x-amazon-apigateway-integration': {
+							'requestTemplates': {
+								'application/json': '{\'statusCode\': 200}'
+							},
+							'passthroughBehavior': 'when_no_match',
+							'responses': {
+								'default': {
+									'statusCode': '200',
+									'responseParameters': {
+										'method.response.header.Access-Control-Allow-Credentials': "'true'",
+										'method.response.header.Access-Control-Allow-Methods': "'HEAD,GET,OPTIONS,POST,PUT,PATCH,DELETE'",
+										'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+										'method.response.header.Access-Control-Allow-Origin': "'http://localhost'"
+									}
+								}
+							},
+							'type': 'mock'
+						}
+					}
+				*/
+				};
+			}
+			swaggerTemplate.paths[resourcePath][method.toLowerCase()] = {
+				consumes: ['application/json'],
+				produces: ['application/json'],
+			/*
+				'parameters': [
+					{
+						'name': 'Content-Type',
+						'in': 'header',
+						'required': false,
+						'type': 'string'
+					},
+					{
+						'name': 'id',
+						'in': 'query',
+						'required': false,
+						'type': 'string'
+					}
+				],
+			*/
+				responses: defaultResponses,
+				'x-amazon-apigateway-integration': {
+					responses: defaultAmazonIntegrations,
+					'uri': lambdaArn,
+					/* Authorizer: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html
+						'authorizerUri': lambdaArn,
+					*/
+					'passthroughBehavior': 'when_no_templates',
+					'httpMethod': 'POST',
+					'type': 'aws',
+					"requestTemplates": {
+						"application/json": "#set($allParams = $input.params())\n{\n    \"body\" : $input.json('$'),\n    \"headers\": {\n    #set($params = $allParams.get('header'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"queryString\": {\n    #set($params = $allParams.get('querystring'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"params\": {\n    #set($params = $allParams.get('path'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"stage-variables\" : {\n    #foreach($key in $stageVariables.keySet())\n    \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"#if($foreach.hasNext),\n    #end\n    #end\n    }\n}\n"
+					},
+				}
+			};
+		});
+	});
+	return swaggerTemplate;
 }
 
 AwsArchitect.prototype.UpdateStagePromise = function(stage, lambdaVersion) {

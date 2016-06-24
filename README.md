@@ -18,7 +18,7 @@ This will also configure your aws account to allow your build system to automati
 
 ```javascript
 	var aws = require('aws-sdk');
-	var Api = require('node-openapi-factory');
+	var Api = require('openapi-factory');
 
 	var api = new Api({
 		description: 'This is the description of the lambda function',
