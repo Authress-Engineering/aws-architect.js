@@ -9,12 +9,15 @@ var os = require('os');
 var uuid = require('uuid');
 
 var Server = require('./lib/server');
-var aws = require('aws-sdk');
 
 function AwsArchitect(contentDirectory, sourceDirectory) {
 	this.ContentDirectory = contentDirectory;
 	this.SourceDirectory = sourceDirectory;
 	this.Api = require(path.join(sourceDirectory, 'index'));
+
+	//TODO: Assume that the src directory is one level down from root, figure out how to find this automatically by the current location.
+	var packageMetadataFile = path.join(path.dirname(this.SourceDirectory), 'package.json');
+	this.PackageMetaData = require(packageMetadataFile);
 }
 
 function GetAccountIdPromise() {
@@ -23,16 +26,13 @@ function GetAccountIdPromise() {
 
 AwsArchitect.prototype.PublishPromise = function() {
 	var region = this.Api.Configuration.Regions[0];
-	//TODO: Assume that the src directory is one level down from root, figure out how to find this automatically by the current location.
-	var packageMetadataFile = path.join(path.dirname(this.SourceDirectory), 'package.json');
-	var packageMetaData = require(packageMetadataFile);
-	var serviceName = packageMetaData.name;
-	var apigateway = new aws.APIGateway({region: region});
-	var apiGatewayCreatePromise = apigateway.getRestApis({ limit: 500 }).promise()
+	var serviceName = this.PackageMetaData.name;
+	var apiGatewayFactory = new aws.APIGateway({region: region});
+	var apiGatewayPromise = apiGatewayFactory.getRestApis({ limit: 500 }).promise()
 	.then((apis) => {
 		var serviceApi = apis.items.find((api) => api.name === serviceName);
 		if(!serviceApi) {
-			return apigateway.createRestApi({ name: serviceName }).promise()
+			return apiGatewayFactory.createRestApi({ name: serviceName }).promise()
 			.then((data) => {
 				return { Id: data.id, Name: data.name };
 			}, (error) => {
@@ -42,14 +42,13 @@ AwsArchitect.prototype.PublishPromise = function() {
 		return { Id: serviceApi.id, Name: serviceApi.name };
 	});
 
-	return Promise.resolve(null)
-	.then(() => new Promise((s, f) => {
+	var lambdaPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
 			if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
 			return s(null);
 		});
-	}))
+	})
 	.then(() => new Promise((s, f) => {
 		var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 		fs.copy(this.SourceDirectory, tmpDir, error => {
@@ -57,7 +56,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 		});
 	}))
 	.then((tmpDir) => new Promise((s, f) => {
-		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(packageMetaData), (error, data) => {
+		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(this.PackageMetaData), (error, data) => {
 			return error ? f({Error: 'Failed writing production package.json file.', Details: error}) : s(tmpDir);
 		})
 	}))
@@ -93,7 +92,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			return GetAccountIdPromise().then((accountId) => {
 				return awsLambdaPublisher.createFunction({
 					FunctionName: functionName,
-					Code: { ZipFile:  fs.readFileSync(zipInformation.Archive) },
+					Code: { ZipFile: fs.readFileSync(zipInformation.Archive) },
 					Handler: configuration.Handler,
 					Role: `arn:aws:iam::${accountId}:role/${configuration.Role}`,
 					Runtime: configuration.Runtime,
@@ -107,12 +106,152 @@ AwsArchitect.prototype.PublishPromise = function() {
 		.catch((error) => {
 			return Promise.reject({Error: error, Detail: error.stack});
 		});
-	})
-	.then((responses) => {
-		return {Title: 'Uploaded Lambdas', Result: responses};
 	});
 
-	return Promise.all([lambdaPromise, apiGatewayCreatePromise]);
+	return Promise.all([lambdaPromise, apiGatewayPromise])
+	.then(result => {
+		try {
+			var lambda = result[0];
+			var lambdaArn = lambda.FunctionArn;
+			var lambdaVersion = lambda.Version;
+			var apiGateway = result[1];
+			var apiGatewayId = apiGateway.Id;
+			//find all resources/verbs and publish them to API gateway
+			Object.keys(this.Api.Routes).map(method => {
+				Object.keys(this.Api.Routes[method]).map(resourcePath => {
+
+				});
+			});
+			var lambdaArn = lambdaArn;
+
+			var updateRestApiPromise = apiGatewayFactory.putRestApi({
+				body: JSON.stringify(SwaggerBody(this.PackageMetaData.name, this.PackageMetaData.version, lambdaArn)),
+				restApiId: apiGatewayId,
+				failOnWarnings: true,
+				mode: 'overwrite'
+			}).promise();
+
+			if(this.Api.Authorizer.Options.AuthorizationHeaderName) {
+				//Set the authorizer for each route as well.
+			}
+
+			console.log(JSON.stringify(result, null, 2));
+			return updateRestApiPromise;
+		}
+		catch (exception) {
+			return Promise.reject({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
+		}
+	});
+};
+
+function SwaggerBody (name, version, lambdaArn) {
+	return {
+		swagger: '2.0',
+		info: {
+			'version': `${version}.${new Date().toISOString()}`,
+			'title': name
+		},
+		paths: {
+			'/': {
+				'get': {
+					'consumes': ['application/json'],
+					'produces': ['application/json'],
+					'parameters': [
+						{
+							'name': 'Content-Type',
+							'in': 'header',
+							'required': false,
+							'type': 'string'
+						},
+						{
+							'name': 'id',
+							'in': 'query',
+							'required': false,
+							'type': 'string'
+						}
+					],
+					'responses': {
+						'200': {
+							'description': '200 response',
+							'schema': {
+								'$ref': '#/definitions/Empty'
+							}
+						},
+						'300': {
+							'description': '300 response',
+							'schema': {
+								'$ref': '#/definitions/Empty'
+							}
+						},
+						'400': {
+							'description': '400 response',
+							'schema': {
+								'$ref': '#/definitions/Empty'
+							}
+						},
+						'500': {
+							'description': '500 response',
+							'schema': {
+								'$ref': '#/definitions/Empty'
+							}
+						}
+					},
+					'x-amazon-apigateway-integration': {
+						'responses': {
+							'default': {
+								'statusCode': '200',
+								'responseParameters': {
+									//'method.response.header.Access-Control-Allow-Origin': '\'*\''
+								}
+							},
+							'.*\"statusCode\":300.*': {
+								'statusCode': '300',
+								'responseParameters': {
+									//'method.response.header.Access-Control-Allow-Origin': '\'*\''
+								}
+							},
+							'.*\"statusCode\":400.*': {
+								'statusCode': '400',
+								'responseParameters': {
+									//'method.response.header.Access-Control-Allow-Origin': "'*'"
+								}
+							},
+							'.*\"statusCode\":500.*': {
+								'statusCode': '500',
+								'responseParameters': {
+									//'method.response.header.Access-Control-Allow-Origin': "'*'"
+								}
+							},
+						},
+						'uri': lambdaArn,
+						/* Authorizer: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html
+							'authorizerUri': lambdaArn,
+						*/
+						'passthroughBehavior': 'when_no_templates',
+						'httpMethod': 'POST',
+						'type': 'aws'
+					}
+				}
+			}
+		},
+		'securityDefinitions': {
+			'sigv4': {
+				'type': 'apiKey',
+				'name': 'Authorization',
+				'in': 'header',
+				'x-amazon-apigateway-authtype': 'awsSigv4'
+			}
+		},
+		'definitions': {
+			'Empty': {
+				'type': 'object'
+			}
+		}
+	};
+}
+
+AwsArchitect.prototype.UpdateStagePromise = function(stage, lambdaVersion) {
+	var region = this.Api.Configuration.Regions[0];
 };
 
 AwsArchitect.prototype.Run = function() {

@@ -28,7 +28,7 @@
         {
             "Effect": "Allow",
             "Action": "apigateway:*",
-            "Resource": "arn:aws:apigateway:*::/restapis"
+            "Resource": "arn:aws:apigateway:*::/restapis*"
         }
     ]
 }
