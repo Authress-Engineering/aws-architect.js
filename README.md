@@ -159,10 +159,8 @@ After finding the provider you are interested in using and integrating that into
 ### Future Features
 
 * Set up Cloudfront for the Bucket so that caching happens using edge locations.
-* Create Stages
 * Publish S3 static website (updates static content, and sets up bucket for website hosting.)
 * IAM User and Service Roles
 * IdentityPool setup and configuration in Cognito
 * DynamoDB tables used by service, and management with environments
 * Allow Response headers
-* Allow Query parameters

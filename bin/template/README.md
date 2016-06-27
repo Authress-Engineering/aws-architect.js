@@ -7,11 +7,10 @@ Visit the [changelog](CHANGELOG.md).
 ## Prerequisites
 
 * Install NodeJS (4.3 this is what lambda uses) & npm
-
-	```bash
-		curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-		sudo apt-get install -y nodejs
-	```
+  ```bash
+  curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
 * Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
 	* Development time resources (identical for deployment CI), [example security policy](./bin/deployment-policy.json)
@@ -29,23 +28,54 @@ Development is templated using the make.js file. All the needed actions are pres
 
 ### Building
 
-	```bash
-		npm install
-		node make.js
-	```
+  ```bash
+  	npm install
+  	node make.js
+  ```
+
 ### Running server locally
 AWS Architect uses [OpenAPI Factory](https://github.com/wparad/node-openapi-factory) to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
 
-	```bash
-		npm install
-		node make.js run
-	```
+```bash
+   npm install
+   node make.js run
+```
+
 ### Deploying to AWS
 
-	```bash
-		npm install
-		node make.js deploy
-	```
+	* Using the built in make.js file
+
+```bash
+	npm install
+	node make.js deploy
+```
+
+	* Publish new version of the lambda and API Gateway and then deploy:
+
+```javascript
+    awsArchitect.PublishAndDeployPromise('test')
+    .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+    .catch((failure) => console.log(`${JSON.stringify(failure, null, 2)}`));
+```
+
+	* Do it in two steps
+
+```javascript
+	var publishPromise = awsArchitect.Publish();
+	var deploymentPromise = publishPromise.then(publishResults => 					
+    	awsArchitect.DeployStagePromise(publishResults.RestApiId, 'production', publishResults.LambdaVersion));
+```
+
+	* Or do it later:
+
+```javascript
+    var publishPromise = awsArchitect.Publish();
+    //...
+    // Some time later
+    var apiGateway = awsArchitect.GetApiGatewayPromise();
+    var deploymentPromise = accountIdPromise.then(apiGateway => awsArchitect.DeployStagePromise(apiGateway.Id, 'production', 'Specific_Lambda_Version'));
+```
+
 ### Setup
 
 #### Setting up Google authentication, Cognito, and API Gateway

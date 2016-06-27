@@ -9,6 +9,7 @@ var os = require('os');
 var uuid = require('uuid');
 
 var Server = require('./lib/server');
+var ApiGatewayManager = require('./lib/ApiGatewayManager');
 
 function AwsArchitect(contentDirectory, sourceDirectory) {
 	this.ContentDirectory = contentDirectory;
@@ -24,26 +25,16 @@ function GetAccountIdPromise() {
 	return new aws.IAM().getUser({}).promise().then((data) => data.User.Arn.split(':')[4]);
 }
 
+AwsArchitect.prototype.GetApiGatewayPromise = function() {
+	var apiGatewayFactory = new aws.APIGateway({region: region});
+	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
+	var serviceName = this.PackageMetaData.name;
+	return apiGatewayManager.GetApiGatewayPromise(serviceName);
+}
 AwsArchitect.prototype.PublishPromise = function() {
 	var region = this.Api.Configuration.Regions[0];
 	var serviceName = this.PackageMetaData.name;
-	var apiGatewayFactory = new aws.APIGateway({region: region});
 	var awsLambdaFactory = new aws.Lambda({region: region});
-
-	var apiGatewayPromise = apiGatewayFactory.getRestApis({ limit: 500 }).promise()
-	.then((apis) => {
-		var serviceApi = apis.items.find((api) => api.name === serviceName);
-		if(!serviceApi) {
-			return apiGatewayFactory.createRestApi({ name: serviceName }).promise()
-			.then((data) => {
-				return { Id: data.id, Name: data.name };
-			}, (error) => {
-				return Promise.reject({Error: 'Failed to create API Gateway', Detail: error.stack || error});
-			});
-		}
-		return { Id: serviceApi.id, Name: serviceApi.name };
-	});
-
 	var accountIdPromise = GetAccountIdPromise();
 
 	var configuration = this.Api.Configuration;
@@ -111,6 +102,9 @@ AwsArchitect.prototype.PublishPromise = function() {
 		});
 	});
 
+	var apiGatewayFactory = new aws.APIGateway({region: region});
+	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
+	var apiGatewayPromise = apiGatewayManager.GetApiGatewayPromise(serviceName);
 	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
 	.then(result => {
 		try {
@@ -120,7 +114,6 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var apiGateway = result[1];
 			var apiGatewayId = apiGateway.Id;
 			var accountId = result[2];
-
 
 			var permissionsPromise = awsLambdaFactory.addPermission({
 				Action: 'lambda:InvokeFunction',
@@ -132,15 +125,23 @@ AwsArchitect.prototype.PublishPromise = function() {
 
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
+
+			var swaggerBody = apiGatewayManager.GetSwaggerBody(this.Api, this.PackageMetaData.name, this.PackageMetaData.version, lambdaFullArn);
 			var updateRestApiPromise = apiGatewayFactory.putRestApi({
-				body: JSON.stringify(SwaggerBody(this.Api, this.PackageMetaData.name, this.PackageMetaData.version, lambdaFullArn)),
+				body: JSON.stringify(swaggerBody),
 				restApiId: apiGatewayId,
 				failOnWarnings: true,
 				mode: 'overwrite'
 			}).promise();
 
-			console.log(JSON.stringify(result, null, 2));
-			return Promise.all([updateRestApiPromise, permissionsPromise]);
+			return Promise.all([updateRestApiPromise, permissionsPromise])
+			.then(result => {
+				return {
+					LambdaFunctionArn: lambdaArn,
+					LambdaVersion: lambdaVersion,
+					RestApiId: apiGatewayId
+				};
+			});
 		}
 		catch (exception) {
 			return Promise.reject({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
@@ -148,198 +149,24 @@ AwsArchitect.prototype.PublishPromise = function() {
 	});
 };
 
-AwsArchitect.prototype.DeployStagePromise = function() {
-
+AwsArchitect.prototype.DeployStagePromise = function(restApiId, stage, lambdaVersion) {
+	var region = this.Api.Configuration.Regions[0];
+	var apiGatewayFactory = new aws.APIGateway({region: region});
+	return new ApiGatewayManager(apiGatewayFactory).DeployStagePromise(restApiId, stage, lambdaVersion);
 };
 
-function SwaggerBody (api, name, version, lambdaArn) {
-	var swaggerTemplate = {
-		swagger: '2.0',
-		info: {
-			'version': `${version}.${new Date().toISOString()}`,
-			'title': name
-		},
-		'securityDefinitions': {
-			'sigv4': {
-				'type': 'apiKey',
-				'name': 'Authorization',
-				'in': 'header',
-				'x-amazon-apigateway-authtype': 'awsSigv4'
-			},
-			'AWS-Architect-Authorizer': {
-				'type': 'apiKey',
-				'name': api.Authorizer.Options.AuthorizationHeaderName || 'Authorization',
-				'in': 'header',
-				'x-amazon-apigateway-authtype': 'custom',
-				'x-amazon-apigateway-authorizer': {
-					'authorizerResultTtlInSeconds': Number(api.Authorizer.Options.CacheTimeout) || 300,
-					'authorizerUri': lambdaArn,
-					'type': 'token'
-				}
-			}
-		},
-		'definitions': {
-			'Empty': {
-				'type': 'object'
-			}
-		},
-		paths: {}
-	};
-
-	//find all resources/verbs and publish them to API gateway
-	var defaultResponses = {};
-	var defaultAmazonIntegrations = {
-		default: {
-			statusCode: '200',
-			"responseTemplates": {
-				"application/json": "$input.path('$.errorMessage')"
-			}
-		}
-	};
-
-	[200, 201, 202, 203, 204, 205, 206,
-	300, 301, 302, 303, 304, 305, 307, 308,
-	400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 421, 426, 428, 429, 431,
-	500, 501, 502, 503, 504, 505, 506, 507, 511].map(code => {
-		defaultResponses[code] = {
-			description: `${code} response`
-		};
-		defaultAmazonIntegrations[`.*"statusCode":${code}.*`] = {
-			'statusCode': code.toString(),
-			'responseParameters': {
-				//'method.response.header.Access-Control-Allow-Origin': '\'*\''
-			},
-			"responseTemplates": {
-				"application/json": "$input.path('$.errorMessage')"
-			}
-		};
-	});
-	Object.keys(api.Routes).map(method => {
-		Object.keys(api.Routes[method]).map(resourcePath => {
-			if(!swaggerTemplate.paths[resourcePath]) {
-				swaggerTemplate.paths[resourcePath] = {
-				/*
-					'options': {
-						'consumes': ['application/json'],
-						'produces': ['application/json'],
-						'responses': {
-							'200': {
-								'description': '200 response',
-								'schema': {
-									'$ref': '#/definitions/Empty'
-								},
-								'headers': {
-									'Access-Control-Allow-Origin': { 'type': 'string' },
-									'Access-Control-Allow-Methods': { 'type': 'string' },
-									'Access-Control-Allow-Credentials': { 'type': 'string' },
-									'Access-Control-Allow-Headers': { 'type': 'string' }
-								}
-							}
-						},
-						'x-amazon-apigateway-integration': {
-							'requestTemplates': {
-								'application/json': '{\'statusCode\': 200}'
-							},
-							'passthroughBehavior': 'when_no_match',
-							'responses': {
-								'default': {
-									'statusCode': '200',
-									'responseParameters': {
-										'method.response.header.Access-Control-Allow-Credentials': "'true'",
-										'method.response.header.Access-Control-Allow-Methods': "'HEAD,GET,OPTIONS,POST,PUT,PATCH,DELETE'",
-										'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-										'method.response.header.Access-Control-Allow-Origin': "'http://localhost'"
-									}
-								}
-							},
-							'type': 'mock'
-						}
-					}
-				*/
-				};
-			}
-			swaggerTemplate.paths[resourcePath][method.toLowerCase()] = {
-				consumes: ['application/json'],
-				produces: ['application/json'],
-			/*
-				'parameters': [
-					{
-						'name': 'Content-Type',
-						'in': 'header',
-						'required': false,
-						'type': 'string'
-					},
-					{
-						'name': 'id',
-						'in': 'query',
-						'required': false,
-						'type': 'string'
-					}
-				],
-			*/
-				responses: defaultResponses,
-				'x-amazon-apigateway-integration': {
-					responses: defaultAmazonIntegrations,
-					'uri': lambdaArn,
-					'passthroughBehavior': 'when_no_templates',
-					'httpMethod': 'POST',
-					'type': 'aws',
-					"requestTemplates": {
-						"application/json": `#set($allParams = $input.params())
-{
-	"body" : $input.json('$'),
-	"headers": {
-		#set($params = $allParams.get('header'))
-		#foreach($paramName in $params.keySet())
-		"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
-	#end
-	#end
-},
-	"queryString": {
-	#set($params = $allParams.get('querystring'))
-	#foreach($paramName in $params.keySet())
-	"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
-	#end
-	#end
-	},
-	"params": {
-	#set($params = $allParams.get('path'))
-	#foreach($paramName in $params.keySet())
-	"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
-	#end
-	#end
-	},
-	"stage-variables" : {
-	#foreach($key in $stageVariables.keySet())
-	"$key" : "$util.escapeJavaScript($stageVariables.get($key))"#if($foreach.hasNext),
-	#end
-	#end
-	},
-	"api" : {
-		"authorizerPrincipalId" : "$context.authorizer.principalId",
-		"httpMethod" : "$context.httpMethod",
-		"resourcePath" : "$context.resourcePath"
-	}
-}
-`
-					},
-				}
-			};
-
-			if(api.Authorizer.Options.AuthorizationHeaderName) {
-				swaggerTemplate.paths[resourcePath][method.toLowerCase()].security = [
-					{
-						'AWS-Architect-Authorizer': []
-					}
-				];
-			}
-		});
-	});
-	return swaggerTemplate;
-}
-
-AwsArchitect.prototype.UpdateStagePromise = function(stage, lambdaVersion) {
+AwsArchitect.prototype.PublishAndDeployPromise = function(stage) {
+	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 	var region = this.Api.Configuration.Regions[0];
+	var apiGatewayFactory = new aws.APIGateway({region: region});
+	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
+	return this.PublishPromise()
+	.then(result => {
+		return apiGatewayManager.DeployStagePromise(result.RestApiId, stage, result.LambdaVersion);
+	})
+	.catch(failure => {
+		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});
+	});
 };
 
 AwsArchitect.prototype.Run = function() {

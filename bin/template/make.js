@@ -51,7 +51,7 @@ commander
 	.command('deploy')
 	.description('Deploy to AWS.')
 	.action(() => {
-		awsArchitect.PublishPromise()
+		awsArchitect.PublishAndDeployPromise('test')
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 		.catch((failure) => console.log(`${JSON.stringify(failure, null, 2)}`));
 	});
