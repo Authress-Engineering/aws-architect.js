@@ -40,7 +40,7 @@ This will also configure your aws account to allow your build system to automati
 ##### Set a custom authorizer
 
 ```json
-	api.Authorizer((authorizationToken, methodArn, principalId) => {
+	api.SetAuthorizer((authorizationToken, methodArn, principalId) => {
 		return {
 			principalId: principalId,
 			policyDocument: {
@@ -64,13 +64,9 @@ This will also configure your aws account to allow your build system to automati
 * conventioned based lambda functions specified as an argument to the associated functions.
 * Lambda/API Gateway setup for seemless integration.
 * Automatic creation of AWS resources when using `AwsArchitect.PublishPromise()`. Including:
-	* S3 static website (updates static content, and sets up bucket for website hosting.)
 	* Lambda functions
 	* API Gateway resources
-	* IAM User and Service Roles
-	* IdentityPool setup and configuration in Cognito
 	* Environments for managing resources in AWS
-	* DynamoDB tables used by service, and management with environments
 * Local user testing platform, to run lambdas and static content as a local express Node.js service.
 
 ### Service Configuration
@@ -163,3 +159,10 @@ After finding the provider you are interested in using and integrating that into
 ### Future Features
 
 * Set up Cloudfront for the Bucket so that caching happens using edge locations.
+* Create Stages
+* Publish S3 static website (updates static content, and sets up bucket for website hosting.)
+* IAM User and Service Roles
+* IdentityPool setup and configuration in Cognito
+* DynamoDB tables used by service, and management with environments
+* Allow Response headers
+* Allow Query parameters

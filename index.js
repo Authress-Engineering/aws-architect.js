@@ -188,7 +188,14 @@ function SwaggerBody (api, name, version, lambdaArn) {
 
 	//find all resources/verbs and publish them to API gateway
 	var defaultResponses = {};
-	var defaultAmazonIntegrations = { default: { statusCode: '200' } };
+	var defaultAmazonIntegrations = {
+		default: {
+			statusCode: '200',
+			"responseTemplates": {
+				"application/json": "$input.path('$.errorMessage')"
+			}
+		}
+	};
 
 	[200, 201, 202, 203, 204, 205, 206,
 	300, 301, 302, 303, 304, 305, 307, 308,
@@ -274,14 +281,47 @@ function SwaggerBody (api, name, version, lambdaArn) {
 				'x-amazon-apigateway-integration': {
 					responses: defaultAmazonIntegrations,
 					'uri': lambdaArn,
-					/* Authorizer: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html
-						'authorizerUri': lambdaArn,
-					*/
 					'passthroughBehavior': 'when_no_templates',
 					'httpMethod': 'POST',
 					'type': 'aws',
 					"requestTemplates": {
-						"application/json": "#set($allParams = $input.params())\n{\n    \"body\" : $input.json('$'),\n    \"headers\": {\n    #set($params = $allParams.get('header'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"queryString\": {\n    #set($params = $allParams.get('querystring'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"params\": {\n    #set($params = $allParams.get('path'))\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"#if($foreach.hasNext),\n    #end\n    #end\n    },\n    \"stage-variables\" : {\n    #foreach($key in $stageVariables.keySet())\n    \"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"#if($foreach.hasNext),\n    #end\n    #end\n    }\n}\n"
+						"application/json": `#set($allParams = $input.params())
+{
+	"body" : $input.json('$'),
+	"headers": {
+		#set($params = $allParams.get('header'))
+		#foreach($paramName in $params.keySet())
+		"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
+	#end
+	#end
+},
+	"queryString": {
+	#set($params = $allParams.get('querystring'))
+	#foreach($paramName in $params.keySet())
+	"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
+	#end
+	#end
+	},
+	"params": {
+	#set($params = $allParams.get('path'))
+	#foreach($paramName in $params.keySet())
+	"$paramName" : "$util.escapeJavaScript($params.get($paramName))"#if($foreach.hasNext),
+	#end
+	#end
+	},
+	"stage-variables" : {
+	#foreach($key in $stageVariables.keySet())
+	"$key" : "$util.escapeJavaScript($stageVariables.get($key))"#if($foreach.hasNext),
+	#end
+	#end
+	},
+	"api" : {
+		"authorizerPrincipalId" : "$context.authorizer.principalId",
+		"httpMethod" : "$context.httpMethod",
+		"resourcePath" : "$context.resourcePath"
+	}
+}
+`
 					},
 				}
 			};
@@ -308,7 +348,7 @@ AwsArchitect.prototype.Run = function() {
 		return Promise.resolve({Message: 'Server started successfully'});
 	}
 	catch (exception) {
-		return Promise.reject({Error: 'Failed to start server', Exception: exception});
+		return Promise.reject({Error: 'Failed to start server', Exception: exception.stack || exception});
 	}
 };
 

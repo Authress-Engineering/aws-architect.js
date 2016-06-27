@@ -13,7 +13,7 @@ var api = new Api({
 
 module.exports = api;
 
-api.Authorizer((authorizationToken, methodArn, principalId) => {
+api.SetAuthorizer((authorizationToken, methodArn, principalId) => {
   return {
     principalId: principalId,
     policyDocument: {
