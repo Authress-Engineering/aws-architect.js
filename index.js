@@ -108,6 +108,8 @@ AwsArchitect.prototype.PublishPromise = function() {
 		});
 	});
 
+	//TODO: Set permissions on lambda function so that api gateway can execute it.
+
 	return Promise.all([lambdaPromise, apiGatewayPromise])
 	.then(result => {
 		try {
@@ -117,7 +119,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var apiGateway = result[1];
 			var apiGatewayId = apiGateway.Id;
 
-			var lambdaArnStagedVersioned = lambdaArn; //lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
+			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
 			console.log(lambdaFullArn);
 			var updateRestApiPromise = apiGatewayFactory.putRestApi({

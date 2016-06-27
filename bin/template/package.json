@@ -4,6 +4,7 @@
   "description": "Description of the package",
   "main": "index.js",
   "scripts": {
+    "start": "node make.js run",
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {

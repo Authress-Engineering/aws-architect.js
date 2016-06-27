@@ -42,8 +42,7 @@ commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
-		//Optionally specify the location of the lambda.js file, by default is the full path of index.js in the awsArchitect src directory specified.
-		awsArchitect.Run(/* path.join(__dirname, 'src', index.js) */)
+		awsArchitect.Run()
 		.then((result) => console.log(JSON.stringify(result, null, 2)))
 		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});
