@@ -6,7 +6,7 @@ Visit the [changelog](CHANGELOG.md).
 
 ## Prerequisites
 
-* Install NodeJS & npm
+* Install NodeJS (4.3 this is what lambda uses) & npm
 
 	```bash
 		curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
@@ -31,20 +31,20 @@ Development is templated using the make.js file. All the needed actions are pres
 
 	```bash
 		npm install
-		npm make.js
+		node make.js
 	```
 ### Running server locally
-AWS Architect uses [OpenAPI Factory]() to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
+AWS Architect uses [OpenAPI Factory](https://github.com/wparad/node-openapi-factory) to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
 
 	```bash
 		npm install
-		npm make.js run
+		node make.js run
 	```
 ### Deploying to AWS
 
 	```bash
 		npm install
-		npm make.js deploy
+		node make.js deploy
 	```
 ### Setup
 
@@ -141,4 +141,4 @@ AWS Architect uses [OpenAPI Factory]() to convert the `src/index.js` into a node
 TL;DL
 
 * Static content => `content/index.html`
-* Lambda functions => `src/index.js`
+* Lambda function => `src/index.js`

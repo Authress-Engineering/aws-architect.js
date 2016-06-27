@@ -16,7 +16,8 @@
                 "lambda:UpdateAlias",
                 "lambda:UpdateFunctionCode",
                 "lambda:ListVersionsByFunction",
-                "lambda:UpdateFunctionConfiguration"
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:AddPermission"
             ],
             "Resource": "*"
         },

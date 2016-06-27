@@ -28,6 +28,8 @@ AwsArchitect.prototype.PublishPromise = function() {
 	var region = this.Api.Configuration.Regions[0];
 	var serviceName = this.PackageMetaData.name;
 	var apiGatewayFactory = new aws.APIGateway({region: region});
+	var awsLambdaFactory = new aws.Lambda({region: region});
+
 	var apiGatewayPromise = apiGatewayFactory.getRestApis({ limit: 500 }).promise()
 	.then((apis) => {
 		var serviceApi = apis.items.find((api) => api.name === serviceName);
@@ -41,6 +43,11 @@ AwsArchitect.prototype.PublishPromise = function() {
 		}
 		return { Id: serviceApi.id, Name: serviceApi.name };
 	});
+
+	var accountIdPromise = GetAccountIdPromise();
+
+	var configuration = this.Api.Configuration;
+	var functionName = `${serviceName}-${configuration.FunctionName}`;
 
 	var lambdaPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
@@ -78,19 +85,15 @@ AwsArchitect.prototype.PublishPromise = function() {
 		archive.finalize();
 	}))
 	.then((zipInformation) => {
-		var awsLambdaPublisher = new aws.Lambda({region: region});
-		var configuration = this.Api.Configuration;
-		var functionName = `${serviceName}-${configuration.FunctionName}`;
-
-		return awsLambdaPublisher.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then((data) => {
-			return awsLambdaPublisher.updateFunctionCode({
+		return awsLambdaFactory.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then((data) => {
+			return awsLambdaFactory.updateFunctionCode({
 				FunctionName: functionName,
 				Publish: true,
 				ZipFile: fs.readFileSync(zipInformation.Archive)
 			}).promise();
 		}).catch((failure) => {
-			return GetAccountIdPromise().then((accountId) => {
-				return awsLambdaPublisher.createFunction({
+			return accountIdPromise.then((accountId) => {
+				return awsLambdaFactory.createFunction({
 					FunctionName: functionName,
 					Code: { ZipFile: fs.readFileSync(zipInformation.Archive) },
 					Handler: configuration.Handler,
@@ -108,9 +111,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 		});
 	});
 
-	//TODO: Set permissions on lambda function so that api gateway can execute it.
-
-	return Promise.all([lambdaPromise, apiGatewayPromise])
+	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
 	.then(result => {
 		try {
 			var lambda = result[0];
@@ -118,10 +119,19 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var lambdaVersion = lambda.Version;
 			var apiGateway = result[1];
 			var apiGatewayId = apiGateway.Id;
+			var accountId = result[2];
+
+
+			var permissionsPromise = awsLambdaFactory.addPermission({
+				Action: 'lambda:InvokeFunction',
+				FunctionName: lambdaArn,
+				Principal: 'apigateway.amazonaws.com',
+				StatementId: uuid.v4().replace('-', ''),
+				SourceArn: `arn:aws:execute-api:us-east-1:${accountId}:${apiGatewayId}/*`
+			}).promise().then(data => JSON.parse(data.Statement));
 
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
-			console.log(lambdaFullArn);
 			var updateRestApiPromise = apiGatewayFactory.putRestApi({
 				body: JSON.stringify(SwaggerBody(this.Api, this.PackageMetaData.name, this.PackageMetaData.version, lambdaFullArn)),
 				restApiId: apiGatewayId,
@@ -130,7 +140,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			}).promise();
 
 			console.log(JSON.stringify(result, null, 2));
-			return updateRestApiPromise;
+			return Promise.all([updateRestApiPromise, permissionsPromise]);
 		}
 		catch (exception) {
 			return Promise.reject({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
@@ -143,11 +153,6 @@ AwsArchitect.prototype.DeployStagePromise = function() {
 };
 
 function SwaggerBody (api, name, version, lambdaArn) {
-	if(api.Authorizer.Options.AuthorizationHeaderName) {
-		//Set the authorizer for each route as well.
-		//`method.request.header.${this.Api.Authorizer.Options.AuthorizationHeaderName}`;
-	}
-
 	var swaggerTemplate = {
 		swagger: '2.0',
 		info: {
@@ -160,6 +165,17 @@ function SwaggerBody (api, name, version, lambdaArn) {
 				'name': 'Authorization',
 				'in': 'header',
 				'x-amazon-apigateway-authtype': 'awsSigv4'
+			},
+			'AWS-Architect-Authorizer': {
+				'type': 'apiKey',
+				'name': api.Authorizer.Options.AuthorizationHeaderName || 'Authorization',
+				'in': 'header',
+				'x-amazon-apigateway-authtype': 'custom',
+				'x-amazon-apigateway-authorizer': {
+					'authorizerResultTtlInSeconds': Number(api.Authorizer.Options.CacheTimeout) || 300,
+					'authorizerUri': lambdaArn,
+					'type': 'token'
+				}
 			}
 		},
 		'definitions': {
@@ -185,6 +201,9 @@ function SwaggerBody (api, name, version, lambdaArn) {
 			'statusCode': code.toString(),
 			'responseParameters': {
 				//'method.response.header.Access-Control-Allow-Origin': '\'*\''
+			},
+			"responseTemplates": {
+				"application/json": "$input.path('$.errorMessage')"
 			}
 		};
 	});
@@ -266,6 +285,14 @@ function SwaggerBody (api, name, version, lambdaArn) {
 					},
 				}
 			};
+
+			if(api.Authorizer.Options.AuthorizationHeaderName) {
+				swaggerTemplate.paths[resourcePath][method.toLowerCase()].security = [
+					{
+						'AWS-Architect-Authorizer': []
+					}
+				];
+			}
 		});
 	});
 	return swaggerTemplate;
