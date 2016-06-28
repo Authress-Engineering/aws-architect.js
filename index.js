@@ -76,13 +76,26 @@ AwsArchitect.prototype.PublishPromise = function() {
 		archive.finalize();
 	}))
 	.then((zipInformation) => {
-		return awsLambdaFactory.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then((data) => {
-			return awsLambdaFactory.updateFunctionCode({
+		return awsLambdaFactory.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then(() => {
+			return accountIdPromise.then((accountId) => awsLambdaFactory.updateFunctionConfiguration({
+				FunctionName: functionName,
+				Handler: configuration.Handler,
+				Role: `arn:aws:iam::${accountId}:role/${configuration.Role}`,
+				Runtime: configuration.Runtime,
+				Description: configuration.Description,
+				MemorySize: configuration.MemorySize,
+				Timeout: configuration.Timeout,
+				VpcConfig: {
+					SecurityGroupIds: this.Api.Configuration.SecurityGroupIds,
+					SubnetIds: this.Api.Configuration.SubnetIds
+				}
+			}).promise())
+			.then(() => awsLambdaFactory.updateFunctionCode({
 				FunctionName: functionName,
 				Publish: true,
 				ZipFile: fs.readFileSync(zipInformation.Archive)
-			}).promise();
-		}).catch((failure) => {
+			}).promise());
+		}, (failure) => {
 			return accountIdPromise.then((accountId) => {
 				return awsLambdaFactory.createFunction({
 					FunctionName: functionName,
@@ -93,7 +106,11 @@ AwsArchitect.prototype.PublishPromise = function() {
 					Description: configuration.Description,
 					MemorySize: configuration.MemorySize,
 					Publish: configuration.Publish,
-					Timeout: configuration.Timeout
+					Timeout: configuration.Timeout,
+					VpcConfig: {
+						SecurityGroupIds: this.Api.Configuration.SecurityGroupIds,
+						SubnetIds: this.Api.Configuration.SubnetIds
+					}
 				}).promise()
 			});
 		})
