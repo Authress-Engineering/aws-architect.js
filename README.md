@@ -27,7 +27,9 @@ This will also configure your aws account to allow your build system to automati
 		runtime: 'nodejs4.3',
 		memorySize: 128,
 		publish: true,
-		timeout: 3
+		timeout: 3,
+		securityGroupIds: [],
+		subnetIds: []
 	}, __filename);
 
 	module.exports = api;
