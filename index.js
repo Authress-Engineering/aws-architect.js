@@ -10,15 +10,17 @@ var uuid = require('uuid');
 
 var Server = require('./lib/server');
 var ApiGatewayManager = require('./lib/ApiGatewayManager');
+var ApiConfiguration = require('./lib/ApiConfiguration');
 
-function AwsArchitect(contentDirectory, sourceDirectory) {
-	this.ContentDirectory = contentDirectory;
-	this.SourceDirectory = sourceDirectory;
-	this.Api = require(path.join(sourceDirectory, 'index'));
+function AwsArchitect(packageMetadata, apiOptions, contentOptions, databaseOptions) {
+	this.ContentDirectory = contentOptions.contentDirectory;
+	this.SourceDirectory = apiOptions.sourceDirectory;
+	this.Api = require(path.join(apiOptions.sourceDirectory, 'index'));
+	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
 
 	//TODO: Assume that the src directory is one level down from root, figure out how to find this automatically by the current location.
 	var packageMetadataFile = path.join(path.dirname(this.SourceDirectory), 'package.json');
-	this.PackageMetaData = require(packageMetadataFile);
+	this.PackageMetadata = packageMetadata;
 }
 
 function GetAccountIdPromise() {
@@ -28,16 +30,16 @@ function GetAccountIdPromise() {
 AwsArchitect.prototype.GetApiGatewayPromise = function() {
 	var apiGatewayFactory = new aws.APIGateway({region: region});
 	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
-	var serviceName = this.PackageMetaData.name;
+	var serviceName = this.PackageMetadata.name;
 	return apiGatewayManager.GetApiGatewayPromise(serviceName);
 }
 AwsArchitect.prototype.PublishPromise = function() {
-	var region = this.Api.Configuration.Regions[0];
-	var serviceName = this.PackageMetaData.name;
+	var region = this.Configuration.Regions[0];
+	var serviceName = this.PackageMetadata.name;
 	var awsLambdaFactory = new aws.Lambda({region: region});
 	var accountIdPromise = GetAccountIdPromise();
 
-	var configuration = this.Api.Configuration;
+	var configuration = this.Configuration;
 	var functionName = `${serviceName}-${configuration.FunctionName}`;
 
 	var lambdaPromise = new Promise((s, f) => {
@@ -54,7 +56,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 		});
 	}))
 	.then((tmpDir) => new Promise((s, f) => {
-		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(this.PackageMetaData), (error, data) => {
+		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(this.PackageMetadata), (error, data) => {
 			return error ? f({Error: 'Failed writing production package.json file.', Details: error}) : s(tmpDir);
 		})
 	}))
@@ -86,8 +88,8 @@ AwsArchitect.prototype.PublishPromise = function() {
 				MemorySize: configuration.MemorySize,
 				Timeout: configuration.Timeout,
 				VpcConfig: {
-					SecurityGroupIds: this.Api.Configuration.SecurityGroupIds,
-					SubnetIds: this.Api.Configuration.SubnetIds
+					SecurityGroupIds: this.Configuration.SecurityGroupIds,
+					SubnetIds: this.Configuration.SubnetIds
 				}
 			}).promise())
 			.then(() => awsLambdaFactory.updateFunctionCode({
@@ -108,8 +110,8 @@ AwsArchitect.prototype.PublishPromise = function() {
 					Publish: configuration.Publish,
 					Timeout: configuration.Timeout,
 					VpcConfig: {
-						SecurityGroupIds: this.Api.Configuration.SecurityGroupIds,
-						SubnetIds: this.Api.Configuration.SubnetIds
+						SecurityGroupIds: this.Configuration.SecurityGroupIds,
+						SubnetIds: this.Configuration.SubnetIds
 					}
 				}).promise()
 			});
@@ -143,7 +145,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
 
-			var swaggerBody = apiGatewayManager.GetSwaggerBody(this.Api, this.PackageMetaData.name, this.PackageMetaData.version, lambdaFullArn);
+			var swaggerBody = apiGatewayManager.GetSwaggerBody(this.Api, this.PackageMetadata.name, this.PackageMetadata.version, lambdaFullArn);
 			var updateRestApiPromise = apiGatewayFactory.putRestApi({
 				body: JSON.stringify(swaggerBody),
 				restApiId: apiGatewayId,
@@ -167,14 +169,14 @@ AwsArchitect.prototype.PublishPromise = function() {
 };
 
 AwsArchitect.prototype.DeployStagePromise = function(restApiId, stage, lambdaVersion) {
-	var region = this.Api.Configuration.Regions[0];
+	var region = this.Configuration.Regions[0];
 	var apiGatewayFactory = new aws.APIGateway({region: region});
 	return new ApiGatewayManager(apiGatewayFactory).DeployStagePromise(restApiId, stage, lambdaVersion);
 };
 
 AwsArchitect.prototype.PublishAndDeployPromise = function(stage) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-	var region = this.Api.Configuration.Regions[0];
+	var region = this.Configuration.Regions[0];
 	var apiGatewayFactory = new aws.APIGateway({region: region});
 	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
 	return this.PublishPromise()

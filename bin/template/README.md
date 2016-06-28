@@ -49,6 +49,29 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/node-openapi-fact
 	npm install
 	node make.js deploy
 ```
+	* Configure awsArchitect
+
+```javascript
+	var packageMetadataFile = path.join(__dirname, 'package.json');
+	var packageMetadata = require(packageMetadataFile);
+
+	var apiOptions = {
+		sourceDirectory: path.join(__dirname, 'src'),
+		description: 'This is the description of the lambda function',
+		regions: ['us-east-1'],
+		role: 'LAMBDA_EXECUTION_IAM_ROLE',
+		runtime: 'nodejs4.3',
+		memorySize: 128,
+		publish: true,
+		timeout: 3,
+		securityGroupIds: [],
+		subnetIds: []
+	};
+	var contentOptions = {
+		contentDirectory: path.join(__dirname, 'content')
+	};
+	var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+```
 
 	* Publish new version of the lambda and API Gateway and then deploy:
 
