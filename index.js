@@ -10,17 +10,27 @@ var uuid = require('uuid');
 
 var Server = require('./lib/server');
 var ApiGatewayManager = require('./lib/ApiGatewayManager');
+var DynamoDbManager = require('./lib/DynamoDbManager');
+var LambdaManager = require('./lib/LambdaManager');
 var ApiConfiguration = require('./lib/ApiConfiguration');
 
-function AwsArchitect(packageMetadata, apiOptions, contentOptions, databaseOptions) {
+function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
+	this.PackageMetadata = packageMetadata;
 	this.ContentDirectory = contentOptions.contentDirectory;
 	this.SourceDirectory = apiOptions.sourceDirectory;
 	this.Api = require(path.join(apiOptions.sourceDirectory, 'index'));
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
 
-	//TODO: Assume that the src directory is one level down from root, figure out how to find this automatically by the current location.
-	var packageMetadataFile = path.join(path.dirname(this.SourceDirectory), 'package.json');
-	this.PackageMetadata = packageMetadata;
+	this.Region = this.Configuration.Regions[0];
+
+	var apiGatewayFactory = new aws.APIGateway({region: this.Region});
+	this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, apiGatewayFactory);
+
+	var lambdaFactory = new aws.Lambda({region: this.Region});
+	this.LambdaManager = new LambdaManager(this.PackageMetadata.name, lambdaFactory, this.Configuration);
+
+	var dynamoDbFactory = new aws.DynamoDB({region: this.Region});
+	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
 }
 
 function GetAccountIdPromise() {
@@ -28,19 +38,10 @@ function GetAccountIdPromise() {
 }
 
 AwsArchitect.prototype.GetApiGatewayPromise = function() {
-	var apiGatewayFactory = new aws.APIGateway({region: region});
-	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
-	var serviceName = this.PackageMetadata.name;
-	return apiGatewayManager.GetApiGatewayPromise(serviceName);
+	return this.ApiGatewayManager.GetApiGatewayPromise();
 }
 AwsArchitect.prototype.PublishPromise = function() {
-	var region = this.Configuration.Regions[0];
-	var serviceName = this.PackageMetadata.name;
-	var awsLambdaFactory = new aws.Lambda({region: region});
 	var accountIdPromise = GetAccountIdPromise();
-
-	var configuration = this.Configuration;
-	var functionName = `${serviceName}-${configuration.FunctionName}`;
 
 	var lambdaPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
@@ -78,52 +79,10 @@ AwsArchitect.prototype.PublishPromise = function() {
 		archive.finalize();
 	}))
 	.then((zipInformation) => {
-		return awsLambdaFactory.listVersionsByFunction({ FunctionName: functionName, MaxItems: 1 }).promise().then(() => {
-			return accountIdPromise.then((accountId) => awsLambdaFactory.updateFunctionConfiguration({
-				FunctionName: functionName,
-				Handler: configuration.Handler,
-				Role: `arn:aws:iam::${accountId}:role/${configuration.Role}`,
-				Runtime: configuration.Runtime,
-				Description: configuration.Description,
-				MemorySize: configuration.MemorySize,
-				Timeout: configuration.Timeout,
-				VpcConfig: {
-					SecurityGroupIds: this.Configuration.SecurityGroupIds,
-					SubnetIds: this.Configuration.SubnetIds
-				}
-			}).promise())
-			.then(() => awsLambdaFactory.updateFunctionCode({
-				FunctionName: functionName,
-				Publish: true,
-				ZipFile: fs.readFileSync(zipInformation.Archive)
-			}).promise());
-		}, (failure) => {
-			return accountIdPromise.then((accountId) => {
-				return awsLambdaFactory.createFunction({
-					FunctionName: functionName,
-					Code: { ZipFile: fs.readFileSync(zipInformation.Archive) },
-					Handler: configuration.Handler,
-					Role: `arn:aws:iam::${accountId}:role/${configuration.Role}`,
-					Runtime: configuration.Runtime,
-					Description: configuration.Description,
-					MemorySize: configuration.MemorySize,
-					Publish: configuration.Publish,
-					Timeout: configuration.Timeout,
-					VpcConfig: {
-						SecurityGroupIds: this.Configuration.SecurityGroupIds,
-						SubnetIds: this.Configuration.SubnetIds
-					}
-				}).promise()
-			});
-		})
-		.catch((error) => {
-			return Promise.reject({Error: error, Detail: error.stack});
-		});
+		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive));
 	});
 
-	var apiGatewayFactory = new aws.APIGateway({region: region});
-	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
-	var apiGatewayPromise = apiGatewayManager.GetApiGatewayPromise(serviceName);
+	var apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
 	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
 	.then(result => {
 		try {
@@ -134,24 +93,11 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var apiGatewayId = apiGateway.Id;
 			var accountId = result[2];
 
-			var permissionsPromise = awsLambdaFactory.addPermission({
-				Action: 'lambda:InvokeFunction',
-				FunctionName: lambdaArn,
-				Principal: 'apigateway.amazonaws.com',
-				StatementId: uuid.v4().replace('-', ''),
-				SourceArn: `arn:aws:execute-api:us-east-1:${accountId}:${apiGatewayId}/*`
-			}).promise().then(data => JSON.parse(data.Statement));
+			var permissionsPromise = accountIdPromise.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId));
 
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
-			var lambdaFullArn = `arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
-
-			var swaggerBody = apiGatewayManager.GetSwaggerBody(this.Api, this.PackageMetadata.name, this.PackageMetadata.version, lambdaFullArn);
-			var updateRestApiPromise = apiGatewayFactory.putRestApi({
-				body: JSON.stringify(swaggerBody),
-				restApiId: apiGatewayId,
-				failOnWarnings: true,
-				mode: 'overwrite'
-			}).promise();
+			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
+			var updateRestApiPromise = this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId);
 
 			return Promise.all([updateRestApiPromise, permissionsPromise])
 			.then(result => {
@@ -169,19 +115,24 @@ AwsArchitect.prototype.PublishPromise = function() {
 };
 
 AwsArchitect.prototype.DeployStagePromise = function(restApiId, stage, lambdaVersion) {
-	var region = this.Configuration.Regions[0];
-	var apiGatewayFactory = new aws.APIGateway({region: region});
-	return new ApiGatewayManager(apiGatewayFactory).DeployStagePromise(restApiId, stage, lambdaVersion);
+	if(!restApiId) { throw new Error('Rest ApiId is not defined.'); }
+	if(!stage) { throw new Error('Deployment stage is not defined.'); }
+	if(!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
+	return this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion);
 };
 
-AwsArchitect.prototype.PublishAndDeployPromise = function(stage) {
+AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-	var region = this.Configuration.Regions[0];
-	var apiGatewayFactory = new aws.APIGateway({region: region});
-	var apiGatewayManager = new ApiGatewayManager(apiGatewayFactory);
+	return this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
+};
+
+AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema) {
+	if(!stage) { throw new Error('Deployment stage is not defined.'); }
+
 	return this.PublishPromise()
 	.then(result => {
-		return apiGatewayManager.DeployStagePromise(result.RestApiId, stage, result.LambdaVersion);
+		var dynamoDbPublishPromise = this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
+		return dynamoDbPublishPromise.then(database => this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stage, result.LambdaVersion));
 	})
 	.catch(failure => {
 		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});

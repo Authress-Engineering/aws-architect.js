@@ -68,9 +68,17 @@ commander
 	.command('deploy')
 	.description('Deploy to AWS.')
 	.action(() => {
-		awsArchitect.PublishAndDeployPromise('test')
+		var databaseSchema = [
+			{
+				TableName: 'User',
+				AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
+				KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
+				ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
+			}
+		];
+		awsArchitect.PublishAndDeployPromise('test', databaseSchema)
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-		.catch((failure) => console.log(`${JSON.stringify(failure, null, 2)}`));
+		.catch((failure) => console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`));
 	});
 
 commander.on('*', () => {
