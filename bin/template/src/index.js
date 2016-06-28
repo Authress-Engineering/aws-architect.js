@@ -1,19 +1,6 @@
 var aws = require('aws-sdk');
 var Api = require('openapi-factory');
-
-var api = new Api({
-  description: 'This is the description of the lambda function',
-  regions: ['us-east-1'],
-  role: 'LAMBDA_EXECUTION_IAM_ROLE',
-  runtime: 'nodejs4.3',
-  memorySize: 128,
-  publish: true,
-  timeout: 3,
-  securityGroupIds: [],
-  subnetIds: []
-}, __filename);
-
-module.exports = api;
+module.exports = api = new Api();
 
 api.SetAuthorizer((authorizationToken, methodArn, principalId) => {
   return {

@@ -21,8 +21,25 @@ var aws = require('aws-sdk');
 aws.config.update({ region: 'us-east-1' });
 
 var packageMetadataFile = path.join(__dirname, 'package.json');
-var packageMetadata = require(packageMetadataFile)
-var awsArchitect = new AwsArchitect(path.join(__dirname, 'content'), path.join(__dirname, 'src'));
+var packageMetadata = require(packageMetadataFile);
+
+var apiOptions = {
+	sourceDirectory: path.join(__dirname, 'src'),
+	description: 'This is the description of the lambda function',
+	regions: ['us-east-1'],
+	role: 'LAMBDA_EXECUTION_IAM_ROLE',
+	runtime: 'nodejs4.3',
+	memorySize: 128,
+	publish: true,
+	timeout: 3,
+	securityGroupIds: [],
+	subnetIds: []
+};
+var contentOptions = {
+	contentDirectory: path.join(__dirname, 'content')
+};
+var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+
 commander
 	.command('build')
 	.description('Setup require build files for npm package.')
