@@ -11,7 +11,7 @@ Visit the [changelog](CHANGELOG.md).
   curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
-* Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
+* [Optional] Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
 	* Development time resources (identical for deployment CI), [example security policy](./bin/deployment-policy.json)
 	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)

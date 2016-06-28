@@ -39,17 +39,23 @@ api.post('/test', (request) => {
 
 //Specialized return type to handle status and headers
 api.get('/orders/{id}', (request) => {
-  return Api.Response({Id: request.params.id}, {'X-Custom-Header': 'HeaderValue'}, 200);
+  return Api.Response({Id: request.params.id}, 200);
 });
 
 //Use a promise
 api.get('/ordersAsync', (request) => {
+  //request headers
   console.log(request.headers);
+  //request body
   console.log(request.body);
+  //query string parameters
   console.log(request.queryString);
+  //path parameters
   console.log(request.params);
+  //stage variables
+  console.log(request.variables);
 
   //AWS Lambda Context
   console.log(request.context);
-  return Promise.resolve(Api.Response({Id: 1}, {'Content-Type': 'application/json'}, 200));
+  return Promise.resolve(Api.Response({Id: 1}, 200));
 });

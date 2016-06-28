@@ -163,4 +163,5 @@ After finding the provider you are interested in using and integrating that into
 * IAM User and Service Roles
 * IdentityPool setup and configuration in Cognito
 * DynamoDB tables used by service, and management with environments
-* Allow Response headers
+* Allow Static Response headers.
+* Allow Dynamic Response headers for 200 responses.
