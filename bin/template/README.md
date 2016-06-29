@@ -13,7 +13,7 @@ Visit the [changelog](CHANGELOG.md).
   ```
 * [Optional] Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
-	* Development time resources (identical for deployment CI), [example security policy](./bin/deployment-policy.json)
+	* Development time resources (identical for deployment CI), [example security policy](../deployment-policy.json)
 	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)
 
 ## Development
@@ -124,83 +124,83 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/node-openapi-fact
 	* Add in the google client to the IdentityPool
 * Create a UserRole, set it to have access to API Gateway and Cognito Sync using the IdentityPoolId
 	* Set the Trust Policy to be (based on [Amazon Docs](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)):
-		```json
-		{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Principal": {
-						"Federated": "cognito-identity.amazonaws.com"
-					},
-					"Action": "sts:AssumeRoleWithWebIdentity",
-					"Condition": {
-						"StringEquals": {
-							"cognito-identity.amazonaws.com:aud": "IDENTITY_POOL_ID"
-						},
-						"ForAnyValue:StringLike": {
-							"cognito-identity.amazonaws.com:amr": "authenticated"
-						}
-					}
-				}
-			]
-		}
-		```
-	* Set the permission policy to be (Depending on the security model, it is possible to allow multiple levels, i.e. use a gateway.):
-		```json
-		{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Action": [
-						"execute-api:Invoke"
-					],
-					"Resource": [
-						"arn:aws:execute-api:*:*:API_ID/production/*"
-					]
-				},
-				{
-					"Effect": "Allow",
-					"Action": [
-						"lambda:InvokeFunction"
-					],
-					"Resource": [
-						"arn:aws:lambda:*:*:*:API_NAME_*"
-					]
-				},
-			]
-		}
-		```
-* Create a ServiceRole, to have access to the back end AWS needed resources:
 	```json
 	{
 		"Version": "2012-10-17",
 		"Statement": [
 			{
-				"Resource": "arn:aws:dynamodb:*:*:table/*.SERVICE_IDENTIFIER.*",
-				"Action": [
-					"dynamodb:DeleteItem",
-					"dynamodb:GetItem",
-					"dynamodb:PutItem",
-					"dynamodb:Query",
-					"dynamodb:Scan",
-					"dynamodb:UpdateItem"
-				],
-				"Effect": "Allow"
-			},
-			{
-				"Resource": "arn:aws:logs:*:*:*",
-				"Action": [
-					"logs:CreateLogGroup",
-					"logs:CreateLogStream",
-					"logs:PutLogEvents"
-				],
-				"Effect": "Allow"
+				"Effect": "Allow",
+				"Principal": {
+					"Federated": "cognito-identity.amazonaws.com"
+				},
+				"Action": "sts:AssumeRoleWithWebIdentity",
+				"Condition": {
+					"StringEquals": {
+						"cognito-identity.amazonaws.com:aud": "IDENTITY_POOL_ID"
+					},
+					"ForAnyValue:StringLike": {
+						"cognito-identity.amazonaws.com:amr": "authenticated"
+					}
+				}
 			}
 		]
 	}
 	```
+	* Set the permission policy to be (Depending on the security model, it is possible to allow multiple levels, i.e. use a gateway.):
+	```json
+	{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": [
+					"execute-api:Invoke"
+				],
+				"Resource": [
+					"arn:aws:execute-api:*:*:API_ID/production/*"
+				]
+			},
+			{
+				"Effect": "Allow",
+				"Action": [
+					"lambda:InvokeFunction"
+				],
+				"Resource": [
+					"arn:aws:lambda:*:*:*:API_NAME_*"
+				]
+			},
+		]
+	}
+	```
+* Create a ServiceRole, to have access to the back end AWS needed resources:
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Resource": "arn:aws:dynamodb:*:*:table/*.SERVICE_IDENTIFIER.*",
+			"Action": [
+				"dynamodb:DeleteItem",
+				"dynamodb:GetItem",
+				"dynamodb:PutItem",
+				"dynamodb:Query",
+				"dynamodb:Scan",
+				"dynamodb:UpdateItem"
+			],
+			"Effect": "Allow"
+		},
+		{
+			"Resource": "arn:aws:logs:*:*:*",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents"
+			],
+			"Effect": "Allow"
+		}
+	]
+}
+```
 * `content/index.html`:
 	* Update google usercontent token (`google-signin-client_id`) in the index.html with client id.
 	* Update `IDENTITY_POOL_ID` with the identityPoolId
