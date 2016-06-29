@@ -29,7 +29,7 @@ This will also configure your aws account to allow your build system to automati
 
 ##### Set a custom authorizer
 
-```json
+```javascript
 	api.SetAuthorizer((authorizationToken, methodArn, principalId) => {
 		return {
 			principalId: principalId,
