@@ -98,20 +98,20 @@ Architect creates new lambda functions and API Gateway resources according to th
 * Create API Gateway Resource request with Lambda function (Source from lambda files):
 * Create S3 bucket and upload static files from the content directory.
 	* Set permissions to be global for use as a website.
-		```json
-		{
-			"Version":"2012-10-17",
-			"Statement":[
-				{
-					"Sid":"AddPerm",
-					"Effect":"Allow",
-					"Principal": "*",
-					"Action":["s3:GetObject"],
-					"Resource":["arn:aws:s3:::BUCKET_NAME/*"]
-				}
-			]
-		}
-		```
+	```json
+	{
+		"Version":"2012-10-17",
+		"Statement":[
+			{
+				"Sid":"AddPerm",
+				"Effect":"Allow",
+				"Principal": "*",
+				"Action":["s3:GetObject"],
+				"Resource":["arn:aws:s3:::BUCKET_NAME/*"]
+			}
+		]
+	}
+	```
 
 #### Also
 
