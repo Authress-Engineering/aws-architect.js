@@ -34,7 +34,7 @@ Development is templated using the make.js file. All the needed actions are pres
   ```
 
 ### Running server locally
-AWS Architect uses [OpenAPI Factory](https://github.com/wparad/node-openapi-factory) to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
+AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.js) to convert the `src/index.js` into a node server API used by `node-express`.  This can be loaded, and the server can be started by running
 
 ```bash
    npm install
