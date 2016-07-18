@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 
 var commander = require('commander');
 var fs = require('fs-extra');
