@@ -3,6 +3,7 @@ This is the changelog for [AWS Architect](readme.md).
 
 ## 2.1 ##
 * Add support for creating dynamoDB Tables.
+* Separate policy examples into their own documents.
 
 ## 2.0 ##
 * All configuration is now contained in the api files. Generation, run, and testing is completed via index.js.  New templates created.

@@ -13,6 +13,10 @@ This will also configure your aws account to allow your build system to automati
 * `sudo npm install aws-architect -g`
 * `aws-architect init`
 * `npm install`
+* Update:
+	* `package.json`: package name
+	* `make.js`: AWS Lambda Role
+	* `make.js`: publish command, and database structure to match your service requirements
 
 #### API Sample
 
@@ -27,6 +31,15 @@ This will also configure your aws account to allow your build system to automati
 	});
 ```
 
+#### Lambda with no API sample
+
+```javascript
+	module.exports = (event, contxet, callback) => {
+		console.log(`event: ${JSON.stringify(event, null, 2)}`);
+		console.log(`context: ${JSON.stringify(context, null, 2)}`);
+		callback(null, {Event: event, Context: context});
+	};
+````
 ##### Set a custom authorizer
 
 ```javascript
