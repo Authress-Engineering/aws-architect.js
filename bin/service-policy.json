@@ -11,7 +11,7 @@
                 "dynamodb:UpdateItem"
             ],
             "Effect": "Allow",
-            "Resource": "arn:aws:dynamodb:us-east-1:729379526210:table/*.${PACKAGE_NAME}.test"
+            "Resource": "arn:aws:dynamodb:us-east-1:*:table/*.${PACKAGE_NAME}.test"
         },
         {
             "Sid": "",

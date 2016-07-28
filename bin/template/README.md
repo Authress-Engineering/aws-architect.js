@@ -11,7 +11,6 @@ Visit the [changelog](CHANGELOG.md).
   curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
-* [Optional] Install and configure the [AWSCLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html).
 * Your user will need access to the following resources (or the continuously deployment user):
 	* Development time resources (identical for deployment CI), [example security policy](../deployment-policy.json)
 	* Service runtime resources (for testing only, not required, execute lambda, api gateway access, etc...)
@@ -122,85 +121,11 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 	* Credentials: OAuth 2.0 and Client IDs: Create a new client id, and use this in the later steps.	You will have to set up the redirects to actually work on login successes
 * Create a new Identity pool to associate with the application (save the IdentityPoolId)
 	* Add in the google client to the IdentityPool
-* Create a UserRole, set it to have access to API Gateway and Cognito Sync using the IdentityPoolId
+* [Optional: used for non-REST Lambdas] Create a UserRole, set it to have access to API Gateway and Cognito Sync using the IdentityPoolId
 	* Set the Trust Policy to be (based on [Amazon Docs](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)):
-	```json
-	{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Principal": {
-					"Federated": "cognito-identity.amazonaws.com"
-				},
-				"Action": "sts:AssumeRoleWithWebIdentity",
-				"Condition": {
-					"StringEquals": {
-						"cognito-identity.amazonaws.com:aud": "IDENTITY_POOL_ID"
-					},
-					"ForAnyValue:StringLike": {
-						"cognito-identity.amazonaws.com:amr": "authenticated"
-					}
-				}
-			}
-		]
-	}
-	```
-	* Set the permission policy to be (Depending on the security model, it is possible to allow multiple levels, i.e. use a gateway.):
-	```json
-	{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Action": [
-					"execute-api:Invoke"
-				],
-				"Resource": [
-					"arn:aws:execute-api:*:*:API_ID/production/*"
-				]
-			},
-			{
-				"Effect": "Allow",
-				"Action": [
-					"lambda:InvokeFunction"
-				],
-				"Resource": [
-					"arn:aws:lambda:*:*:*:API_NAME_*"
-				]
-			},
-		]
-	}
-	```
-* Create a ServiceRole, to have access to the back end AWS needed resources:
-```json
-{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Resource": "arn:aws:dynamodb:*:*:table/*.SERVICE_IDENTIFIER.*",
-			"Action": [
-				"dynamodb:DeleteItem",
-				"dynamodb:GetItem",
-				"dynamodb:PutItem",
-				"dynamodb:Query",
-				"dynamodb:Scan",
-				"dynamodb:UpdateItem"
-			],
-			"Effect": "Allow"
-		},
-		{
-			"Resource": "arn:aws:logs:*:*:*",
-			"Action": [
-				"logs:CreateLogGroup",
-				"logs:CreateLogStream",
-				"logs:PutLogEvents"
-			],
-			"Effect": "Allow"
-		}
-	]
-}
-```
+		* [example trust policy](../userrole-trust-relationship.json)
+	* Set the permission policy to be [example user role permissions](../userrole-policy.json)
+* Create a Service Role, to have access to the back end AWS needed resources: [example service user permissions](../service-policy.json) and [example trust relationship](../service-trust-relationship.json).
 * `content/index.html`:
 	* Update google usercontent token (`google-signin-client_id`) in the index.html with client id.
 	* Update `IDENTITY_POOL_ID` with the identityPoolId

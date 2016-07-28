@@ -97,7 +97,8 @@ AwsArchitect.prototype.PublishPromise = function() {
 
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
-			var updateRestApiPromise = this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId);
+			//Ignore non-openapi objects
+			var updateRestApiPromise = this.Api.Routes ? this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId) : Promise.resolve();
 
 			return Promise.all([updateRestApiPromise, permissionsPromise])
 			.then(result => {

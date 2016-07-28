@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://source-code.com"
+    "url": "git+https//git@source.com/repository.git"
   },
   "keywords": [
     "aws lambda microservice"
@@ -31,7 +31,7 @@
   "author": "Author",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://source-code.com"
+    "url": "https://source-code.com/issues"
   },
   "homepage": "https://source-code.com"
 }
