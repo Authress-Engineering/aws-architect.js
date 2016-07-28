@@ -20,13 +20,17 @@ commander
 		console.log("Creating new microservice.");
 		console.log('');
 
+		var currentWorkspace = path.resolve('.');
 		new Promise((s, f) => {
-			fs.copy(path.join(__dirname, 'template'), path.resolve('.'), (error) => {
+			fs.copy(path.join(__dirname, 'template'), currentWorkspace, (error) => {
 				return error ? f({Error: error.stack || error}) : s({Result: `Template copied to ${path.resolve('.')}`});
 			});
-		})
-		.then((result) => console.log(JSON.stringify(result, null, 2)))
-		.catch((result) => console.log(JSON.stringify(result, null, 2)));
+		}).then(result => {
+			/* WTF: https://github.com/npm/npm/issues/7252 */
+			return new Promise((s, f) => { fs.move(path.join(currentWorkspace, '.npmignore'), path.join(currentWorkspace, '.gitignore'),
+				error => error ? f({Error: 'Error creating .gitignore file', Detail: error}) : s(result)); });
+		}).then((result) => console.log(`success: ${JSON.stringify(result, null, 2)}`))
+		.catch((result) => console.log(`failure: ${JSON.stringify(result, null, 2)}`));
 	});
 
 commander.on('*', () => {

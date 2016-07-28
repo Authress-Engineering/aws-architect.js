@@ -148,9 +148,9 @@ After finding the provider you are interested in using and integrating that into
 
 ### Future Features
 
+* IAM User and Service Roles
 * Set up Cloudfront for the Bucket so that caching happens using edge locations.
 * Publish S3 static website (updates static content, and sets up bucket for website hosting.)
-* IAM User and Service Roles
 * IdentityPool setup and configuration in Cognito
 * Allow Static Response headers.
 * Allow Dynamic Response headers for 200 responses.
