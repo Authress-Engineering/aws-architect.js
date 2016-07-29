@@ -51,7 +51,7 @@ api.get('/ordersAsync', (request) => {
 
 /* Non-RESTful API Configuration
 
-module.exports = (event, context, callback) => {
+exports.handler = (event, context, callback) => {
   console.log(`event: ${JSON.stringify(event, null, 2)}`);
   console.log(`context: ${JSON.stringify(context, null, 2)}`);
   callback(null, {Event: event, Context: context});
