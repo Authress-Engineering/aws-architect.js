@@ -34,7 +34,7 @@ This will also configure your aws account to allow your build system to automati
 #### Lambda with no API sample
 
 ```javascript
-	module.exports = (event, context, callback) => {
+	exports.handler = (event, context, callback) => {
 		console.log(`event: ${JSON.stringify(event, null, 2)}`);
 		console.log(`context: ${JSON.stringify(context, null, 2)}`);
 		callback(null, {Event: event, Context: context});
