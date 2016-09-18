@@ -11,7 +11,21 @@
                 "dynamodb:UpdateItem"
             ],
             "Effect": "Allow",
-            "Resource": "arn:aws:dynamodb:us-east-1:*:table/*.${PACKAGE_NAME}.test"
+            "Resource": "arn:aws:dynamodb:us-east-1:*:table/*.${PACKAGE_NAME}.*"
+        },
+        {
+            "Action": [
+                "sns:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:sns:us-east-1:*:app/*/${PACKAGE_NAME}*"
+        },
+        {
+            "Action": [
+                "s3:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
         },
         {
             "Sid": "",
