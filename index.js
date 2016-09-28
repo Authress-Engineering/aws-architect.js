@@ -13,6 +13,7 @@ var ApiGatewayManager = require('./lib/ApiGatewayManager');
 var DynamoDbManager = require('./lib/DynamoDbManager');
 var LambdaManager = require('./lib/LambdaManager');
 var ApiConfiguration = require('./lib/ApiConfiguration');
+var BucketManager = require('./lib/BucketManager');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
@@ -31,6 +32,9 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
 	var dynamoDbFactory = new aws.DynamoDB({region: this.Region});
 	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
+
+	var s3Factory = new aws.S3({region: this.Region});
+	this.BucketManager = new BucketManager(s3Factory);
 }
 
 function GetAccountIdPromise() {
@@ -138,6 +142,13 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 	.catch(failure => {
 		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});
 	});
+};
+
+AwsArchitect.prototype.PublishWebsite = function(bucket, version) {
+	if(!bucket) { throw new Error('AWS Bucket is not defined.'); }
+	if(!this.ContentDirectory) { throw new Error('Content directory is not defined.'); }
+	if(!version) { throw new Error('Deployment version is not defined.'); }
+	return this.BucketManager.Deploy(bucket, this.ContentDirectory, version);
 };
 
 AwsArchitect.prototype.Run = function(port) {

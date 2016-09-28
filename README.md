@@ -60,6 +60,14 @@ This will also configure your aws account to allow your build system to automati
 	}, 'X-Authorization-Header-Name', 300 /* Credential Cache TTL */);
 ```
 
+### S3 Website Deployment
+
+```javascript
+	awsArchitect.PublishWebsite('bucket', 'deadc0de-1')
+	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+	.catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
+````
+
 ## Built-in functionality (What `AWS-Architect` does for you?)
 
 * Authorization flow created in index.html for the website (static content)
@@ -116,7 +124,6 @@ Architect creates new lambda functions and API Gateway resources according to th
 		"Version":"2012-10-17",
 		"Statement":[
 			{
-				"Sid":"AddPerm",
 				"Effect":"Allow",
 				"Principal": "*",
 				"Action":["s3:GetObject"],
