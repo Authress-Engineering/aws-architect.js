@@ -59,7 +59,7 @@ commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
-		awsArchitect.Run()
+		awsArchitect.Run(80)
 		.then((result) => console.log(JSON.stringify(result, null, 2)))
 		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});
