@@ -140,9 +140,9 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 	});
 };
 
-AwsArchitect.prototype.Run = function() {
+AwsArchitect.prototype.Run = function(port) {
 	try {
-		new Server(this.ContentDirectory, this.Api).Run();
+		new Server(this.ContentDirectory, this.Api).Run(port || 80);
 		return Promise.resolve({Message: 'Server started successfully'});
 	}
 	catch (exception) {
