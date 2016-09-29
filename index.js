@@ -97,7 +97,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var apiGatewayId = apiGateway.Id;
 			var accountId = result[2];
 
-			var permissionsPromise = accountIdPromise.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId));
+			var permissionsPromise = accountIdPromise.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region));
 
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
