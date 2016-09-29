@@ -28,14 +28,13 @@
             "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
         },
         {
-            "Sid": "",
-            "Resource": "*",
+            "Effect": "Allow",
+            "Resource": "arn:aws:logs:*:*:*",
             "Action": [
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
-            ],
-            "Effect": "Allow"
+            ]
         }
     ]
 }

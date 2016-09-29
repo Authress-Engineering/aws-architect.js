@@ -30,12 +30,21 @@ describe('src/index.js', function() {
 		});
 	});
 	describe('Test Handler', function () {
-		it('GET', function() {
+		it('ANY', function() {
 			try {
 				var api = require('../src/index');
 
-				var result = api.Routes['GET']['/test'].Handler();
-				assert.deepEqual(result, {Value: 1}, 'Expected GET /test to return value of 1.')
+				var result = api.Routes['ANY']['/{proxy+}'].Handler();
+				var expectedResult = {
+					statusCode: 200,
+					body: {
+						'field': 'value'
+					},
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}
+				assert.deepEqual(result, expectedResult, 'Expected ANY /proxy to return value of 1.')
 			}
 			catch(e) {
 				console.error(e.stack);
