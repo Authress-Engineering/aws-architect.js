@@ -37,9 +37,9 @@ describe('src/index.js', function() {
 				var result = api.Routes['ANY']['/{proxy+}'].Handler();
 				var expectedResult = {
 					statusCode: 200,
-					body: {
+					body: JSON.stringify({
 						'field': 'value'
-					},
+					}),
 					headers: {
 						'Content-Type': 'application/json'
 					}

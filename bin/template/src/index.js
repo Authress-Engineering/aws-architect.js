@@ -61,15 +61,6 @@ api.any('/{proxy+}', (event, context) => {
 			}
 		}
 	*/
-	console.log(JSON.stringify(event, null, 2));
-	console.log(context);
-	return {
-		statusCode: 200,
-		body: {
-			'field': 'value'
-		},
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	}
+	//Or just return a body.
+	return new Api.Response({ 'field': 'value' }, 200, { 'Content-Type': 'application/json' });
 });
