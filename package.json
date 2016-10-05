@@ -23,6 +23,7 @@
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
     "morgan": "^1.7.0",
+    "openapi-factory": "^2.0.55",
     "uuid": "^2.0.2"
   },
   "devDependencies": {

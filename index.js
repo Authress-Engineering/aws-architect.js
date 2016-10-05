@@ -7,6 +7,7 @@ var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
 var uuid = require('uuid');
+var Api = require('openapi-factory');
 
 var Server = require('./lib/server');
 var ApiGatewayManager = require('./lib/ApiGatewayManager');
@@ -19,7 +20,16 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
 	this.ContentDirectory = contentOptions.contentDirectory;
 	this.SourceDirectory = apiOptions.sourceDirectory;
-	this.Api = require(path.join(apiOptions.sourceDirectory, 'index'));
+
+	var apiList = [];
+	try {
+		fs.accessSync('myfile');
+		apiList.push(require(path.join(apiOptions.sourceDirectory, 'index')));
+	}
+	catch (exception) {
+		apiList.push(new Api());
+	}
+	this.Api = apiList[0];
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
 
 	this.Region = this.Configuration.Regions[0];
