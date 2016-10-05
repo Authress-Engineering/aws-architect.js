@@ -1,6 +1,10 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.0 ##
+* Upgrade to handle ANY on aws resources.
+* Allow running just a website on port 8080, without any extra api files.
+
 ## 2.1 ##
 * Add support for creating dynamoDB Tables.
 * Separate policy examples into their own documents.
