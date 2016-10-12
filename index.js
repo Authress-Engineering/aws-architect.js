@@ -23,7 +23,6 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
 	var apiList = [];
 	try {
-		fs.accessSync('myfile');
 		apiList.push(require(path.join(apiOptions.sourceDirectory, 'index')));
 	}
 	catch (exception) {
