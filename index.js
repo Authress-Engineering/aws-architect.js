@@ -22,10 +22,14 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.SourceDirectory = apiOptions.sourceDirectory;
 
 	var apiList = [];
-	try {
-		apiList.push(require(path.join(apiOptions.sourceDirectory, 'index')));
+	var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
+	var indexPathExists = true;
+	try { fs.accessSync(indexPath); }
+	catch (exception) { console.log(exception); indexPathExists = false; }
+	if(indexPathExists) {
+		apiList.push(require(indexPath));
 	}
-	catch (exception) {
+	else {
 		apiList.push(new Api());
 	}
 	this.Api = apiList[0];
