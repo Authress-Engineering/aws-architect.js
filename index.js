@@ -8,6 +8,7 @@ var path = require('path');
 var os = require('os');
 var uuid = require('uuid');
 var Api = require('openapi-factory');
+var http = require('http');
 
 var Server = require('./lib/server');
 var ApiGatewayManager = require('./lib/ApiGatewayManager');
@@ -51,7 +52,30 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 }
 
 function GetAccountIdPromise() {
-	return new aws.IAM().getUser({}).promise().then((data) => data.User.Arn.split(':')[4]);
+	return new aws.IAM().getUser({}).promise()
+	.then((data) => data.User.Arn.split(':')[4])
+	.catch(() => {
+		//assume EC2 instance profile
+		return new Promise((s, f) => {
+			http.get('http://169.254.169.254/latest/dynamic/instance-identity/document', res => {
+				if(res.statusCode >= 400) { return Promise.reject('Failed to lookup AWS AccountID, please specify by running as IAM user or with credentials.'); }
+				var data = '';
+				res.on('data', chunk => {
+					data += chunk;
+				});
+				res.on('end', () => {
+					try {
+						var json = JSON.parse(data);
+						s(json.accountId)
+					}
+					catch (exception) {
+						f(JSON.stringify({ Title: 'Failure trying to parse AWS AccountID from metadata', Error: exception.stack || exception.toString(), Details: exception, Response: data }));
+					}
+				});
+				res.on('error', error => f(error));
+			});
+		});
+	})
 }
 
 AwsArchitect.prototype.GetApiGatewayPromise = function() {
