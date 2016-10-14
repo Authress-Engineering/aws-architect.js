@@ -26,7 +26,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
 	var indexPathExists = true;
 	try { fs.accessSync(indexPath); }
-	catch (exception) { console.log(exception); indexPathExists = false; }
+	catch (exception) { indexPathExists = false; }
 	if(indexPathExists) {
 		apiList.push(require(indexPath));
 	}
