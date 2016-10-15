@@ -2,16 +2,16 @@ var aws = require('aws-sdk');
 var Api = require('openapi-factory');
 module.exports = api = new Api();
 
-api.SetAuthorizer((authorizationToken, methodArn, principalId) => {
+api.SetAuthorizer((authorizationToken, methodArn) => {
 	return {
-		principalId: principalId,
+		principalId: 'computed-authorized-principal-id',
 		policyDocument: {
 			Version: '2012-10-17',
 			Statement: [
 				{
 					Action: 'execute-api:Invoke',
 					Effect: 'Deny',
-					Resource: methodArn
+					Resource: methodArn //"arn:aws:execute-api:*:*:*/*/*/"
 				}
 			]
 		}
