@@ -27,7 +27,7 @@ api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
 							"execute-api:Invoke"
 						],
 						"Resource": [
-							"arn:aws:execute-api:*:*:*/*/*/"
+							'arn:aws:execute-api:*:*:*'
 						]
 					}
 				]
