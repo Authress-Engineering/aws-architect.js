@@ -8,6 +8,7 @@
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {
+    "jsonwebtoken": "^7.1.9",
     "openapi-factory": "^2.0"
   },
   "devDependencies": {
