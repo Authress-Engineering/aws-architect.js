@@ -52,7 +52,7 @@ This will also configure your aws account to allow your build system to automati
 					{
 						Action: 'execute-api:Invoke',
 						Effect: 'Deny',
-						Resource: methodArn //"arn:aws:execute-api:*:*:*/*/*/"
+						Resource: methodArn //'arn:aws:execute-api:*:*:*'
 					}
 				]
 			}
