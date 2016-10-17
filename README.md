@@ -57,7 +57,7 @@ This will also configure your aws account to allow your build system to automati
 				]
 			}
 		}
-	}, 'X-Authorization-Header-Name', 300 /* Credential Cache TTL */);
+	});
 ```
 
 ### S3 Website Deployment

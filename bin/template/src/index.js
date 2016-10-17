@@ -1,21 +1,40 @@
 var aws = require('aws-sdk');
 var Api = require('openapi-factory');
+var jwtManager = require('jsonwebtoken');
+
 module.exports = api = new Api();
 
+//Region must match KMS KEY
+var kms = new aws.KMS({region: 'us-east-1'});
+var encryptedAuth0Secret = 'ENCRYPTED_SECRET';
+var decryptedAuth0SecretPromise = kms.decrypt({CiphertextBlob: new Buffer(encryptedAuth0Secret, 'base64')}).promise().then(data => data.Plaintext.toString('UTF-8'));
+
 api.SetAuthorizer((authorizationToken, methodArn) => {
-	return {
-		principalId: 'computed-authorized-principal-id',
-		policyDocument: {
-			Version: '2012-10-17',
-			Statement: [
-				{
-					Action: 'execute-api:Invoke',
-					Effect: 'Deny',
-					Resource: methodArn //"arn:aws:execute-api:*:*:*/*/*/"
-				}
-			]
-		}
-	}
+	return decryptedAuth0SecretPromise
+	.then(key => {
+		try { return jwtManager.verify(authorizationToken, new Buffer(key, 'base64'), { algorithms: ['HS256'] }); }
+		catch (exception) { return Promise.reject(exception.stack || exception.toString()) }
+	})
+	.then(token => {
+		return {
+			"principalId": token.sub,
+			"policyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Action": [
+							"execute-api:Invoke"
+						],
+						"Resource": [
+							"arn:aws:execute-api:*:*:*/*/*/"
+						]
+					}
+				]
+			}
+		};
+	})
+	.catch(error => Promise.reject('Custom-Authorizer-Failure'));
 });
 
 api.any('/{proxy+}', (event, context) => {
