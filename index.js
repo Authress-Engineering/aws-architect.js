@@ -156,11 +156,12 @@ AwsArchitect.prototype.PublishPromise = function() {
 	});
 };
 
-AwsArchitect.prototype.DeployStagePromise = function(restApiId, stage, lambdaVersion) {
-	if(!restApiId) { throw new Error('Rest ApiId is not defined.'); }
+AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 	if(!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
-	return this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion);
+	return this.ApiGatewayManager.GetApiGatewayPromise()
+	.then(result => result.Id)
+	.then(restApiId => this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion));
 };
 
 AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) {
