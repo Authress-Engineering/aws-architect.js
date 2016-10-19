@@ -191,8 +191,9 @@ AwsArchitect.prototype.PublishWebsite = function(bucket, version) {
 
 AwsArchitect.prototype.Run = function(port) {
 	try {
-		new Server(this.ContentDirectory, this.Api).Run(port || 80);
-		return Promise.resolve({Message: 'Server started successfully'});
+		var resolvedPort = port || 80;
+		new Server(this.ContentDirectory, this.Api).Run(resolvedPort);
+		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
 	catch (exception) {
 		return Promise.reject({Error: 'Failed to start server', Exception: exception.stack || exception});
