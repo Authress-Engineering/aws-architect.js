@@ -188,7 +188,11 @@ AwsArchitect.prototype.PromoteToStage = function(source, stage) {
 	return this.BucketManager.CopyBucket(source, stage);
 };
 
-AwsArchitect.prototype.PublishWebsite = function(version) {
+AwsArchitect.prototype.PublishWebsite = function(bucketIn, versionIn) {
+	var version = versionIn;
+	if(this.BucketManager.Bucket && !versionIn) { version = bucketIn; }
+	else if(!this.BucketManager.Bucket && versionIn) { this.BucketManager.Bucket = bucketIn; }
+
 	if(!this.ContentDirectory) { throw new Error('Content directory is not defined.'); }
 	if(!version) { throw new Error('Deployment version is not defined.'); }
 	return this.BucketManager.Deploy(this.ContentDirectory, version);

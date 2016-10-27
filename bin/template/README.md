@@ -67,6 +67,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		subnetIds: []
 	};
 	var contentOptions = {
+		bucket: 'WEBSITE_BUCKET_NAME',
 		contentDirectory: path.join(__dirname, 'content')
 	};
 	var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);

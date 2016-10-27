@@ -12,7 +12,7 @@
     "openapi-factory": "^2.0"
   },
   "devDependencies": {
-    "aws-architect": "^3.0",
+    "aws-architect": "^3.1",
     "aws-sdk": "^2.2.32",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
