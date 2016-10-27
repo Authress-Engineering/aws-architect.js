@@ -61,11 +61,16 @@ This will also configure your aws account to allow your build system to automati
 ```
 
 ### S3 Website Deployment
+Specify `bucket` in the configuration options for `contentOptions`.
 
 ```javascript
 	awsArchitect.PublishWebsite('deadc0de-1')
 	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 	.catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
+
+	awsArchitect.PromoteToStage('deadc0de-1', 'production')
+	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+	.catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
 ````
 
 ## Built-in functionality
