@@ -1,6 +1,10 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.1 ##
+* Moved website bucket configuration to contentOptions.
+* Added `AwsArchitect.PromoteToStage(source, stage)` function which will copy a bucket directory.
+
 ## 3.0 ##
 * Upgrade to handle ANY on aws resources.
 * Allow running just a website on port 8080, without any extra api files.

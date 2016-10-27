@@ -48,7 +48,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
 
 	var s3Factory = new aws.S3({region: this.Region});
-	this.BucketManager = new BucketManager(s3Factory);
+	this.BucketManager = new BucketManager(s3Factory, contentOptions.bucket);
 }
 
 function GetAccountIdPromise() {
@@ -182,11 +182,16 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 	});
 };
 
-AwsArchitect.prototype.PublishWebsite = function(bucket, version) {
-	if(!bucket) { throw new Error('AWS Bucket is not defined.'); }
+AwsArchitect.prototype.PromoteToStage = function(source, stage) {
+	if(!source) { throw new Error('Source directory key not defined.'); }
+	if(!stage) { throw new Error('Stage directory key not defined.'); }
+	return this.BucketManager.CopyBucket(source, stage);
+};
+
+AwsArchitect.prototype.PublishWebsite = function(version) {
 	if(!this.ContentDirectory) { throw new Error('Content directory is not defined.'); }
 	if(!version) { throw new Error('Deployment version is not defined.'); }
-	return this.BucketManager.Deploy(bucket, this.ContentDirectory, version);
+	return this.BucketManager.Deploy(this.ContentDirectory, version);
 };
 
 AwsArchitect.prototype.Run = function(port) {
