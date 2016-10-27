@@ -63,7 +63,7 @@ This will also configure your aws account to allow your build system to automati
 ### S3 Website Deployment
 
 ```javascript
-	awsArchitect.PublishWebsite('bucket', 'deadc0de-1')
+	awsArchitect.PublishWebsite('deadc0de-1')
 	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 	.catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
 ````

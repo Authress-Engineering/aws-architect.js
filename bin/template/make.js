@@ -36,6 +36,7 @@ var apiOptions = {
 	subnetIds: []
 };
 var contentOptions = {
+	bucket: 'WEBSITE_BUCKET',
 	contentDirectory: path.join(__dirname, 'content')
 };
 var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
