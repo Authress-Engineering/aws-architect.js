@@ -16,6 +16,7 @@ var DynamoDbManager = require('./lib/DynamoDbManager');
 var LambdaManager = require('./lib/LambdaManager');
 var ApiConfiguration = require('./lib/ApiConfiguration');
 var BucketManager = require('./lib/BucketManager');
+var IamManager = require('./lib/IamManager');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
@@ -36,6 +37,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.Api = apiList[0];
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
 
+	if(this.Configuration.Regions.length !== 1) { throw new Error('A single region must be defined in the apiOptions.'); }
 	this.Region = this.Configuration.Regions[0];
 
 	var apiGatewayFactory = new aws.APIGateway({region: this.Region});
@@ -49,6 +51,9 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
 	var s3Factory = new aws.S3({region: this.Region});
 	this.BucketManager = new BucketManager(s3Factory, contentOptions.bucket);
+
+	var iamFactory = new aws.IAM({region: this.Region})
+	this.IamManager = new IamManager(iamFactory);
 }
 
 function GetAccountIdPromise() {
@@ -84,13 +89,15 @@ AwsArchitect.prototype.GetApiGatewayPromise = function() {
 AwsArchitect.prototype.PublishPromise = function() {
 	var accountIdPromise = GetAccountIdPromise();
 
-	var lambdaPromise = new Promise((s, f) => {
+	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
+	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name)
+	.then(() => new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
 			if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
 			return s(null);
 		});
-	})
+	}))
 	.then(() => new Promise((s, f) => {
 		var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 		fs.copy(this.SourceDirectory, tmpDir, error => {
@@ -120,7 +127,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 		archive.finalize();
 	}))
 	.then((zipInformation) => {
-		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive));
+		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive, serviceRoleName));
 	});
 
 	var apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
@@ -175,7 +182,15 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 	return this.PublishPromise()
 	.then(result => {
 		var dynamoDbPublishPromise = this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
-		return dynamoDbPublishPromise.then(database => this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stage, result.LambdaVersion));
+		var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+		return dynamoDbPublishPromise.then(database => this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion))
+		.then(data => {
+			return {
+				LambdaResult: result,
+				ApiGatewayResult: data,
+				ServiceAPI: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
+			};
+		});
 	})
 	.catch(failure => {
 		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});

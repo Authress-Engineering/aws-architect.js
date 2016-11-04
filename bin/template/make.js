@@ -27,7 +27,6 @@ var apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['us-east-1'],
-	role: 'LAMBDA_EXECUTION_IAM_ROLE',
 	runtime: 'nodejs4.3',
 	memorySize: 128,
 	publish: true,
@@ -70,16 +69,20 @@ commander
 	.description('Deploy to AWS.')
 	.action(() => {
 		var databaseSchema = [
-			{
-				TableName: 'User',
-				AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
-				KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
-				ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
-			}
+			// {
+			// 	TableName: 'User',
+			// 	AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
+			// 	KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
+			// 	ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
+			// }
 		];
-		awsArchitect.PublishAndDeployPromise('test', databaseSchema)
+		awsArchitect.PublishAndDeployPromise(version, databaseSchema)
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 		.catch((failure) => console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`));
+
+		// awsArchitect.PublishWebsite(version)
+		// .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+		// .catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
 	});
 
 commander.on('*', () => {

@@ -58,7 +58,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		sourceDirectory: path.join(__dirname, 'src'),
 		description: 'This is the description of the lambda function',
 		regions: ['us-east-1'],
-		role: 'LAMBDA_EXECUTION_IAM_ROLE',
+		//role: 'optional-role-override',
 		runtime: 'nodejs4.3',
 		memorySize: 128,
 		publish: true,
@@ -71,46 +71,6 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		contentDirectory: path.join(__dirname, 'content')
 	};
 	var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
-```
-
-	* Publish new version of the lambda and API Gateway and then deploy:
-
-```javascript
-    awsArchitect.PublishAndDeployPromise('test', databaseSchema)
-    .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-    .catch((failure) => console.log(`${JSON.stringify(failure, null, 2)}`));
-```
-
-	* Do it in two steps
-
-```javascript
-	var publishPromise = awsArchitect.Publish();
-	var deploymentPromise = publishPromise.then(publishResults => 					
-    	awsArchitect.DeployStagePromise(publishResults.RestApiId, 'production', publishResults.LambdaVersion));
-```
-
-	* Or do it later:
-
-```javascript
-    var publishPromise = awsArchitect.Publish();
-    //...
-    // Some time later
-    var apiGateway = awsArchitect.GetApiGatewayPromise();
-    var deploymentPromise = accountIdPromise.then(apiGateway => awsArchitect.DeployStagePromise(apiGateway.Id, 'production', 'Specific_Lambda_Version'));
-```
-
-	* Publish the database
-
-``` javascript
-	var databaseSchema = [
-			{
-				TableName: 'User',
-				AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
-				KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
-				ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
-			}
-		];
-	awsArchitect.PublishDatabasePromise(stage, databaseSchema);
 ```
 
 ### Setup

@@ -61,7 +61,7 @@ This will also configure your aws account to allow your build system to automati
 ```
 
 ### S3 Website Deployment
-Specify `bucket` in the configuration options for `contentOptions`.
+Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
 ```javascript
 	awsArchitect.PublishWebsite('deadc0de-1')
@@ -78,6 +78,7 @@ Specify `bucket` in the configuration options for `contentOptions`.
 * Authorization flow created in index.html for the website (static content)
 * conventioned based static S3 website using the `/content` directory
 * conventioned based lambda functions specified as an argument to the associated functions.
+* Creates a ServiceRole to execute Lambda functions.
 * Lambda/API Gateway setup for seemless integration.
 * Automatic creation of AWS resources when using `AwsArchitect.PublishPromise()`. Including:
 	* Lambda functions
@@ -92,7 +93,6 @@ See [template service documentation](./bin/template/README.md) for how individua
 
 ### Manual one time setup
 * Create a security policy to use for the local user testing and for the AWS Role
-* Create a role for your AWS Lambda's: a ServiceRole to execute Lambda functions as. Should have access to the DynamoDB, S3, and necessary services.
 * Create S3 bucket and upload static files from the content directory.
 	* Set permissions to be global for use as a website.
 	```json
