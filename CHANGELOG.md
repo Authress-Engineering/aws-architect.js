@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.2 ##
+* Automatically create the service role to execute the lambda functions.
+
 ## 3.1 ##
 * Moved website bucket configuration to contentOptions.
 * Added `AwsArchitect.PromoteToStage(source, stage)` function which will copy a bucket directory.
