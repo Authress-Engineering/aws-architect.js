@@ -210,7 +210,8 @@ AwsArchitect.prototype.PublishWebsite = function(bucketIn, versionIn) {
 
 	if(!this.ContentDirectory) { throw new Error('Content directory is not defined.'); }
 	if(!version) { throw new Error('Deployment version is not defined.'); }
-	return this.BucketManager.Deploy(this.ContentDirectory, version);
+	return this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region)
+		.then(() => this.BucketManager.Deploy(this.ContentDirectory, version));
 };
 
 AwsArchitect.prototype.Run = function(port) {
