@@ -37,7 +37,8 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.Api = apiList[0];
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
 
-	if(this.Configuration.Regions.length !== 1) { throw new Error('A single region must be defined in the apiOptions.'); }
+	if(this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
+	if(this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
 	this.Region = this.Configuration.Regions[0];
 
 	var apiGatewayFactory = new aws.APIGateway({region: this.Region});

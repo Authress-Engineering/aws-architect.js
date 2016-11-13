@@ -16,17 +16,13 @@ var version = travis.GetVersion();
 var commander = require('commander');
 commander.version(version);
 
-//Set default region to test with
-var aws = require('aws-sdk');
-aws.config.update({ region: 'us-east-1' });
-
 var packageMetadataFile = path.join(__dirname, 'package.json');
 var packageMetadata = require(packageMetadataFile);
 
 var apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
-	regions: ['us-east-1'],
+	regions: ['eu-west-1'],
 	runtime: 'nodejs4.3',
 	memorySize: 128,
 	publish: true,
