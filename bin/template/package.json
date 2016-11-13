@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node make.js run",
+    "build": "node make.js",
     "deploy": "node make.js deploy",
     "test": "mocha tests/**/*.js -R spec"
   },

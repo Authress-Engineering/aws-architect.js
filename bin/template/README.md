@@ -21,15 +21,15 @@ Development is templated using the make.js file. All the needed actions are pres
 * Website is created from the content directory.
 * Lambda functions are created from the `src/index.js` source.
 * `npm install`: Install necessary dependencies.
-* `node make.js` or `node make.js build`: Builds and run unit tests.
+* `npm run build` or `node make.js build`: Builds and run unit tests.
 * `sudo npm start`: Runs the microservice locally, it inhabits the api and lambda functions using nodejs express.
-* `node make.js deploy`: Deploys the package to AWS.
+* `npm run deploy`: Deploys the package to AWS.
 
 ### Building
 
   ```bash
-  	npm install
-  	node make.js
+    npm install
+    npm run build
   ```
 
 ### Running server locally
@@ -37,7 +37,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 
 ```bash
    npm install
-   node make.js run
+   npm run start
 ```
 
 ### Deploying to AWS
@@ -46,7 +46,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 
 ```bash
 	npm install
-	node make.js deploy
+	npm run deploy
 ```
 	* Configure awsArchitect
 
