@@ -15,7 +15,6 @@ This will also configure your aws account to allow your build system to automati
 * `npm install`
 * Update:
 	* `package.json`: package name
-	* `make.js`: AWS Lambda Role
 	* `make.js`: publish command, and database structure to match your service requirements
 
 #### API Sample
@@ -31,7 +30,7 @@ This will also configure your aws account to allow your build system to automati
 	});
 ```
 
-#### Lambda with no API sample
+##### Lambda with no API sample
 
 ```javascript
 	exports.handler = (event, context, callback) => {
@@ -60,7 +59,7 @@ This will also configure your aws account to allow your build system to automati
 	});
 ```
 
-### S3 Website Deployment
+#### S3 Website Deployment
 Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
 ```javascript
@@ -89,43 +88,7 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
 ### Service Configuration
 See [template service documentation](./bin/template/README.md) for how individual parts of the service are configured.
 
-## Setup
-
-### Manual one time setup
-* Create a security policy to use for the local user testing and for the AWS Role
-* Create S3 bucket and upload static files from the content directory.
-	* Set permissions to be global for use as a website.
-	```json
-	{
-		"Version":"2012-10-17",
-		"Statement":[
-			{
-				"Effect":"Allow",
-				"Principal": "*",
-				"Action":["s3:GetObject"],
-				"Resource":["arn:aws:s3:::BUCKET_NAME/*"]
-			}
-		]
-	}
-	```
-
 ## Also
-
-### Authentication
-After finding the provider you are interested in using and integrating that into the static content don't forget to prevent access to the identity pool in the Web Federated Authorization Provider.
-
-## Additional Information
-
-### Authorization Flow used by AWS-Architect microservices
-Authorization can either be done by a lambda authorizer or by cognito flow. Depending on the use case one may be preferred over the other. The question is whether or not the browser/s3 website is the only client. If they are use the cognito flow, if not then use the authorizer. An example of the authorizer is above, an example of the cognito frow is:
-
-* Each Login Attempt (done in the index.html javascript code):
-	* User clicks the login (or website checks to see if authorization has already occured automatically) for the specific Web Federation (Google, Twitter, etc...) and is directed to a login prompt.
-	* Successful login redirects the user back to your site (or wherever your redirect url specifies.)
-	* Take the response access_token (id_token), and send it Cognito to receive user credentials, receive back IdentityId.
-	* Using the AWS Credentials get AWS IAM role to call API Gateway.
-* Logout
-	* REST API call to the Web Federated service to revoke the refresh token. `GET https://accounts.google.com/o/oauth2/revoke?token=REFRESH_TOKEN`
 
 ### AWS Documentation
 
