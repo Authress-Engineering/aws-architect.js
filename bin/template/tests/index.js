@@ -38,13 +38,15 @@ describe('src/index.js', function() {
 				var expectedResult = {
 					statusCode: 200,
 					body: JSON.stringify({
-						'field': 'value'
+						'field': 'hello world'
 					}),
 					headers: {
 						'Content-Type': 'application/json'
 					}
 				}
-				assert.deepEqual(result, expectedResult, 'Expected ANY /proxy to return value of 1.')
+				assert.equal(result.statusCode, expectedResult.statusCode, 'Expected ANY /proxy status code to have matching value.')
+				assert.deepEqual(result.headers, expectedResult.headers, 'Expected ANY /proxy headers to have matching value.')
+				assert.equal(result.body, expectedResult.body, 'Expected ANY /proxy body to have matching value.')
 			}
 			catch(e) {
 				console.error(e.stack);
