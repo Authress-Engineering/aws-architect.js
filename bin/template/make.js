@@ -11,8 +11,8 @@ var https = require('https');
 var path = require('path');
 
 var AwsArchitect = require('aws-architect');
-var travis = require('travis-build-tools')(process.env.GIT_TAG_PUSHER);
-var version = travis.GetVersion();
+var ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
+var version = ci.GetVersion();
 var commander = require('commander');
 commander.version(version);
 
@@ -66,19 +66,23 @@ commander
 	.action(() => {
 		var databaseSchema = [
 			// {
-			// 	TableName: 'User',
+			// 	TableName: 'users',
 			// 	AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
 			// 	KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
 			// 	ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
 			// }
 		];
-		awsArchitect.PublishAndDeployPromise(version, databaseSchema)
-		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-		.catch((failure) => console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`));
+		var apiPromise = awsArchitect.PublishAndDeployPromise(version, databaseSchema)
+		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`));
 
-		// awsArchitect.PublishWebsite(version)
-		// .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-		// .catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
+		var websitePromise = awsArchitect.PublishWebsite(version)
+		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+
+		Promise.all([apiPromise, websitePromise])
+		.catch((failure) => {
+			console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`)
+			process.exit(1);
+		});
 	});
 
 commander.on('*', () => {

@@ -20,7 +20,7 @@ var IamManager = require('./lib/IamManager');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
-	this.ContentDirectory = contentOptions.contentDirectory;
+	this.ContentOptions = contentOptions || {};
 	this.SourceDirectory = apiOptions.sourceDirectory;
 
 	var apiList = [];
@@ -51,7 +51,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
 
 	var s3Factory = new aws.S3({region: this.Region});
-	this.BucketManager = new BucketManager(s3Factory, contentOptions.bucket);
+	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
 
 	var iamFactory = new aws.IAM({region: this.Region})
 	this.IamManager = new IamManager(iamFactory);
@@ -209,16 +209,16 @@ AwsArchitect.prototype.PublishWebsite = function(bucketIn, versionIn) {
 	if(this.BucketManager.Bucket && !versionIn) { version = bucketIn; }
 	else if(!this.BucketManager.Bucket && versionIn) { this.BucketManager.Bucket = bucketIn; }
 
-	if(!this.ContentDirectory) { throw new Error('Content directory is not defined.'); }
+	if(!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
 	if(!version) { throw new Error('Deployment version is not defined.'); }
 	return this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region)
-		.then(() => this.BucketManager.Deploy(this.ContentDirectory, version));
+		.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version));
 };
 
 AwsArchitect.prototype.Run = function(port) {
 	try {
 		var resolvedPort = port || 80;
-		new Server(this.ContentDirectory, this.Api).Run(resolvedPort);
+		new Server(this.ContentOptions.contentDirectory, this.Api).Run(resolvedPort);
 		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
 	catch (exception) {
