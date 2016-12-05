@@ -11,8 +11,8 @@ var https = require('https');
 var path = require('path');
 
 var AwsArchitect = require('aws-architect');
-var travis = require('travis-build-tools')(process.env.GIT_TAG_PUSHER);
-var version = travis.GetVersion();
+var ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
+var version = ci.GetVersion();
 var commander = require('commander');
 commander.version(version);
 

@@ -22,7 +22,7 @@
     "glob": "^5.0.0",
     "mocha": "^2.5.3",
     "sinon": "^1.17.1",
-    "travis-build-tools": "~1.0"
+    "ci-build-tools": "~1.0"
   },
   "repository": {
     "type": "git",
