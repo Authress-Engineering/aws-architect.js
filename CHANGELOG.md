@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.3 ##
+* Remove CORS headers from local server.
+
 ## 3.2 ##
 * Automatically create the service role to execute the lambda functions.
 * Automatically create the s3 bucket with the website policy if it doesn't exist.
