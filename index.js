@@ -21,12 +21,14 @@ var IamManager = require('./lib/IamManager');
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
 	this.ContentOptions = contentOptions || {};
-	this.SourceDirectory = apiOptions.sourceDirectory;
+	this.SourceDirectory = (apiOptions || {}).sourceDirectory;
 
 	var apiList = [];
-	var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
 	var indexPathExists = true;
-	try { fs.accessSync(indexPath); }
+	try {
+		var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
+		fs.accessSync(indexPath);
+	}
 	catch (exception) { indexPathExists = false; }
 	if(indexPathExists) {
 		apiList.push(require(indexPath));
