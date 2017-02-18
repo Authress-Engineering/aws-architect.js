@@ -4,10 +4,6 @@
  * Module dependencies
  */
 var fs = require('fs');
-var exec = require('child_process').execSync;
-var execAsync = require('child_process').spawn;
-var glob = require('glob');
-var https = require('https');
 var path = require('path');
 
 var AwsArchitect = require('aws-architect');
