@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.4 ##
+* Upgrade jwt resolution to include by default RS256.
+
 ## 3.3 ##
 * Remove CORS headers from local server.
 

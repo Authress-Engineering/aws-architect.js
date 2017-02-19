@@ -1,41 +1,56 @@
-var aws = require('aws-sdk');
-var Api = require('openapi-factory');
-var jwtManager = require('jsonwebtoken');
+const aws = require('aws-sdk');
+const Api = require('openapi-factory');
+const jwtManager = require('jsonwebtoken');
+const jwkConverter = require('jwk-to-pem');
+const axios = require('axios');
 
 module.exports = api = new Api();
 
-//Region must match KMS KEY
-// var kms = new aws.KMS({region: 'us-east-1'});
-// var encryptedAuth0Secret = 'ENCRYPTED_SECRET';
-// var decryptedAuth0SecretPromise = kms.decrypt({CiphertextBlob: new Buffer(encryptedAuth0Secret, 'base64')}).promise().then(data => data.Plaintext.toString('UTF-8'));
+const jwkKeyListUrl = 'https://auth0.com/.well-known/jwks.json';
+let publicKeysPromise = null;
+function GetPublicKeyPromise(kid) {
+	if(!publicKeysPromise) {
+		publicKeysPromise = axios.get(jwkKeyListUrl);
+	}
+	return publicKeysPromise.then(result => {
+		let jwk = result.data.keys.find(key => key.kid === kid);
+		if(jwk) {
+			return jwkConverter(jwk);
+		}
+		publicKeysPromise = null;
+		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid, keys: keys});
+	});
+};
 
-// api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
-// 	return decryptedAuth0SecretPromise
-// 	.then(key => {
-// 		try { return jwtManager.verify(authorizationTokenInfo.Token, new Buffer(key, 'base64'), { algorithms: ['HS256'] }); }
-// 		catch (exception) { return Promise.reject(exception.stack || exception.toString()) }
-// 	})
-// 	.then(token => {
-// 		return {
-// 			"principalId": token.sub,
-// 			"policyDocument": {
-// 				"Version": "2012-10-17",
-// 				"Statement": [
-// 					{
-// 						"Effect": "Allow",
-// 						"Action": [
-// 							"execute-api:Invoke"
-// 						],
-// 						"Resource": [
-// 							'arn:aws:execute-api:*:*:*'
-// 						]
-// 					}
-// 				]
-// 			}
-// 		};
-// 	})
-// 	.catch(error => Promise.reject('Custom-Authorizer-Failure'));
-// });
+api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
+	var unverifiedToken = jwtManager.decode(authorizationTokenInfo.Token, {complete: true});
+	var kid = ((unverifiedToken || {}).header || {}).kid;
+	return GetPublicKeyPromise(kid)
+	.then(key => {
+		try { return jwtManager.verify(authorizationTokenInfo.Token, key, { algorithms: ['RS256'] }); }
+		catch (exception) { return Promise.reject(exception.stack || exception.toString()); }
+	})
+	.then(token => {
+		return {
+			"principalId": token.sub,
+			"policyDocument": {
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Action": [
+							"execute-api:Invoke"
+						],
+						"Resource": [
+							'arn:aws:execute-api:*:*:*'
+						]
+					}
+				]
+			}
+		};
+	})
+	.catch(error => Promise.reject('Custom-Authorizer-Failure'));
+});
 
 api.any('/{proxy+}', (event, context) => {
 	/*
