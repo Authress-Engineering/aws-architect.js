@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.5 ##
+* Upgrade default nodejs version to 6.10.
+
 ## 3.4 ##
 * Upgrade jwt resolution to include by default RS256.
 
