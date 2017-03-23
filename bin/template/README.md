@@ -6,9 +6,9 @@ Visit the [changelog](CHANGELOG.md).
 
 ## Prerequisites
 
-* Install NodeJS (4.3 this is what lambda uses) & npm
+* Install NodeJS (nodejs6.10 this is what lambda uses) & npm
   ```bash
-  curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+  curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
 * Your user will need access to the following resources (or the continuously deployment user):
@@ -59,7 +59,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		description: 'This is the description of the lambda function',
 		regions: ['us-east-1'],
 		//role: 'optional-role-override',
-		runtime: 'nodejs4.3',
+		runtime: 'nodejs6.10',
 		memorySize: 128,
 		publish: true,
 		timeout: 3,

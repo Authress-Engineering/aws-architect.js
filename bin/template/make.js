@@ -19,7 +19,7 @@ var apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['eu-west-1'],
-	runtime: 'nodejs4.3',
+	runtime: 'nodejs6.10',
 	memorySize: 128,
 	publish: true,
 	timeout: 3,
