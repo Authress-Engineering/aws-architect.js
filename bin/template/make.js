@@ -6,6 +6,9 @@
 var fs = require('fs');
 var path = require('path');
 
+// const aws = require('aws-sdk');
+// aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'default'});
+
 var AwsArchitect = require('aws-architect');
 var ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
 var version = ci.GetVersion();
