@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.6 ##
+* Allow sending binary Buffer bodies via local server to match API Gateway functionality.
+
 ## 3.5 ##
 * Upgrade default nodejs version to 6.10.
 
