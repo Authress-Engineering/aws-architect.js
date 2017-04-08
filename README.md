@@ -1,23 +1,24 @@
 # AWS Architect
-It should be easy, and it also should be automated. But both of those things usually aren't free.  The ideal world has magic AI which can communicate with each other to a such a degree which doesn't require software architects to think about what the global picture has to be before an organization and deliver something of value.  The AWS Architect, attempts to eliminate the burden of projecting your vision of software to AWS.  AWS Architects your service using [Microservices](./docs/microservices/index.md).
+It should be easy, and it also should be automated. But both of those things usually aren't free.  The ideal world has magic AI which can communicate with each other.  And to such a degree which doesn't require software architects to think about what the global picture is before an organization can deliver something of value.  The AWS Architect, attempts to eliminate the burden of projecting your vision of software to AWS.  AWS Architects your service using [Microservices](./docs/microservices/index.md).
 
 [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
 [![Build Status](https://travis-ci.org/wparad/AWS-Architect.svg?branch=master)](https://travis-ci.org/wparad/AWS-Architect)
 
 ## Usage
 
-### Creating microservice `init`
-This will also configure your aws account to allow your build system to automatically deploy to AWS.  It does this by creating a deployer role, which will have access to modifying the necessary resources.
+### Creating microservice: `init`
+This will also configure your aws account to allow your build system to automatically deploy to AWS. Run locally
 
 * Create git repository and clone locally
-* `sudo npm install aws-architect -g`
+* `npm install aws-architect -g`
 * `aws-architect init`
 * `npm install`
 * Update:
-	* `package.json`: package name
-	* `make.js`: publish command, and database structure to match your service requirements
+	* `package.json`: package name, the package name is used to name your resources
+	* `make.js`: API Gateway, Lambda, S3, DynamoDB, and IAM configuration. Contains abstract configuration to drive the publish command to match your service requirements.
 
 #### API Sample
+Using `openapi-factory` we can create a declarative api to run inside the lambda function.
 
 ```javascript
 	var aws = require('aws-sdk');
@@ -31,6 +32,7 @@ This will also configure your aws account to allow your build system to automati
 ```
 
 ##### Lambda with no API sample
+Additionally, `openapi-factory` is not required, and executing the lambda handler directly can be done as well.
 
 ```javascript
 	exports.handler = (event, context, callback) => {
@@ -40,6 +42,7 @@ This will also configure your aws account to allow your build system to automati
 	};
 ````
 ##### Set a custom authorizer
+In some cases authorization is necessary. Cognito is always an option, but for more fine grained control, your lambda can double as an authorizer.
 
 ```javascript
 	api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
@@ -60,6 +63,7 @@ This will also configure your aws account to allow your build system to automati
 ```
 
 #### S3 Website Deployment
+AWS Architect has the ability to set up and configure an S3 bucket for static website hosting. It provides a mechanism as well to deploy your content files directly to S3.
 Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
 ```javascript
@@ -74,16 +78,18 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
 
 ## Built-in functionality
 
-* Authorization flow created in index.html for the website (static content)
 * conventioned based static S3 website using the `/content` directory
-* conventioned based lambda functions specified as an argument to the associated functions.
+* conventioned based lambda functions.
 * Creates a ServiceRole to execute Lambda functions.
 * Lambda/API Gateway setup for seemless integration.
-* Automatic creation of AWS resources when using `AwsArchitect.PublishPromise()`. Including:
+* Automatic creation of AWS resources when using including:
 	* Lambda functions
 	* API Gateway resources
 	* Environments for managing resources in AWS
-* Local user testing platform, to run lambdas and static content as a local express Node.js service.
+	* IAM service roles
+	* S3 Buckets and directorys
+	* S3 static website hosting
+* Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally.
 
 ### Service Configuration
 See [template service documentation](./bin/template/README.md) for how individual parts of the service are configured.
