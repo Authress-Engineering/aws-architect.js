@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 3.7 ##
+* Default to region set in aws config, rather than us-east-1.
+
 ## 3.6 ##
 * Allow sending binary Buffer bodies via local server to match API Gateway functionality.
 
