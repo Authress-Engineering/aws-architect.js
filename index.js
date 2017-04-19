@@ -37,7 +37,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 		apiList.push(new Api());
 	}
 	this.Api = apiList[0];
-	this.Configuration = new ApiConfiguration(apiOptions, 'index.js');
+	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
 
 	if(this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
 	if(this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
@@ -93,7 +93,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 	var accountIdPromise = GetAccountIdPromise();
 
 	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
-	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name)
+	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name, '*')
 	.then(() => new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
