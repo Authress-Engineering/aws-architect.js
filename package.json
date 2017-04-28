@@ -22,6 +22,7 @@
     "cookie-parser": "^1.4.2",
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
+    "lodash": "^4.17.4",
     "morgan": "^1.7.0",
     "openapi-factory": "^2.0.55",
     "uuid": "^2.0.2"

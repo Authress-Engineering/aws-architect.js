@@ -74,8 +74,15 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
 	awsArchitect.PromoteToStage('deadc0de-1', 'production')
 	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 	.catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
-````
+```
 
+##### Website publish options
+Publishing the website has an `options` object which defaults to:
+```
+{
+	configureBucket: true // setting to false will assume the bucket is correctly configured.
+}
+```
 ## Built-in functionality
 
 * conventioned based static S3 website using the `/content` directory

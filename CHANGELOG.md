@@ -1,6 +1,10 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 4.0 ##
+* Removed passing the bucket as configuration into `PublishWebsite`.  Bucket is required as part of `contentOptions`.
+* Prevent overwriting the bucket configuration using the `options` parameter in `PublishWebsite`.
+
 ## 3.7 ##
 * Default to region set in aws config, rather than us-east-1.
 
