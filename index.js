@@ -9,6 +9,7 @@ var os = require('os');
 var uuid = require('uuid');
 var Api = require('openapi-factory');
 var http = require('http');
+var _ = require('lodash');
 
 var Server = require('./lib/server');
 var ApiGatewayManager = require('./lib/ApiGatewayManager');
@@ -206,15 +207,17 @@ AwsArchitect.prototype.PromoteToStage = function(source, stage) {
 	return this.BucketManager.CopyBucket(source, stage);
 };
 
-AwsArchitect.prototype.PublishWebsite = function(bucketIn, versionIn) {
-	var version = versionIn;
-	if(this.BucketManager.Bucket && !versionIn) { version = bucketIn; }
-	else if(!this.BucketManager.Bucket && versionIn) { this.BucketManager.Bucket = bucketIn; }
-
+AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
+	var options = _.merge({ configureBucket: true}, optionsIn);
+	if(!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
 	if(!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
 	if(!version) { throw new Error('Deployment version is not defined.'); }
-	return this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region)
-		.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version));
+
+	var deploymentPromise = Promise.resolve();
+	if (options.configureBucket) {
+		deploymentPromise = this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region);
+	}
+	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version));
 };
 
 AwsArchitect.prototype.Run = function(port) {

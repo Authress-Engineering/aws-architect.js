@@ -74,7 +74,7 @@ commander
 		var apiPromise = awsArchitect.PublishAndDeployPromise(version, databaseSchema)
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`));
 
-		var websitePromise = awsArchitect.PublishWebsite(version)
+		var websitePromise = awsArchitect.PublishWebsite(version, { configureBucket: true })
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 
 		Promise.all([apiPromise, websitePromise])
