@@ -1,6 +1,10 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 4.1 ##
+* Add `+AwsArchitect.prototype.PublishLambdaArtifactPromise` to perform the action to deploy a microservice zip package to S3.
+* Allow specifying S3 artifacts cache-control times as overrides.
+
 ## 4.0 ##
 * Removed passing the bucket as configuration into `PublishWebsite`.  Bucket is required as part of `contentOptions`.
 * Prevent overwriting the bucket configuration using the `options` parameter in `PublishWebsite`.

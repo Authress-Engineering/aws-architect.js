@@ -107,18 +107,15 @@ function GetAccountIdPromise() {
 AwsArchitect.prototype.GetApiGatewayPromise = function() {
 	return this.ApiGatewayManager.GetApiGatewayPromise();
 }
-AwsArchitect.prototype.PublishPromise = function() {
-	var accountIdPromise = GetAccountIdPromise();
 
-	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
-	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name, '*')
-	.then(() => new Promise((s, f) => {
+AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
+	let zipArchiveInformationPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
 			if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
 			return s(null);
 		});
-	}))
+	})
 	.then(() => new Promise((s, f) => {
 		var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 		fs.copy(this.SourceDirectory, tmpDir, error => {
@@ -147,6 +144,23 @@ AwsArchitect.prototype.PublishPromise = function() {
 		archive.glob('**', {dot: true, cwd: tmpDir, ignore: 'lambda.zip'});
 		archive.finalize();
 	}))
+	.then(zipInformation => {
+		if (options.bucket) {
+			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, path.join(this.PackageMetadata.name, this.PackageMetadata.version, 'lambda.zip'));
+		}
+	});
+
+	return zipArchiveInformationPromise;
+}
+
+AwsArchitect.prototype.PublishPromise = function() {
+	var accountIdPromise = GetAccountIdPromise();
+
+	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
+	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name, '*')
+	.then(() => {
+		return this.PublishLambdaArtifactPromise();
+	})
 	.then((zipInformation) => {
 		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive, serviceRoleName));
 	});
