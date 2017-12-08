@@ -80,7 +80,14 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
 Publishing the website has an `options` object which defaults to:
 ```
 {
-	configureBucket: true // setting to false will assume the bucket is correctly configured.
+	// setting to false will assume the bucket is correctly configured.
+	configureBucket: true,
+	
+	// provide overrides for paths to change bucket cache control policy, default 600 seconds,
+	cacheControlRegexMap: {
+		'index.html': 10,
+		default: 600
+	}
 }
 ```
 ## Built-in functionality
