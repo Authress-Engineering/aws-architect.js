@@ -248,7 +248,7 @@ AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
 	if (options.configureBucket) {
 		deploymentPromise = this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region);
 	}
-	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version));
+	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap));
 };
 
 AwsArchitect.prototype.Run = function(port) {
