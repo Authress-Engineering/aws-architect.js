@@ -40,6 +40,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
 	this.ContentOptions = contentOptions || {};
 	this.SourceDirectory = (apiOptions || {}).sourceDirectory;
+	this.UseCloudFormation = (apiOptions || {}).useCloudFormation;
 
 	var apiList = [];
 	var indexPathExists = true;
@@ -74,7 +75,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
 
 	var iamFactory = new aws.IAM({region: this.Region})
-	this.IamManager = new IamManager(iamFactory);
+	this.IamManager = new IamManager(iamFactory, null, this.UseCloudFormation);
 }
 
 function GetAccountIdPromise() {
@@ -181,7 +182,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
 			//Ignore non-openapi objects
-			var updateRestApiPromise = this.Api.Routes ? this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId) : Promise.resolve();
+			var updateRestApiPromise = this.Api.Routes && !this.UseCloudFormation ? this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId) : Promise.resolve();
 
 			return Promise.all([updateRestApiPromise, permissionsPromise])
 			.then(result => {
