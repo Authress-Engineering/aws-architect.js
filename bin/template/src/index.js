@@ -4,7 +4,8 @@ const jwtManager = require('jsonwebtoken');
 const jwkConverter = require('jwk-to-pem');
 const axios = require('axios');
 
-module.exports = api = new Api();
+let api = new Api();
+module.exports = api;
 
 const jwkKeyListUrl = 'https://auth0.com/.well-known/jwks.json';
 let publicKeysPromise = null;
@@ -18,7 +19,7 @@ function GetPublicKeyPromise(kid) {
 			return jwkConverter(jwk);
 		}
 		publicKeysPromise = null;
-		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid, keys: keys});
+		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid, keys: result.data.keys });
 	});
 };
 
