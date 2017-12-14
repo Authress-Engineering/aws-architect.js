@@ -18,11 +18,13 @@ commander.version(version);
 var packageMetadataFile = path.join(__dirname, 'package.json');
 var packageMetadata = require(packageMetadataFile);
 
+const deploymentBucket = 'master-deployment-artifacts-s3-bucket';
 var apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['eu-west-1'],
 	runtime: 'nodejs6.10',
+	useCloudFormation: true,
 	memorySize: 128,
 	publish: true,
 	timeout: 3,
@@ -63,21 +65,45 @@ commander
 	.command('deploy')
 	.description('Deploy to AWS.')
 	.action(() => {
-		var databaseSchema = [
-			// {
-			// 	TableName: 'users',
-			// 	AttributeDefinitions: [{ AttributeName: 'UserId', AttributeType: 'S' }],
-			// 	KeySchema: [{ AttributeName: 'UserId', KeyType: 'HASH' }],
-			// 	ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 }
-			// }
-		];
-		var apiPromise = awsArchitect.PublishAndDeployPromise(version, databaseSchema)
+		packageMetadata.version = version;
+		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+	
+		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
+		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
+		let stageName = 'local';
+
+		return cloudFormationPromise
+		.then(() => {
+		  if (isMasterBranch === 'master') {
+			return awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket })
+			.then(() => {
+			  let stackConfiguration = {
+				changeSetName: `${stageName}-${version || '1' }`,
+				stackName: packageMetadata.name
+			  };
+			  let parameters = {
+				serviceName: packageMetadata.name,
+				serviceDescription: packageMetadata.description,
+				deploymentBucketName: deploymentBucket,
+				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
+				dnsName: packageMetadata.name,
+				hostedName: "toplevel.domain.io",
+				amazonHostedZoneIdForService: 'AMAZON_HOST_ZONE_ID_FOR_DNS'
+			  };
+			  return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+			});
+		  }
+		  else {
+			return awsArchitect.PublishAndDeployPromise(stageName, []);
+		  }
+		})
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`));
 
 		var websitePromise = awsArchitect.PublishWebsite(version, { configureBucket: true })
 		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 
-		Promise.all([apiPromise, websitePromise])
+		Promise.all([cloudFormationPromise, websitePromise])
 		.catch((failure) => {
 			console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`)
 			process.exit(1);

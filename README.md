@@ -21,9 +21,9 @@ This will also configure your aws account to allow your build system to automati
 Using `openapi-factory` we can create a declarative api to run inside the lambda function.
 
 ```javascript
-	var aws = require('aws-sdk');
-	var Api = require('openapi-factory');
-	var api = new Api();
+	let aws = require('aws-sdk');
+	let Api = require('openapi-factory');
+	let api = new Api();
 	module.exports = api;
 
 	api.get('/sample', (request) => {
@@ -40,7 +40,7 @@ Additionally, `openapi-factory` is not required, and executing the lambda handle
 		console.log(`context: ${JSON.stringify(context, null, 2)}`);
 		callback(null, {Event: event, Context: context});
 	};
-````
+```
 ##### Set a custom authorizer
 In some cases authorization is necessary. Cognito is always an option, but for more fine grained control, your lambda can double as an authorizer.
 
@@ -60,6 +60,72 @@ In some cases authorization is necessary. Cognito is always an option, but for m
 			}
 		}
 	});
+```
+
+### Library Functions
+#### AwsArchitect class functions
+
+```javascript
+let packageMetadataFile = path.join(__dirname, 'package.json');
+let packageMetadata = require(packageMetadataFile);
+
+let apiOptions = {
+	sourceDirectory: path.join(__dirname, 'src'),
+	description: 'This is the description of the lambda function',
+	regions: ['eu-west-1'],
+	runtime: 'nodejs6.10',
+	useCloudFormation: true,
+	memorySize: 128,
+	publish: true,
+	timeout: 3,
+	securityGroupIds: [],
+	subnetIds: []
+};
+let contentOptions = {
+	bucket: 'WEBSITE_BUCKET_NAME',
+	contentDirectory: path.join(__dirname, 'content')
+};
+let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+
+// Create the api gateway from an openapi enabled index.js file
+GetApiGatewayPromise() {...}
+
+// Package a directory in a zip archive and deploy to an S3 bucket
+let options = {
+	bucket: 'BUCKET_NAME'
+};
+PublishLambdaArtifactPromise(options = {}) {...}
+
+// Create a lambda with the directory code and the api gateway
+PublishPromise() {...}
+
+// Validate a cloud formation stack template
+ValidateTemplate(stackTemplate) {...}
+
+// deploy a cloud formation stack template
+let stackConfiguration = {
+	stackName: 'STACK_NAME'
+	changeSetName: 'NAME_OF_CHANGE_SET'
+};
+let parameters = { /** PARAMATERS_FOR_YOUR_TEMPLATE, but also include these unless being overwritten in your template */
+	serviceName: packageMetadata.name,
+	serviceDescription: packageMetadata.description,
+	dnsName: packageMetadata.name
+};
+DeployTemplate(stackTemplate, stackConfiguration, parameters) {...}
+
+// Create a stage in an api gateway pointing to a specific version of the lambda function
+DeployStagePromise(stage, lambdaVersion) {...}
+
+// Calls `PublishPromise` and then `DeployStagePromise`
+PublishAndDeployPromise(stage) {...}
+
+// Creates a website, see below
+PublishWebsite(version, optionsIn) {...}
+
+// Debug the running service on port at http://localhost:port/api
+Run(port) {...}
+
 ```
 
 #### S3 Website Deployment

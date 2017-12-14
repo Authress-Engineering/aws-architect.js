@@ -35,6 +35,7 @@ var LambdaManager = require('./lib/LambdaManager');
 var ApiConfiguration = require('./lib/ApiConfiguration');
 var BucketManager = require('./lib/BucketManager');
 var IamManager = require('./lib/IamManager');
+let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
@@ -76,6 +77,9 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
 	var iamFactory = new aws.IAM({region: this.Region})
 	this.IamManager = new IamManager(iamFactory, null, this.UseCloudFormation);
+
+	let cloudFormationClient = new aws.CloudFormation({ region: this.Region });
+	this.CloudFormationDeployer = new CloudFormationDeployer(cloudFormationClient);
 }
 
 function GetAccountIdPromise() {
@@ -198,6 +202,14 @@ AwsArchitect.prototype.PublishPromise = function() {
 		}
 	});
 };
+
+AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
+	return this.CloudFormationDeployer.validateTemplate(stackTemplate);
+}
+
+AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {
+	return this.CloudFormationDeployer.deployTemplate(stackTemplate, stackConfiguration, parameters);
+}
 
 AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
