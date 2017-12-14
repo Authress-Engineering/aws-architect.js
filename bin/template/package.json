@@ -11,21 +11,20 @@
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {
-    "axios": "^0.15.3",
-    "jsonwebtoken": "^7.1.9",
+    "axios": "^0.17.1",
+    "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
     "openapi-factory": "^2.1"
   },
   "devDependencies": {
-    "aws-architect": "^3.1",
+    "aws-architect": "^4.2.235",
     "aws-sdk": "^2.2.32",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
     "esprima": "^2.7.2",
     "glob": "^5.0.0",
     "mocha": "^2.5.3",
-    "sinon": "^1.17.1",
-    "ci-build-tools": "~1.0"
+    "sinon": "^1.17.1"
   },
   "repository": {
     "type": "git",

@@ -3,16 +3,16 @@
 /**
  * Module dependencies
  */
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
+const aws = require('aws-sdk');
+const commander = require('commander');
+const AwsArchitect = require('aws-architect');
 
-// const aws = require('aws-sdk');
 // aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'default'});
 
-var AwsArchitect = require('aws-architect');
-var ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
-var version = ci.GetVersion();
-var commander = require('commander');
+let ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
+let version = ci.GetVersion();
 commander.version(version);
 
 var packageMetadataFile = path.join(__dirname, 'package.json');
@@ -38,6 +38,13 @@ var contentOptions = {
 var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 commander
+.command('deploy')
+.description('Deploy to AWS.')
+.action(() => {
+		console.log('Nothing to do here');
+	});
+
+commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
@@ -50,47 +57,53 @@ commander
 	.command('deploy')
 	.description('Deploy to AWS.')
 	.action(() => {
+		if (!process.env.CI_COMMIT_REF_SLUG) {
+      console.log('Deployment should not be done locally.');
+      return;
+		}
+
 		packageMetadata.version = version;
 		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
 	
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
 		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
-		let stageName = 'local';
-
+		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
+		
 		return cloudFormationPromise
 		.then(() => {
 		  if (isMasterBranch === 'master') {
-			return awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket })
-			.then(() => {
-			  let stackConfiguration = {
-				changeSetName: `${stageName}-${version || '1' }`,
-				stackName: packageMetadata.name
-			  };
-			  let parameters = {
-				serviceName: packageMetadata.name,
-				serviceDescription: packageMetadata.description,
-				deploymentBucketName: deploymentBucket,
-				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
-				dnsName: packageMetadata.name,
-				hostedName: "toplevel.domain.io",
-				amazonHostedZoneIdForService: 'AMAZON_HOST_ZONE_ID_FOR_DNS'
-			  };
-			  return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
-			});
-		  }
-		  else {
-			return awsArchitect.PublishAndDeployPromise(stageName, []);
-		  }
+				return awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket })
+				.then(() => {
+					let stackConfiguration = {
+						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${version || '1' }`,
+						stackName: packageMetadata.name
+					};
+					let parameters = {
+						serviceName: packageMetadata.name,
+						serviceDescription: packageMetadata.description,
+						deploymentBucketName: deploymentBucket,
+						deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
+						dnsName: packageMetadata.name,
+						hostedName: "toplevel.domain.io",
+						amazonHostedZoneIdForService: 'AMAZON_HOST_ZONE_ID_FOR_DNS'
+					};
+					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+				});
+			}
 		})
-		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`));
-
-		var websitePromise = awsArchitect.PublishWebsite(version, { configureBucket: true })
-		.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-
-		Promise.all([cloudFormationPromise, websitePromise])
-		.catch((failure) => {
-			console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`)
+		.then(() => {
+			return awsArchitect.PublishAndDeployStagePromise({
+				stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
+				functionName: packageMetadata.name,
+				deploymentBucketName: deploymentBucket,
+				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
+			});
+		})
+		.then(result => {
+			console.log(result);
+		}, failure => {
+			console.log(failure);
 			process.exit(1);
 		});
 	});
@@ -115,12 +128,12 @@ commander
       console.log(failure);
       process.exit(1);
     });
-	});
+  });
 
 commander.on('*', () => {
-	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
-	console.log('Unknown Command: ' + commander.args.join(' '));
-	commander.help();
-	process.exit(0);
+  if(commander.args.join(' ') == 'tests/**/*.js') { return; }
+  console.log('Unknown Command: ' + commander.args.join(' '));
+  commander.help();
+  process.exit(0);
 });
 commander.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));
