@@ -4,6 +4,7 @@ This is the changelog for [AWS Architect](readme.md).
 ## 4.2 ##
 * Include cloud formation deployment for standard resources.
 * Added example cloud formation template to template service.
+* New `RemoveStage` in AWS Architect.
 
 ## 4.1 ##
 * Add `+AwsArchitect.prototype.PublishLambdaArtifactPromise` to perform the action to deploy a microservice zip package to S3.

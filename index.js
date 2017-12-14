@@ -226,13 +226,13 @@ AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) 
 
 AwsArchitect.prototype.RemoveStagePromise = function(stage) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-
+	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
 	return apiGatewayPromise
-	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stage))
+	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stageName))
 	.then(result => ({
 		title: 'Successfully delete stage',
-		stage: stage,
+		stage: stageName,
 		details: result
 	}));
 }
