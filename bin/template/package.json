@@ -7,6 +7,7 @@
     "start": "node make.js run",
     "build": "node make.js",
     "deploy": "node make.js deploy",
+    "delete": "node make.js delete",
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {

@@ -59,22 +59,6 @@
         ]
       }
     },
-    "LambdaNewVersion": {
-      "Type" : "AWS::Lambda::Version",
-      "Properties" : {
-        "FunctionName": { "Ref": "serviceName" }
-      },
-      "DependsOn": "LambdaFunction"
-    },
-    "StageAliasForLambdaFunction": {
-      "Type" : "AWS::Lambda::Alias",
-      "Properties" : {
-        "Description" : "Stage alias for production",
-        "FunctionName" : { "Ref": "serviceName" },
-        "FunctionVersion" : { "Fn::GetAtt": [ "LambdaNewVersion", "Version" ] },
-        "Name" : "production"
-      }
-    },
     "LambdaRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -617,10 +601,17 @@
     "PermissionForAPIGatewayToInvokeLambda": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
-        "FunctionName": { "Ref": "serviceName" },
+        "FunctionName": {
+          "Fn::Join": [
+            "",
+            [
+              { "Fn::GetAtt": [ "LambdaFunction", "Arn" ] }
+            ]
+          ]
+        },
         "Action": "lambda:InvokeFunction",
         "Principal": "apigateway.amazonaws.com"
-        },
+      },
       "DependsOn": "LambdaFunction"
     }
   }

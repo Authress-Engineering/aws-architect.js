@@ -38,21 +38,6 @@ var contentOptions = {
 var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 commander
-	.command('build')
-	.description('Setup require build files for npm package.')
-	.action(() => {
-		packageMetadata.version = version;
-		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
-
-		console.log("Building package %s (%s)", packageMetadata.name, version);
-		console.log('');
-
-		console.log('Running tests')
-		var test = exec('npm test');
-		console.log(' ' + test);
-	});
-
-commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
@@ -108,6 +93,28 @@ commander
 			console.log(`${failure.Details} - ${JSON.stringify(failure, null, 2)}`)
 			process.exit(1);
 		});
+	});
+
+commander
+  .command('delete')
+  .description('Delete Stage from AWS.')
+  .action(() => {
+    if (!process.env.CI_COMMIT_REF_SLUG) {
+      console.log('Deployment should not be done locally.');
+      return;
+    }
+
+    packageMetadata.version = version;
+    fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+
+    let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+    return awsArchitect.RemoveStagePromise(process.env.CI_COMMIT_REF_SLUG)
+    .then(result => {
+      console.log(result);
+    }, failure => {
+      console.log(failure);
+      process.exit(1);
+    });
 	});
 
 commander.on('*', () => {
