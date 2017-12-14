@@ -224,6 +224,69 @@ AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) 
 	return this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
 };
 
+AwsArchitect.prototype.RemoveStagePromise = function(stage) {
+	if(!stage) { throw new Error('Deployment stage is not defined.'); }
+
+	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
+	return apiGatewayPromise
+	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stage))
+	.then(result => ({
+		title: 'Successfully delete stage',
+		stage: stage,
+		details: result
+	}));
+}
+
+AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
+	let stage = options.stage;
+	let functionName = options.functionName;
+	let bucket = options.deploymentBucketName;
+	let deploymentKey = options.deploymentKeyName;
+	if(!stage) { throw new Error('Deployment stage is not defined.'); }
+	
+	let lambdaPromise = this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey);
+	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
+	let accountIdPromise = GetAccountIdPromise();
+	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
+	.then(result => {
+		try {
+			var lambda = result[0];
+			var lambdaArn = lambda.FunctionArn;
+			var lambdaVersion = lambda.Version;
+			var apiGateway = result[1];
+			var apiGatewayId = apiGateway.Id;
+			var accountId = result[2];
+
+			return accountIdPromise
+			.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region))
+			.then(result => {
+				return {
+					LambdaFunctionArn: lambdaArn,
+					LambdaVersion: lambdaVersion,
+					RestApiId: apiGatewayId
+				};
+			});
+		}
+		catch (exception) {
+			throw ({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
+		}
+	})
+	.then(result => {
+		var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+		return this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion)
+		.then(data => {
+			return {
+				LambdaResult: result,
+				ApiGatewayResult: data,
+				ServiceAPI: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
+			};
+		});
+	})
+	.catch(failure => {
+		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});
+	});
+}
+
 AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 
