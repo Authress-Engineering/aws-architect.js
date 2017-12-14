@@ -148,14 +148,14 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 		archive.pipe(zipStream);
 		archive.glob('**', {dot: true, cwd: tmpDir, ignore: 'lambda.zip'});
 		archive.finalize();
-	}))
+	}));
+
+	return zipArchiveInformationPromise
 	.then(zipInformation => {
 		if (options.bucket) {
 			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, path.join(this.PackageMetadata.name, this.PackageMetadata.version, 'lambda.zip'));
 		}
-	});
-
-	return zipArchiveInformationPromise;
+	}).then(() => zipArchiveInformationPromise);
 }
 
 AwsArchitect.prototype.PublishPromise = function() {
