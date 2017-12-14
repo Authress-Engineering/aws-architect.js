@@ -1,11 +1,10 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Nonsense Nonce tracking service",
+  "Description": "AWS Architect Microservice",
   "Parameters": {
     "serviceName": {
       "Type": "String",
-      "Default": "Nonsense",
       "Description": "The name of the microservice"
     },
     "serviceDescription": {
