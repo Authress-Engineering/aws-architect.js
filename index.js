@@ -153,7 +153,7 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	return zipArchiveInformationPromise
 	.then(zipInformation => {
 		if (options.bucket) {
-			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, path.join(this.PackageMetadata.name, this.PackageMetadata.version, 'lambda.zip'));
+			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambda.zip}`);
 		}
 	}).then(() => zipArchiveInformationPromise);
 }
