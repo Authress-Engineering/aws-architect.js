@@ -114,6 +114,7 @@ AwsArchitect.prototype.GetApiGatewayPromise = function() {
 }
 
 AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
+	let lambdaZip = 'lambda.zip';
 	let zipArchiveInformationPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
@@ -139,21 +140,21 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 		});
 	}))
 	.then((tmpDir) => new Promise((s, f) => {
-		var zipArchivePath = path.join(tmpDir, 'lambda.zip');
+		var zipArchivePath = path.join(tmpDir, lambdaZip);
 		var zipStream = fs.createWriteStream(zipArchivePath);
 		zipStream.on('close', () => s({Archive: zipArchivePath}));
 
 		var archive = archiver.create('zip', {});
 		archive.on('error', (e) => f({Error: e}));
 		archive.pipe(zipStream);
-		archive.glob('**', {dot: true, cwd: tmpDir, ignore: 'lambda.zip'});
+		archive.glob('**', {dot: true, cwd: tmpDir, ignore: lambdaZip});
 		archive.finalize();
 	}));
 
 	return zipArchiveInformationPromise
 	.then(zipInformation => {
 		if (options.bucket) {
-			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambda.zip}`);
+			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
 		}
 	}).then(() => zipArchiveInformationPromise);
 }
