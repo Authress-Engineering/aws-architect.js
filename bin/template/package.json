@@ -14,10 +14,10 @@
     "axios": "^0.17.1",
     "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
-    "openapi-factory": "^2.1"
+    "openapi-factory": "^2.2"
   },
   "devDependencies": {
-    "aws-architect": "^4.2.235",
+    "aws-architect": "^4.2",
     "aws-sdk": "^2.2.32",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
