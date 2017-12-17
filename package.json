@@ -24,7 +24,7 @@
     "fs-extra": "^0.30.0",
     "lodash": "^4.17.4",
     "morgan": "^1.7.0",
-    "openapi-factory": "^2.0.55",
+    "openapi-factory": "^2.2",
     "uuid": "^2.0.2"
   },
   "devDependencies": {
