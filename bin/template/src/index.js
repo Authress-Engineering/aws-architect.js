@@ -49,11 +49,10 @@ api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
 				]
 			}
 		};
-	})
-	.catch(error => Promise.reject('Custom-Authorizer-Failure'));
+	});
 });
 
-api.any('/{proxy+}', (event, context) => {
+api.get('/resource/{resourceId}', (event, context) => {
 	/*
 		{
 			event: {
@@ -67,7 +66,7 @@ api.any('/{proxy+}', (event, context) => {
 					"param1": "1"
 				},
 				"pathParameters": {
-					"proxy": "a/b/c"
+					"resourceId": "123"
 				},
 				"stageVariables": null,
 				"requestContext": {
@@ -75,19 +74,7 @@ api.any('/{proxy+}', (event, context) => {
 					"resourceId": "wagagr",
 					"stage": "test-invoke-stage",
 					"requestId": "test-invoke-request",
-					"identity": {
-						"cognitoIdentityPoolId": null,
-						"accountId": "aws",
-						"cognitoIdentityId": null,
-						"caller": "caller",
-						"apiKey": "test-invoke-api-key",
-						"sourceIp": "test-invoke-source-ip",
-						"cognitoAuthenticationType": null,
-						"cognitoAuthenticationProvider": null,
-						"userArn": "userarn",
-						"userAgent": "agent",
-						"user": "user"
-					},
+					"identity": {...},
 					"resourcePath": "/{proxy+}",
 					"httpMethod": "GET",
 					"apiId": "apiId"
@@ -96,6 +83,6 @@ api.any('/{proxy+}', (event, context) => {
 			}
 		}
 	*/
-	//Or just return a body.
-	return new Api.Response({ 'field': 'hello world' }, 200, { 'Content-Type': 'application/json' });
+	// Return a body.
+	return new Api.Response({ resourceId: event.pathParameters.resourceId }, 200, { 'Content-Type': 'application/json' });
 });
