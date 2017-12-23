@@ -565,8 +565,8 @@ once@^1.3.0, once@^1.4.0:
     wrappy "1"
 
 openapi-factory@>=2.2:
-  version "2.2.92"
-  resolved "https://registry.yarnpkg.com/openapi-factory/-/openapi-factory-2.2.92.tgz#08f78432f4cdbded3c934055ba43fa24f0457e1f"
+  version "3.0.100"
+  resolved "https://registry.yarnpkg.com/openapi-factory/-/openapi-factory-3.0.100.tgz#ca3ac0d29aa9f6850ee4c50eb53ef940a80e4c4a"
 
 parseurl@~1.3.2:
   version "1.3.2"

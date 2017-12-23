@@ -28,12 +28,12 @@
     "uuid": "^2.0.2"
   },
   "devDependencies": {
-    "travis-build-tools": "~1.2",
     "chai": "^3.5.0",
     "esprima": "^2.7.2",
     "glob": "^5.0.15",
     "mocha": "^2.4.5",
-    "sinon": "^1.17.3"
+    "sinon": "^1.17.3",
+    "travis-build-tools": "~1.2"
   },
   "repository": {
     "type": "git",

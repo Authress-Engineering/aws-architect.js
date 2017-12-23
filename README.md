@@ -45,7 +45,7 @@ Additionally, `openapi-factory` is not required, and executing the lambda handle
 In some cases authorization is necessary. Cognito is always an option, but for more fine grained control, your lambda can double as an authorizer.
 
 ```javascript
-	api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
+	api.SetAuthorizer(event => {
 		return {
 			principalId: 'computed-authorized-principal-id',
 			policyDocument: {
@@ -54,11 +54,16 @@ In some cases authorization is necessary. Cognito is always an option, but for m
 					{
 						Action: 'execute-api:Invoke',
 						Effect: 'Deny',
-						Resource: methodArn //'arn:aws:execute-api:*:*:*'
+						Resource: event.methodArn //'arn:aws:execute-api:*:*:*'
 					}
 				]
+			},
+			context: {
+				"stringKey": "stringval",
+				"numberKey": 123,
+				"booleanKey": true
 			}
-		}
+		};
 	});
 ```
 

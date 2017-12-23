@@ -14,7 +14,7 @@
     "axios": "^0.17.1",
     "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
-    "openapi-factory": "^2.2"
+    "openapi-factory": "^3.0"
   },
   "devDependencies": {
     "aws-architect": "^4.2",
