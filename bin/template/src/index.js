@@ -23,18 +23,20 @@ function GetPublicKeyPromise(kid) {
 	});
 };
 
-api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
-	var unverifiedToken = jwtManager.decode(authorizationTokenInfo.Token, {complete: true});
+api.SetAuthorizer(event => {
+	let methodArn = event.methodArn;
+	let token = event.headers.Authorization ? event.headers.Authorization.split(' ')[1] : null;
+	let unverifiedToken = jwtManager.decode(token, {complete: true});
 	var kid = ((unverifiedToken || {}).header || {}).kid;
 	return GetPublicKeyPromise(kid)
 	.then(key => {
-		try { return jwtManager.verify(authorizationTokenInfo.Token, key, { algorithms: ['RS256'] }); }
+		try { return jwtManager.verify(token, key, { algorithms: ['RS256'] }); }
 		catch (exception) { return Promise.reject(exception.stack || exception.toString()); }
 	})
 	.then(token => {
 		return {
-			"principalId": token.sub,
-			"policyDocument": {
+			principalId: token.sub,
+			policyDocument: {
 				"Version": "2012-10-17",
 				"Statement": [
 					{
@@ -47,6 +49,11 @@ api.SetAuthorizer((authorizationTokenInfo, methodArn) => {
 						]
 					}
 				]
+			},
+			context: {
+				stringKey: "stringval",
+				numberKey: 123,
+				booleanKey: true
 			}
 		};
 	});

@@ -109,7 +109,7 @@
               "in": "header",               
               "x-amazon-apigateway-authtype": "oauth2", 
               "x-amazon-apigateway-authorizer": {     
-                "type": "token",            
+                "type": "request",
                 "authorizerUri": {
                   "Fn::Join": [
                     ":",
