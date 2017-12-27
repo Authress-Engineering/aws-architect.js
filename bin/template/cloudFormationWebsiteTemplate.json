@@ -1,0 +1,399 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "serviceName": {
+      "Type": "String",
+      "Description": "The name of the microservice"
+    },
+    "serviceDescription": {
+      "Type": "String",
+      "Description": "Service description used for AWS resources"
+    },
+    "deploymentBucketName": {
+      "Type": "String",
+      "Description": "The bucket where deployment artifacts are kept"
+    },
+    "deploymentKeyName": {
+      "Type": "String",
+      "Description": "The location of the s3 lambda.zip file in the bucket"
+    },
+    "dnsName": {
+      "Type": "String",
+      "Description": "The service DNS name."
+    },
+    "hostedName": {
+      "Type": "String",
+      "Description": "The top level domain name."
+    },
+    "amazonHostedZoneIdForService": {
+      "Type": "String",
+      "Description": "The API Gateway regional zone id found at http://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region"
+    },
+    "ACMCertificate": {
+      "Type": "String",
+      "Description": "Certificate ID"
+    }
+  },
+  "Resources": {
+
+    "S3Bucket": {
+      "Type" : "AWS::S3::Bucket",
+      "Properties" : {
+        "BucketName" : {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "dnsName"
+              },
+              ".",
+              {
+                "Ref": "hostedName"
+              }
+            ]
+          ]
+        },
+        "Tags" : [
+          {
+          "Key": "Service",
+          "Value": { "Ref": "serviceName" }
+          }
+        ],
+        "WebsiteConfiguration" : {
+          "ErrorDocument" : "index.html",
+          "IndexDocument" : "index.html"
+        }
+      }
+    },
+
+    "CloudFrontOriginAccessIdentity": {
+      "Type" : "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+      "Properties" : {
+        "CloudFrontOriginAccessIdentityConfig" : {
+          "Comment": { "Ref": "serviceName" }
+        }
+      }
+    },
+
+    "S3BucketPolicy": {
+      "Type" : "AWS::S3::BucketPolicy",
+      "Properties" : {
+        "Bucket" : {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "dnsName"
+              },
+              ".",
+              {
+                "Ref": "hostedName"
+              }
+            ]
+          ]
+        },
+        "PolicyDocument" : {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    ".",
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Sid":" Grant a CloudFront Origin Identity access to support private content",
+              "Effect":"Allow",
+              "Principal":{
+                "CanonicalUser": { "Fn::GetAtt": [ "CloudFrontOriginAccessIdentity", "S3CanonicalUserId" ] }
+              },
+              "Action":"s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    ".",
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+
+    "CloudFrontDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "DefaultRootObject": "index.html",
+          "Aliases": [
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "tst-",
+                  {
+                    "Ref": "dnsName"
+                  },
+                  ".",
+                  {
+                    "Ref": "hostedName"
+                  }
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "dnsName"
+                  },
+                  ".",
+                  {
+                    "Ref": "hostedName"
+                  }
+                ]
+              ]
+            }
+          ],
+          "HttpVersion": "http2",
+          "PriceClass": "PriceClass_100",
+          "Origins": [
+            {
+              "OriginPath": "/v1",
+              "DomainName": {
+                "Fn::Join": [
+                  ".",
+                  [
+                    {
+                      "Ref": "dnsName"
+                    },
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "s3.amazonaws.com"
+                  ]
+                ]
+              },
+              "Id": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "S3",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    {
+                      "Ref": "hostedName"
+                    }
+                  ]
+                ]
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "origin-access-identity/cloudfront",
+                      { "Ref": "CloudFrontOriginAccessIdentity" }
+                    ]
+                  ]
+                }
+              }
+            },
+            {
+              "DomainName": {
+                "Fn::Join": [
+                  ".",
+                  [
+                    {
+                      "Ref": "dnsName"
+                    },
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "s3.amazonaws.com"
+                  ]
+                ]
+              },
+              "Id": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "TST-S3",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    {
+                      "Ref": "hostedName"
+                    }
+                  ]
+                ]
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "origin-access-identity/cloudfront",
+                      { "Ref": "CloudFrontOriginAccessIdentity" }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "CacheBehaviors": [
+            {
+              "ForwardedValues": {
+                "QueryString": false
+              },
+              "PathPattern": "PR*.*.*/*",
+              "TargetOriginId": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "TST-S3",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    {
+                      "Ref": "hostedName"
+                    }
+                  ]
+                ]
+              },
+              "ViewerProtocolPolicy": "redirect-to-https"
+            }
+          ],
+          "Enabled": true,
+          "ViewerCertificate": {
+            "AcmCertificateArn": {
+              "Ref": "ACMCertificate"
+            },
+            "SslSupportMethod": "sni-only"
+          },
+          "DefaultCacheBehavior": {
+            "ForwardedValues" : {
+              "QueryString" : false
+            },
+            "TargetOriginId" : {
+              "Fn::Join": [
+                "-",
+                [
+                  "S3",
+                  {
+                    "Ref": "dnsName"
+                  },
+                  {
+                    "Ref": "hostedName"
+                  }
+                ]
+              ]
+            },
+            "ViewerProtocolPolicy" : "redirect-to-https"
+          }
+        }
+      }
+    },
+
+    "TestRoute53": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+        },
+        "HostedZoneName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "hostedName"
+              },
+              "."
+            ]
+          ]
+        },
+        "Name": {
+          "Fn::Join": [
+            "",
+            [
+              "tst-",
+              {
+                "Ref": "dnsName"
+              },
+              ".",
+              {
+                "Ref": "hostedName"
+              },
+              "."
+            ]
+          ]
+        },
+        "Type": "A"
+      }
+    },
+
+    "ProdRoute53": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+        },
+        "HostedZoneName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "hostedName"
+              },
+              "."
+            ]
+          ]
+        },
+        "Name": {
+          "Fn::Join": [
+            ".",
+            [
+              {
+                "Ref": "dnsName"
+              },
+              {
+                "Ref": "hostedName"
+              },
+              ""
+            ]
+          ]
+        },
+        "Type": "A"
+      }
+    }
+  }
+}
