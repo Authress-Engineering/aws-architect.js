@@ -77,6 +77,9 @@ api.get('/resource/{resourceId}', (event, context) => {
 				},
 				"stageVariables": null,
 				"requestContext": {
+					"authorizer": {
+						"principalIdId": "USER-TOKEN-SUB"
+					},
 					"accountId": "aws",
 					"resourceId": "wagagr",
 					"stage": "test-invoke-stage",
