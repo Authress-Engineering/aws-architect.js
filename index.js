@@ -240,6 +240,7 @@ AwsArchitect.prototype.RemoveStagePromise = function(stage) {
 
 AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	let stage = options.stage;
+	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let functionName = options.functionName;
 	let bucket = options.deploymentBucketName;
 	let deploymentKey = options.deploymentKeyName;
@@ -259,7 +260,12 @@ AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 			var accountId = result[2];
 
 			return accountIdPromise
-			.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region))
+			.then(accountId => {
+				return this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion)
+				.then(() => {
+					return this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
+				});
+			})
 			.then(result => {
 				return {
 					LambdaFunctionArn: lambdaArn,
@@ -273,13 +279,12 @@ AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 		}
 	})
 	.then(result => {
-		var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 		return this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion)
 		.then(data => {
 			return {
 				LambdaResult: result,
 				ApiGatewayResult: data,
-				ServiceAPI: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
+				ServiceApi: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
 			};
 		});
 	})
@@ -300,7 +305,7 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 			return {
 				LambdaResult: result,
 				ApiGatewayResult: data,
-				ServiceAPI: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
+				ServiceApi: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
 			};
 		});
 	})
