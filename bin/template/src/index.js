@@ -19,7 +19,7 @@ function GetPublicKeyPromise(kid) {
 			return jwkConverter(jwk);
 		}
 		publicKeysPromise = null;
-		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid, keys: result.data.keys });
+		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid || 'NO_KID_SPECIFIED', keys: result.data.keys});
 	});
 };
 
