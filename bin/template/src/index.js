@@ -69,7 +69,7 @@ api.get('/.well-known/openapi.json', () => {
 });
   
 api.get('/livecheck', () => {
-	return new Api.Response({}, 200);
+	return new Api.Response({ "field": "hello world" }, 200);
 });
 
 api.get('/v1/resource/{resourceId}', request => {
