@@ -346,7 +346,7 @@ AwsArchitect.prototype.Run = function(port) {
 		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
 	catch (exception) {
-		return Promise.reject({Error: 'Failed to start server', Exception: exception.stack || exception});
+		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception});
 	}
 };
 

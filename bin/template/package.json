@@ -12,12 +12,13 @@
   },
   "dependencies": {
     "axios": "^0.17.1",
+    "ci-build-tools": ">=1.0",
     "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
     "openapi-factory": "^3.0"
   },
   "devDependencies": {
-    "aws-architect": "^4.2",
+    "aws-architect": "^5.0",
     "aws-sdk": "^2.2.32",
     "chai": "^3.2.0",
     "commander": "^2.5.0",

@@ -30,16 +30,37 @@ describe('src/index.js', function() {
 		});
 	});
 	describe('Test Handler', function () {
+		it('GET livecheck', function() {
+			try {
+				var api = require('../src/index');
+
+				var result = api.Routes['GET']['/livecheck'].Handler();
+				var expectedResult = {
+					statusCode: 200,
+					body: JSON.stringify({
+						'field': 'hello world'
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				}
+				assert.equal(result.statusCode, expectedResult.statusCode, 'Expected ANY /proxy status code to have matching value.')
+				assert.deepEqual(result.headers, expectedResult.headers, 'Expected ANY /proxy headers to have matching value.')
+				assert.equal(result.body, expectedResult.body, 'Expected ANY /proxy body to have matching value.')
+			}
+			catch(e) {
+				console.error(e.stack);
+				assert(false, e.toString());
+			}
+		});
 		it('ANY', function() {
 			try {
 				var api = require('../src/index');
 
 				var result = api.Routes['ANY']['/{proxy+}'].Handler();
 				var expectedResult = {
-					statusCode: 200,
-					body: JSON.stringify({
-						'field': 'hello world'
-					}),
+					statusCode: 404,
+					body: JSON.stringify({}),
 					headers: {
 						'Content-Type': 'application/json'
 					}

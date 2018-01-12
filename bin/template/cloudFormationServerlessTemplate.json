@@ -150,12 +150,6 @@
                 "produces": [
                   "application/json"
                 ],
-                "parameters": [{
-                  "name": "proxy",
-                  "in": "path",
-                  "required": true,
-                  "type": "string"
-                }],
                 "responses": {},
                 "x-amazon-apigateway-integration": {
                   "uri": {
@@ -184,12 +178,6 @@
                 "produces": [
                   "application/json"
                 ],
-                "parameters": [{
-                  "name": "proxy",
-                  "in": "path",
-                  "required": true,
-                  "type": "string"
-                }],
                 "responses": {},
                 "x-amazon-apigateway-integration": {
                   "uri": {

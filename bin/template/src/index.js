@@ -23,9 +23,9 @@ function GetPublicKeyPromise(kid) {
 	});
 };
 
-api.SetAuthorizer(event => {
-	let methodArn = event.methodArn;
-	let token = event.headers.Authorization ? event.headers.Authorization.split(' ')[1] : null;
+api.SetAuthorizer(request => {
+	let methodArn = request.methodArn;
+	let token = request.headers.Authorization ? request.headers.Authorization.split(' ')[1] : null;
 	let unverifiedToken = jwtManager.decode(token, {complete: true});
 	var kid = ((unverifiedToken || {}).header || {}).kid;
 	return GetPublicKeyPromise(kid)
@@ -59,10 +59,35 @@ api.SetAuthorizer(event => {
 	});
 });
 
-api.get('/resource/{resourceId}', (event, context) => {
+api.get('/.well-known/openapi.json', () => {
+	let openapiFile = path.join(__dirname, './openapi.json');
+	return fs.readJson(openapiFile)
+	.then(data => new Api.Response(data, 200, {
+		"Content-Type": "application/json",
+		"Access-Control-Allow-Origin" : '*'
+	}));
+});
+  
+api.get('/livecheck', () => {
+	return new Api.Response({ "field": "hello world" }, 200);
+});
+
+api.get('/v1/resource/{resourceId}', request => {
+	return new Api.Response({ resourceId: request.pathParameters.resourceId }, 200, { 'Content-Type': 'application/json' });
+});
+
+api.options('/{proxy+}', request => {
+	return new Api.Response({}, 200, {
+		"Access-Control-Allow-Headers" : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+		"Access-Control-Allow-Methods" : 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
+		"Access-Control-Allow-Origin" : request.headers.Origin || '*'
+	});
+});
+  
+api.any('/{proxy+}', request => {
 	/*
 		{
-			event: {
+			request: {
 				"resource": "/{proxy+}",
 				"path": "/a/b/c",
 				"httpMethod": "GET",
@@ -77,6 +102,9 @@ api.get('/resource/{resourceId}', (event, context) => {
 				},
 				"stageVariables": null,
 				"requestContext": {
+					"authorizer": {
+						"principalIdId": "USER-TOKEN-SUB"
+					},
 					"accountId": "aws",
 					"resourceId": "wagagr",
 					"stage": "test-invoke-stage",
@@ -90,6 +118,5 @@ api.get('/resource/{resourceId}', (event, context) => {
 			}
 		}
 	*/
-	// Return a body.
-	return new Api.Response({ resourceId: event.pathParameters.resourceId }, 200, { 'Content-Type': 'application/json' });
+	return new Api.Response({ }, 404);
 });
