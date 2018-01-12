@@ -133,12 +133,18 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 			return error ? f({Error: 'Failed writing production package.json file.', Details: error}) : s(tmpDir);
 		})
 	}))
-	.then((tmpDir) => new Promise((s, f) => {
-		exec('npm install --production', { cwd: tmpDir }, (error, stdout, stderr) => {
-			if(error) { return f({Error: 'Failed installing production npm modules.', Details: error}) }
-			return s(tmpDir);
+	.then((tmpDir) => {
+		return fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(err => false)
+		.then(exists => {
+			let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
+			return new Promise((s, f) => {
+				exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
+					if(error) { return f({Error: 'Failed installing production npm modules.', Details: error}) }
+					return s(tmpDir);
+				});
+			});
 		});
-	}))
+	})
 	.then((tmpDir) => new Promise((s, f) => {
 		var zipArchivePath = path.join(tmpDir, lambdaZip);
 		var zipStream = fs.createWriteStream(zipArchivePath);
