@@ -128,7 +128,7 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 		let sourceDirCopyPromise = fs.copy(this.SourceDirectory, tmpDir);
 		let lockFilePromise = new LockFinder().findLockFile(this.SourceDirectory)
 		.then(lockFile => {
-			return lockFile ? fs.copy(lockFile.file, path.basename(lockFile.file)) : Promise.resolve();
+			return lockFile ? fs.copy(lockFile.file, path.join(tmpDir, path.basename(lockFile.file))) : Promise.resolve();
 		});
 		return Promise.all([sourceDirCopyPromise, lockFilePromise]);
 	})
