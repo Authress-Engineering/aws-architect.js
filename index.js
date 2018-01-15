@@ -36,6 +36,7 @@ var ApiConfiguration = require('./lib/ApiConfiguration');
 var BucketManager = require('./lib/BucketManager');
 var IamManager = require('./lib/IamManager');
 let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
+let LockFinder = require('./lib/lockFinder');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
@@ -115,6 +116,7 @@ AwsArchitect.prototype.GetApiGatewayPromise = function() {
 
 AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	let lambdaZip = 'lambda.zip';
+	var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 	let zipArchiveInformationPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
@@ -122,18 +124,19 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 			return s(null);
 		});
 	})
-	.then(() => new Promise((s, f) => {
-		var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
-		fs.copy(this.SourceDirectory, tmpDir, error => {
-			return error ? f(error) : s(tmpDir);
+	.then(() => {
+		let sourceDirCopyPromise = fs.copy(this.SourceDirectory, tmpDir);
+		let lockFilePromise = new LockFinder().findLockFile(this.SourceDirectory)
+		.then(lockFile => {
+			return fs.copy(lockFile, tmpDir);
 		});
-	}))
-	.then((tmpDir) => new Promise((s, f) => {
-		fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify(this.PackageMetadata), (error, data) => {
-			return error ? f({Error: 'Failed writing production package.json file.', Details: error}) : s(tmpDir);
-		})
-	}))
-	.then((tmpDir) => {
+		return Promise.all([sourceDirCopyPromise, lockFilePromise]);
+	})
+	.then(() => {
+		return fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata)
+		.catch(error => ({Error: 'Failed writing production package.json file.', Details: error}));
+	})
+	.then(() => {
 		return fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(err => false)
 		.then(exists => {
 			let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
@@ -145,7 +148,7 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 			});
 		});
 	})
-	.then((tmpDir) => new Promise((s, f) => {
+	.then(() => new Promise((s, f) => {
 		var zipArchivePath = path.join(tmpDir, lambdaZip);
 		var zipStream = fs.createWriteStream(zipArchivePath);
 		zipStream.on('close', () => s({Archive: zipArchivePath}));
