@@ -110,6 +110,7 @@
               "x-amazon-apigateway-authtype": "oauth2", 
               "x-amazon-apigateway-authorizer": {     
                 "type": "request",
+                "identitySource": "method.request.header.Authorization",
                 "authorizerUri": {
                   "Fn::Join": [
                     ":",
@@ -219,7 +220,7 @@
                   "application/json"
                 ],
                 "security": [{
-                  "auth0": [ ]
+                  "auth0": []
                 }],
                 "parameters": [{
                   "name": "proxy",
