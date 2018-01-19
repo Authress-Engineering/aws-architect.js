@@ -48,7 +48,9 @@ commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
-		awsArchitect.Run(8080)
+		// default logger is console.log, if you want to override it, can be done here.
+		let logger = logMessage => console.log(logMessage);
+		awsArchitect.Run(8080, logger)
 		.then((result) => console.log(JSON.stringify(result, null, 2)))
 		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});

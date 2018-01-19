@@ -342,10 +342,10 @@ AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
 	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap));
 };
 
-AwsArchitect.prototype.Run = function(port) {
+AwsArchitect.prototype.Run = function(port, logger) {
 	try {
 		var resolvedPort = port || 80;
-		new Server(this.ContentOptions.contentDirectory, this.Api).Run(resolvedPort);
+		new Server(this.ContentOptions.contentDirectory, this.Api, logger).Run(resolvedPort);
 		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
 	catch (exception) {
