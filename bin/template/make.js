@@ -124,7 +124,7 @@ commander
 		let deploymentLocation = 'https://production.website.com/';
 		
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
+		let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
 		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
 		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 	
