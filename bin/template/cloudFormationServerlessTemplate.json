@@ -29,6 +29,7 @@
     },
     "amazonHostedZoneIdForService": {
       "Type": "String",
+      "Default": "ZLY8HYME6SFDD",
       "Description": "The API Gateway regional zone id found at http://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region"
     }
   },
