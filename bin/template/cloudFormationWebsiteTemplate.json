@@ -1,39 +1,34 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
-    "serviceName": {
-      "Type": "String",
-      "Description": "The name of the microservice"
-    },
-    "serviceDescription": {
-      "Type": "String",
-      "Description": "Service description used for AWS resources"
-    },
-    "deploymentBucketName": {
-      "Type": "String",
-      "Description": "The bucket where deployment artifacts are kept"
-    },
-    "deploymentKeyName": {
-      "Type": "String",
-      "Description": "The location of the s3 lambda.zip file in the bucket"
-    },
     "dnsName": {
       "Type": "String",
-      "Description": "The service DNS name."
+      "Description": "The DNS name to map to S3 bucket."
     },
     "hostedName": {
       "Type": "String",
-      "Description": "The top level domain name."
+      "Description": "Base path to add to DNS Name."
     },
-    "amazonHostedZoneIdForService": {
+    "zoneIdForServiceDomain": {
       "Type": "String",
-      "Description": "The API Gateway regional zone id found at http://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region"
+      "Description": "The zoneId for the Hosted Zone in Route 53."
     },
-    "ACMCertificate": {
+    "useRoot": {
+      "Type": "String",
+      "AllowedValues": ["true", "false"],
+      "Default": "false",
+      "Description": "Create a DNS record at the root level."
+    },
+    "acmCertificateId": {
       "Type": "String",
       "Description": "Certificate ID"
     }
   },
+
+  "Conditions" : {
+    "CreateARecordAtRootDomain" : {"Fn::Equals" : [{"Ref" : "useRoot"}, "true"]}
+  },
+
   "Resources": {
 
     "S3Bucket": {
@@ -56,7 +51,7 @@
         "Tags" : [
           {
           "Key": "Service",
-          "Value": { "Ref": "serviceName" }
+          "Value": { "Ref": "dnsName" }
           }
         ],
         "WebsiteConfiguration" : {
@@ -70,7 +65,7 @@
       "Type" : "AWS::CloudFront::CloudFrontOriginAccessIdentity",
       "Properties" : {
         "CloudFrontOriginAccessIdentityConfig" : {
-          "Comment": { "Ref": "serviceName" }
+          "Comment": { "Ref": "dnsName" }
         }
       }
     },
@@ -95,27 +90,6 @@
         "PolicyDocument" : {
           "Version": "2012-10-17",
           "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": "*",
-              "Action": "s3:GetObject",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    ".",
-                    {
-                      "Ref": "hostedName"
-                    },
-                    "/*"
-                  ]
-                ]
-              }
-            },
             {
               "Sid":" Grant a CloudFront Origin Identity access to support private content",
               "Effect":"Allow",
@@ -294,7 +268,7 @@
           "Enabled": true,
           "ViewerCertificate": {
             "AcmCertificateArn": {
-              "Ref": "ACMCertificate"
+              "Ref": "acmCertificateId"
             },
             "SslSupportMethod": "sni-only"
           },
@@ -327,7 +301,7 @@
       "Properties": {
         "AliasTarget": {
           "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
-          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
         },
         "HostedZoneName": {
           "Fn::Join": [
@@ -365,7 +339,7 @@
       "Properties": {
         "AliasTarget": {
           "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
-          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
         },
         "HostedZoneName": {
           "Fn::Join": [
@@ -389,6 +363,40 @@
                 "Ref": "hostedName"
               },
               ""
+            ]
+          ]
+        },
+        "Type": "A"
+      }
+    },
+
+    "RootDNSRoute53": {
+      "Condition" : "CreateARecordAtRootDomain",
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
+        },
+        "HostedZoneName": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "hostedName"
+              },
+              "."
+            ]
+          ]
+        },
+        "Name": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "hostedName"
+              },
+              "."
             ]
           ]
         },

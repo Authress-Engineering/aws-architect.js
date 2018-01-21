@@ -60,8 +60,8 @@ commander
 	.description('Deploy to AWS.')
 	.action(() => {
 		if (!process.env.CI_COMMIT_REF_SLUG) {
-      console.log('Deployment should not be done locally.');
-      return;
+			console.log('Deployment should not be done locally.');
+			return;
 		}
 
 		packageMetadata.version = version;
@@ -74,7 +74,7 @@ commander
 		
 		return cloudFormationPromise
 		.then(() => {
-		  if (isMasterBranch === 'master') {
+			if (isMasterBranch === 'master') {
 				return awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket })
 				.then(() => {
 					let stackConfiguration = {
@@ -110,32 +110,90 @@ commander
 		});
 	});
 
+
 commander
-  .command('delete')
-  .description('Delete Stage from AWS.')
-  .action(() => {
-    if (!process.env.CI_COMMIT_REF_SLUG) {
-      console.log('Deployment should not be done locally.');
-      return;
-    }
+	.command('deploy')
+	.description('Depling website to AWS.')
+	.action(() => {
+		if (!process.env.CI_COMMIT_SHA) {
+			console.log('Deployment should not be done locally.');
+			return;
+		}
+	
+		let deploymentVersion = 'v1';
+		let deploymentLocation = 'https://production.website.com/';
+		
+		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
+		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
+		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
+	
+		if (isMasterBranch) {
+			let stackConfiguration = { stackName: 'STACK_NAME_FOR_WEBSITE' };
+			cloudFormationPromise = cloudFormationPromise
+			.then(() => {
+				if (isMasterBranch) {
+					let stackConfiguration = {
+						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1' }`,
+						stackName: packageMetadata.name
+					};
+					let parameters = {
+						dnsName: packageMetadata.name,
+						hostedName: 'domain_name',
+						zoneIdForServiceDomain: '',
+						useRoot: 'true',
+						// Manually create in US-EAST-1
+						acmCertificateId: 'ACM_CERTIFICATE_US_EAST_1'
+					};
+					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+				}
+			});
+		} else {
+			deploymentVersion = `PR${version}`;
+			deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
+		}
+	
+		cloudFormationPromise.then(() => awsArchitect.PublishWebsite(deploymentVersion, {
+			configureBucket: false,
+			cacheControlRegexMap: {
+				'index.html': 600,
+				default: 24 * 60 * 60
+			}
+		}))
+		.then(result => console.log(`${JSON.stringify(result, null, 2)}`))
+		.then(() => console.log(`Deployed to ${deploymentLocation}`))
+		.catch(failure => {
+			console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`);
+			process.exit(1);
+		});
+	});
 
-    packageMetadata.version = version;
-    fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+commander
+	.command('delete')
+	.description('Delete Stage from AWS.')
+	.action(() => {
+		if (!process.env.CI_COMMIT_REF_SLUG) {
+			console.log('Deployment should not be done locally.');
+			return;
+		}
 
-    let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-    return awsArchitect.RemoveStagePromise(process.env.CI_COMMIT_REF_SLUG)
-    .then(result => {
-      console.log(result);
-    }, failure => {
-      console.log(failure);
-      process.exit(1);
-    });
-  });
+		packageMetadata.version = version;
+		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+
+		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+		return awsArchitect.RemoveStagePromise(process.env.CI_COMMIT_REF_SLUG)
+		.then(result => {
+			console.log(result);
+		}, failure => {
+			console.log(failure);
+			process.exit(1);
+		});
+	});
 
 commander.on('*', () => {
-  if(commander.args.join(' ') == 'tests/**/*.js') { return; }
-  console.log('Unknown Command: ' + commander.args.join(' '));
-  commander.help();
-  process.exit(0);
+	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
+	console.log('Unknown Command: ' + commander.args.join(' '));
+	commander.help();
+	process.exit(0);
 });
 commander.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));
