@@ -45,12 +45,17 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.UseCloudFormation = (apiOptions || {}).useCloudFormation;
 
 	this.GetApi = () => {
+		var indexPath = path.join(this.SourceDirectory, 'index.js');
 		try {
-			var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
 			fs.accessSync(indexPath);
+		} catch (innerException) {
+			return new Api();
+		}
+
+		try {
 			return require(indexPath);
 		} catch (exception) {
-			return new Api();
+			throw { title: 'Failed to expand index.js.', error: exception };
 		}
 	};
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
