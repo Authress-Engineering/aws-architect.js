@@ -44,20 +44,15 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.SourceDirectory = (apiOptions || {}).sourceDirectory;
 	this.UseCloudFormation = (apiOptions || {}).useCloudFormation;
 
-	var apiList = [];
-	var indexPathExists = true;
-	try {
-		var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
-		fs.accessSync(indexPath);
-	}
-	catch (exception) { indexPathExists = false; }
-	if(indexPathExists) {
-		apiList.push(require(indexPath));
-	}
-	else {
-		apiList.push(new Api());
-	}
-	this.Api = apiList[0];
+	this.GetApi = () => {
+		try {
+			var indexPath = path.join(apiOptions.sourceDirectory, 'index.js');
+			fs.accessSync(indexPath);
+			return require(indexPath);
+		} catch (exception) {
+			return new Api();
+		}
+	};
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
 
 	if(this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
@@ -196,7 +191,7 @@ AwsArchitect.prototype.PublishPromise = function() {
 			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
 			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
 			//Ignore non-openapi objects
-			var updateRestApiPromise = this.Api.Routes && !this.UseCloudFormation ? this.ApiGatewayManager.PutRestApiPromise(this.Api, lambdaFullArn, apiGatewayId) : Promise.resolve();
+			var updateRestApiPromise = this.GetApi().Routes && !this.UseCloudFormation ? this.ApiGatewayManager.PutRestApiPromise(this.GetApi(), lambdaFullArn, apiGatewayId) : Promise.resolve();
 
 			return Promise.all([updateRestApiPromise, permissionsPromise])
 			.then(result => {
@@ -345,7 +340,7 @@ AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
 AwsArchitect.prototype.Run = function(port) {
 	try {
 		var resolvedPort = port || 80;
-		new Server(this.ContentOptions.contentDirectory, this.Api).Run(resolvedPort);
+		new Server(this.ContentOptions.contentDirectory, this.GetApi()).Run(resolvedPort);
 		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
 	catch (exception) {
