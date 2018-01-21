@@ -273,6 +273,9 @@
               }
             }
           }
+        },
+        "EndpointConfiguration" : {
+          "Types": [ "REGIONAL" ]
         }
       },
       "DependsOn": "LambdaFunction"
