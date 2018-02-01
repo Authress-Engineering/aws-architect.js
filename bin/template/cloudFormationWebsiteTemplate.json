@@ -11,7 +11,8 @@
     },
     "zoneIdForServiceDomain": {
       "Type": "String",
-      "Description": "The zoneId for the Hosted Zone in Route 53."
+      "Default": "Z2FDTNDATAQYW2",
+      "Description": "The zoneId for the CloudFront Hosted Zone in Route 53, if using Cloudfront: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid"
     },
     "useRoot": {
       "Type": "String",
@@ -19,9 +20,9 @@
       "Default": "false",
       "Description": "Create a DNS record at the root level."
     },
-    "acmCertificateId": {
+    "acmCertificateArn": {
       "Type": "String",
-      "Description": "Certificate ID"
+      "Description": "Certificate Arn"
     }
   },
 
@@ -91,11 +92,33 @@
           "Version": "2012-10-17",
           "Statement": [
             {
-              "Sid":" Grant a CloudFront Origin Identity access to support private content",
+              "Sid":"Grant a CloudFront Origin Identity access to support private content",
               "Effect":"Allow",
               "Principal":{
                 "CanonicalUser": { "Fn::GetAtt": [ "CloudFrontOriginAccessIdentity", "S3CanonicalUserId" ] }
               },
+              "Action":"s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    ".",
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Sid":"Allow global access to private content",
+              "Effect":"Allow",
+              "Principal": "*",
               "Action":"s3:GetObject",
               "Resource": {
                 "Fn::Join": [
@@ -130,13 +153,9 @@
                 "",
                 [
                   "tst-",
-                  {
-                    "Ref": "dnsName"
-                  },
+                  { "Ref": "dnsName" },
                   ".",
-                  {
-                    "Ref": "hostedName"
-                  }
+                  { "Ref": "hostedName" }
                 ]
               ]
             },
@@ -144,16 +163,13 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "dnsName"
-                  },
+                  { "Ref": "dnsName" },
                   ".",
-                  {
-                    "Ref": "hostedName"
-                  }
+                  { "Ref": "hostedName" }
                 ]
               ]
-            }
+            },
+            { "Ref": "hostedName" }
           ],
           "HttpVersion": "http2",
           "PriceClass": "PriceClass_100",
@@ -244,6 +260,7 @@
           ],
           "CacheBehaviors": [
             {
+              "Compress": true,
               "ForwardedValues": {
                 "QueryString": false
               },
@@ -268,11 +285,12 @@
           "Enabled": true,
           "ViewerCertificate": {
             "AcmCertificateArn": {
-              "Ref": "acmCertificateId"
+              "Ref": "acmCertificateArn"
             },
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
+            "Compress": true,
             "ForwardedValues" : {
               "QueryString" : false
             },
