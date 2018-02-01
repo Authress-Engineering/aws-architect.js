@@ -140,10 +140,9 @@ commander
 					let parameters = {
 						dnsName: packageMetadata.name,
 						hostedName: 'domain_name',
-						zoneIdForServiceDomain: '',
 						useRoot: 'true',
 						// Manually create in US-EAST-1
-						acmCertificateId: 'ACM_CERTIFICATE_US_EAST_1'
+						acmCertificateArn: 'ACM_CERTIFICATE_US_EAST_1'
 					};
 					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
 				}
