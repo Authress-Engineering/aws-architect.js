@@ -92,11 +92,33 @@
           "Version": "2012-10-17",
           "Statement": [
             {
-              "Sid":" Grant a CloudFront Origin Identity access to support private content",
+              "Sid":"Grant a CloudFront Origin Identity access to support private content",
               "Effect":"Allow",
               "Principal":{
                 "CanonicalUser": { "Fn::GetAtt": [ "CloudFrontOriginAccessIdentity", "S3CanonicalUserId" ] }
               },
+              "Action":"s3:GetObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "dnsName"
+                    },
+                    ".",
+                    {
+                      "Ref": "hostedName"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            },
+            {
+              "Sid":"Allow global access to private content",
+              "Effect":"Allow",
+              "Principal": "*",
               "Action":"s3:GetObject",
               "Resource": {
                 "Fn::Join": [
@@ -131,13 +153,9 @@
                 "",
                 [
                   "tst-",
-                  {
-                    "Ref": "dnsName"
-                  },
+                  { "Ref": "dnsName" },
                   ".",
-                  {
-                    "Ref": "hostedName"
-                  }
+                  { "Ref": "hostedName" }
                 ]
               ]
             },
@@ -145,16 +163,13 @@
               "Fn::Join": [
                 "",
                 [
-                  {
-                    "Ref": "dnsName"
-                  },
+                  { "Ref": "dnsName" },
                   ".",
-                  {
-                    "Ref": "hostedName"
-                  }
+                  { "Ref": "hostedName" }
                 ]
               ]
-            }
+            },
+            { "Ref": "hostedName" }
           ],
           "HttpVersion": "http2",
           "PriceClass": "PriceClass_100",
@@ -245,6 +260,7 @@
           ],
           "CacheBehaviors": [
             {
+              "Compress": true,
               "ForwardedValues": {
                 "QueryString": false
               },
@@ -274,6 +290,7 @@
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
+            "Compress": true,
             "ForwardedValues" : {
               "QueryString" : false
             },
