@@ -22,7 +22,7 @@
     },
     "acmCertificateArn": {
       "Type": "String",
-      "Description": "Certificate Arn"
+      "Description": "us-east-1 ACM Certificate ARN"
     }
   },
 
