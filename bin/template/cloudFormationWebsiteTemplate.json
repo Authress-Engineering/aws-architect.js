@@ -147,30 +147,58 @@
       "Properties": {
         "DistributionConfig": {
           "DefaultRootObject": "index.html",
-          "Aliases": [
-            {
-              "Fn::Join": [
-                "",
-                [
-                  "tst-",
-                  { "Ref": "dnsName" },
-                  ".",
-                  { "Ref": "hostedName" }
-                ]
+          "Aliases": {
+            "Fn::If": [
+              "CreateARecordAtRootDomain",
+              [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "tst-",
+                      { "Ref": "dnsName" },
+                      ".",
+                      { "Ref": "hostedName" }
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      { "Ref": "dnsName" },
+                      ".",
+                      { "Ref": "hostedName" }
+                    ]
+                  ]
+                },
+                { "Ref": "hostedName" }
+              ],
+              [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "tst-",
+                      { "Ref": "dnsName" },
+                      ".",
+                      { "Ref": "hostedName" }
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      { "Ref": "dnsName" },
+                      ".",
+                      { "Ref": "hostedName" }
+                    ]
+                  ]
+                }
               ]
-            },
-            {
-              "Fn::Join": [
-                "",
-                [
-                  { "Ref": "dnsName" },
-                  ".",
-                  { "Ref": "hostedName" }
-                ]
-              ]
-            },
-            { "Ref": "hostedName" }
-          ],
+            ]
+          },
           "HttpVersion": "http2",
           "PriceClass": "PriceClass_100",
           "Origins": [
