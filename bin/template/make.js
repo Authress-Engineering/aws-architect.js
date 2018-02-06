@@ -38,13 +38,6 @@ var contentOptions = {
 var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 commander
-.command('deploy')
-.description('Deploy to AWS.')
-.action(() => {
-		console.log('Nothing to do here');
-	});
-
-commander
 	.command('run')
 	.description('Run lambda web service locally.')
 	.action(() => {
@@ -112,7 +105,7 @@ commander
 
 
 commander
-	.command('deploy')
+	.command('deploy-website')
 	.description('Depling website to AWS.')
 	.action(() => {
 		if (!process.env.CI_COMMIT_SHA) {
