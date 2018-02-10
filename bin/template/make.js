@@ -135,7 +135,7 @@ commander
 						hostedName: 'domain_name',
 						useRoot: 'true',
 						// Manually create in US-EAST-1
-						acmCertificateArn: 'ACM_CERTIFICATE_US_EAST_1'
+						acmCertificateId: 'ACM_CERTIFICATE_ID_US_EAST_1'
 					};
 					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
 				}
