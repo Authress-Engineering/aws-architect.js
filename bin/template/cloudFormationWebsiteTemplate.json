@@ -20,9 +20,9 @@
       "Default": "false",
       "Description": "Create a DNS record at the root level."
     },
-    "acmCertificateArn": {
+    "acmCertificateId": {
       "Type": "String",
-      "Description": "us-east-1 ACM Certificate ARN"
+      "Description": "us-east-1 ACM Certificate Id"
     }
   },
 
@@ -313,7 +313,15 @@
           "Enabled": true,
           "ViewerCertificate": {
             "AcmCertificateArn": {
-              "Ref": "acmCertificateArn"
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:acm:us-east-1:",
+                  { "Ref": "AWS::AccountId" },
+                  ":certificate/",
+                  { "Ref": "acmCertificateId" }
+                ]
+              ]
             },
             "SslSupportMethod": "sni-only"
           },
