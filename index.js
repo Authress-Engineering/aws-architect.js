@@ -125,12 +125,13 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 		});
 	})
 	.then(() => {
-		let sourceDirCopyPromise = fs.copy(this.SourceDirectory, tmpDir);
-		let lockFilePromise = new LockFinder().findLockFile(this.SourceDirectory)
+		return fs.copy(this.SourceDirectory, tmpDir);
+	})
+	.then(() => {
+		return new LockFinder().findLockFile(this.SourceDirectory)
 		.then(lockFile => {
 			return lockFile ? fs.copy(lockFile.file, path.join(tmpDir, path.basename(lockFile.file))) : Promise.resolve();
 		});
-		return Promise.all([sourceDirCopyPromise, lockFilePromise]);
 	})
 	.then(() => {
 		return fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata)
