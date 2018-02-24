@@ -1,0 +1,16 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "cimpress-atsquad"
+  ],
+  "rules": {
+    "arrow-parens": ["error", "as-needed"],
+    "indent": ["error", 2, { "SwitchCase": 1, "MemberExpression": 0 }],
+    "node/no-unsupported-features": ["off"],
+    "no-throw-literal": "off",
+    "spaced-comment": "off"
+  }
+}

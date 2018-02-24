@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "archiver": "^1.0.0",
-    "aws-sdk": "*",
     "body-parser": "^1.18.2",
     "commander": "^2.5.0",
     "cookie-parser": "^1.4.2",
@@ -25,14 +24,20 @@
     "header-case-normalizer": "^1.0.3",
     "lodash": "^4.17.4",
     "morgan": "^1.7.0",
-    "openapi-factory": "*",
     "uuid": "^2.0.2"
   },
+  "peerDependencies": {
+    "aws-sdk": "*",
+    "openapi-factory": "*"
+  },
   "devDependencies": {
+    "aws-sdk": "*",
     "chai": "^3.5.0",
+    "eslint-config-cimpress-atsquad": "^1.0.14",
     "esprima": "^2.7.2",
     "glob": "^5.0.15",
     "mocha": "^2.4.5",
+    "openapi-factory": "*",
     "sinon": "^1.17.3",
     "travis-build-tools": "~1.2"
   },
