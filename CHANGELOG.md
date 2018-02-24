@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 5.1 ##
+* Provide lower case names for methods.
+* Add deprecation warning to removal methods in **6.0**.
 ## 5.0 ##
 * Upgrade to OpenAPI-factory 3.0, see [openapi factory](https://github.com/wparad/openapi-factory.js/blob/master/CHANGELOG.md#30) for breaking changes.  This means that the authorizer now takes `event` and the authorization token must be manually extracted.
 * Support authorizer resolution in express `server.run`
@@ -13,12 +16,12 @@ This is the changelog for [AWS Architect](readme.md).
 * Add Support for `yarn.lock` files by assuming `yarn` should be executed.
 
 ## 4.1 ##
-* Add `+AwsArchitect.prototype.PublishLambdaArtifactPromise` to perform the action to deploy a microservice zip package to S3.
+* Add `+AwsArchitect.prototype.publishLambdaArtifactPromise` to perform the action to deploy a microservice zip package to S3.
 * Allow specifying S3 artifacts cache-control times as overrides.
 
 ## 4.0 ##
-* Removed passing the bucket as configuration into `PublishWebsite`.  Bucket is required as part of `contentOptions`.
-* Prevent overwriting the bucket configuration using the `options` parameter in `PublishWebsite`.
+* Removed passing the bucket as configuration into `publishWebsite`.  Bucket is required as part of `contentOptions`.
+* Prevent overwriting the bucket configuration using the `options` parameter in `publishWebsite`.
 
 ## 3.7 ##
 * Default to region set in aws config, rather than us-east-1.
@@ -41,7 +44,7 @@ This is the changelog for [AWS Architect](readme.md).
 
 ## 3.1 ##
 * Moved website bucket configuration to contentOptions.
-* Added `AwsArchitect.PromoteToStage(source, stage)` function which will copy a bucket directory.
+* Added `AwsArchitect.promoteToStage(source, stage)` function which will copy a bucket directory.
 
 ## 3.0 ##
 * Upgrade to handle ANY on aws resources.
