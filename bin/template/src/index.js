@@ -25,7 +25,10 @@ function GetPublicKeyPromise(kid) {
 
 api.SetAuthorizer(request => {
 	let methodArn = request.methodArn;
-	let token = request.headers.Authorization ? request.headers.Authorization.split(' ')[1] : null;
+	let authorization = Object.keys(request.headers).find(key => {
+		return key.match(/^Authorization$/i);
+	});
+	let token = request.headers[authorization] ? request.headers[authorization].split(' ')[1] : null;
 	let unverifiedToken = jwtManager.decode(token, {complete: true});
 	var kid = ((unverifiedToken || {}).header || {}).kid;
 	return GetPublicKeyPromise(kid)
