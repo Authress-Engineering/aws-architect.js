@@ -138,11 +138,11 @@ AWS Architect has the ability to set up and configure an S3 bucket for static we
 Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
 ```javascript
-	awsArchitect.PublishWebsite('deadc0de-1', options)
+	awsArchitect.publishWebsite('deadc0de-1', options)
 	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 	.catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
 
-	awsArchitect.PromoteToStage('deadc0de-1', 'production')
+	awsArchitect.promoteToStage('deadc0de-1', 'production')
 	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
 	.catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
 ```

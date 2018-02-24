@@ -110,11 +110,12 @@ function GetAccountIdPromise() {
 	})
 }
 
-AwsArchitect.prototype.GetApiGatewayPromise = function() {
+AwsArchitect.prototype.getApiGatewayPromise = AwsArchitect.prototype.GetApiGatewayPromise = function() {
+	console.error('DEPRECATION WARNING: getApiGatewayPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
 	return this.ApiGatewayManager.GetApiGatewayPromise();
 }
 
-AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
+AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	let lambdaZip = 'lambda.zip';
 	var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 	let zipArchiveInformationPromise = new Promise((s, f) => {
@@ -169,13 +170,14 @@ AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	}).then(() => zipArchiveInformationPromise);
 }
 
-AwsArchitect.prototype.PublishPromise = function() {
+AwsArchitect.prototype.publishPromise = AwsArchitect.prototype.PublishPromise = function() {
+	console.error('DEPRECATION WARNING: publishPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
 	var accountIdPromise = GetAccountIdPromise();
 
 	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
 	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name, '*')
 	.then(() => {
-		return this.PublishLambdaArtifactPromise();
+		return this.publishLambdaArtifactPromise();
 	})
 	.then((zipInformation) => {
 		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive, serviceRoleName));
@@ -214,15 +216,15 @@ AwsArchitect.prototype.PublishPromise = function() {
 	});
 };
 
-AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
+AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
 	return this.CloudFormationDeployer.validateTemplate(stackTemplate);
 }
 
-AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {
+AwsArchitect.prototype.deployTemplate = AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {
 	return this.CloudFormationDeployer.deployTemplate(stackTemplate, stackConfiguration, parameters);
 }
 
-AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
+AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 	if(!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
 	return this.ApiGatewayManager.GetApiGatewayPromise()
@@ -230,12 +232,13 @@ AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
 	.then(restApiId => this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion));
 };
 
-AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) {
+AwsArchitect.prototype.publishDatabasePromise = AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) {
+	console.error('DEPRECATION WARNING: publishDatabasePromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 	return this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
 };
 
-AwsArchitect.prototype.RemoveStagePromise = function(stage) {
+AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePromise = function(stage) {
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
@@ -248,7 +251,7 @@ AwsArchitect.prototype.RemoveStagePromise = function(stage) {
 	}));
 }
 
-AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
+AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	let stage = options.stage;
 	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let functionName = options.functionName;
@@ -303,10 +306,11 @@ AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	});
 }
 
-AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema) {
+AwsArchitect.prototype.publishAndDeployPromise = AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema) {
+	console.error('DEPRECATION WARNING: publishAndDeployPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
 	if(!stage) { throw new Error('Deployment stage is not defined.'); }
 
-	return this.PublishPromise()
+	return this.publishPromise()
 	.then(result => {
 		var dynamoDbPublishPromise = this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
 		var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
@@ -324,13 +328,14 @@ AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema)
 	});
 };
 
-AwsArchitect.prototype.PromoteToStage = function(source, stage) {
+AwsArchitect.prototype.promoteToStage = AwsArchitect.prototype.PromoteToStage = function(source, stage) {
+	console.error('DEPRECATION WARNING: promoteToStage will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
 	if(!source) { throw new Error('Source directory key not defined.'); }
 	if(!stage) { throw new Error('Stage directory key not defined.'); }
 	return this.BucketManager.CopyBucket(source, stage);
 };
 
-AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
+AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
 	var options = _.merge({ configureBucket: true}, optionsIn);
 	if(!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
 	if(!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
@@ -343,7 +348,7 @@ AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
 	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap));
 };
 
-AwsArchitect.prototype.Run = function(port, logger) {
+AwsArchitect.prototype.run = AwsArchitect.prototype.Run = function(port, logger) {
 	try {
 		var resolvedPort = port || 80;
 		new Server(this.ContentOptions.contentDirectory, this.GetApi(), logger).Run(resolvedPort);

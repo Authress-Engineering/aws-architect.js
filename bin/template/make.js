@@ -43,7 +43,7 @@ commander
 	.action(() => {
 		// default logger is console.log, if you want to override it, can be done here.
 		let logger = logMessage => console.log(logMessage);
-		awsArchitect.Run(8080, logger)
+		awsArchitect.run(8080, logger)
 		.then((result) => console.log(JSON.stringify(result, null, 2)))
 		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
 	});
@@ -62,13 +62,13 @@ commander
 	
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
-		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
+		let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
 		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 		
 		return cloudFormationPromise
 		.then(() => {
 			if (isMasterBranch === 'master') {
-				return awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket })
+				return awsArchitect.publishLambdaArtifactPromise({ bucket: deploymentBucket })
 				.then(() => {
 					let stackConfiguration = {
 						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${version || '1' }`,
@@ -83,12 +83,12 @@ commander
 						hostedName: "toplevel.domain.io",
 						amazonHostedZoneIdForService: 'AMAZON_HOST_ZONE_ID_FOR_DNS'
 					};
-					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 				});
 			}
 		})
 		.then(() => {
-			return awsArchitect.PublishAndDeployStagePromise({
+			return awsArchitect.publishAndDeployStagePromise({
 				stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
 				functionName: packageMetadata.name,
 				deploymentBucketName: deploymentBucket,
@@ -118,7 +118,7 @@ commander
 		
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 		let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
-		let cloudFormationPromise = awsArchitect.ValidateTemplate(stackTemplate);
+		let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
 		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 	
 		if (isMasterBranch) {
@@ -137,7 +137,7 @@ commander
 						// Manually create in US-EAST-1
 						acmCertificateId: 'ACM_CERTIFICATE_ID_US_EAST_1'
 					};
-					return awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 				}
 			});
 		} else {
@@ -145,7 +145,7 @@ commander
 			deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
 		}
 	
-		cloudFormationPromise.then(() => awsArchitect.PublishWebsite(deploymentVersion, {
+		cloudFormationPromise.then(() => awsArchitect.publishWebsite(deploymentVersion, {
 			configureBucket: false,
 			cacheControlRegexMap: {
 				'index.html': 600,
@@ -173,7 +173,7 @@ commander
 		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
 
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-		return awsArchitect.RemoveStagePromise(process.env.CI_COMMIT_REF_SLUG)
+		return awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG)
 		.then(result => {
 			console.log(result);
 		}, failure => {
@@ -183,7 +183,7 @@ commander
 	});
 
 commander.on('*', () => {
-	if(commander.args.join(' ') == 'tests/**/*.js') { return; }
+	if (commander.args.join(' ') === 'tests/**/*.js') { return; }
 	console.log('Unknown Command: ' + commander.args.join(' '));
 	commander.help();
 	process.exit(0);
