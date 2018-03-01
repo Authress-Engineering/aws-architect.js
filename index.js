@@ -58,6 +58,9 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 			throw { title: 'Failed to expand index.js.', error: exception };
 		}
 	};
+	if (aws.config.region == null && apiOptions.regions && apiOptions.regions[0]) {
+		aws.config.update({ region: apiOptions.regions[0] });
+	}
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
 
 	if(this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
