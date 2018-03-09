@@ -4,7 +4,7 @@
   "description": "Description of the package",
   "main": "index.js",
   "scripts": {
-    "start": "node make.js run",
+    "start": "nodemon make.js run",
     "build": "node make.js",
     "deploy": "node make.js deploy",
     "delete": "node make.js delete",
@@ -24,7 +24,8 @@
     "commander": "^2.5.0",
     "esprima": "^2.7.2",
     "glob": "^5.0.0",
-    "mocha": "^2.5.3",
+    "mocha": "^5.0.4",
+    "nodemon": "^1.17.1",
     "sinon": "^1.17.1"
   },
   "repository": {
