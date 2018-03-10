@@ -232,6 +232,9 @@
                   ]
                 ]
               },
+              "CustomOriginConfig": {
+                "OriginSSLProtocols": ["TLSv1.1"]
+              },
               "S3OriginConfig": {
                 "OriginAccessIdentity": {
                   "Fn::Join": [
