@@ -24,7 +24,6 @@ var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
 var uuid = require('uuid');
-var Api = require('openapi-factory');
 var http = require('http');
 var _ = require('lodash');
 
@@ -49,6 +48,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 		try {
 			fs.accessSync(indexPath);
 		} catch (innerException) {
+			var Api = require('openapi-factory');
 			return new Api();
 		}
 
@@ -58,7 +58,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 			throw { title: 'Failed to expand index.js.', error: exception };
 		}
 	};
-	if (aws.config.region == null && apiOptions.regions && apiOptions.regions[0]) {
+	if (!aws.config.region && apiOptions.regions && apiOptions.regions[0]) {
 		aws.config.update({ region: apiOptions.regions[0] });
 	}
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
@@ -353,7 +353,7 @@ AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = 
 
 AwsArchitect.prototype.run = AwsArchitect.prototype.Run = function(port, logger) {
 	try {
-		var resolvedPort = port || 80;
+		var resolvedPort = port || 8080;
 		new Server(this.ContentOptions.contentDirectory, this.GetApi(), logger).Run(resolvedPort);
 		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
 	}
