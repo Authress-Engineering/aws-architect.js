@@ -27,7 +27,9 @@
     "uuid": "^2.0.2"
   },
   "peerDependencies": {
-    "aws-sdk": "*",
+    "aws-sdk": "*"
+  },
+  "optionalDependencies": {
     "openapi-factory": "*"
   },
   "devDependencies": {
@@ -37,7 +39,6 @@
     "esprima": "^2.7.2",
     "glob": "^5.0.15",
     "mocha": "^2.4.5",
-    "openapi-factory": "*",
     "sinon": "^1.17.3",
     "travis-build-tools": "~1.2"
   },
