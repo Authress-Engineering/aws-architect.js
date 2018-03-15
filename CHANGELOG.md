@@ -4,6 +4,8 @@ This is the changelog for [AWS Architect](readme.md).
 ## 5.1 ##
 * Provide lower case names for methods.
 * Add deprecation warning to removal methods in **6.0**.
+* Index.html is uploaded last.
+
 ## 5.0 ##
 * Upgrade to OpenAPI-factory 3.0, see [openapi factory](https://github.com/wparad/openapi-factory.js/blob/master/CHANGELOG.md#30) for breaking changes.  This means that the authorizer now takes `event` and the authorization token must be manually extracted.
 * Support authorizer resolution in express `server.run`
