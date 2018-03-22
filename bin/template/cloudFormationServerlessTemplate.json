@@ -21,6 +21,7 @@
     },
     "dnsName": {
       "Type": "String",
+      "Default": "",
       "Description": "The service DNS name."
     },
     "hostedName": {
@@ -31,8 +32,19 @@
       "Type": "String",
       "Default": "ZLY8HYME6SFDD",
       "Description": "The API Gateway regional zone id found at http://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region"
+    },
+    "useRoot": {
+      "Type": "String",
+      "AllowedValues": ["true", "false"],
+      "Default": "false",
+      "Description": "Create the service record at the root level."
     }
   },
+  "Conditions" : {
+    "CreateARecordAtRootDomain": {"Fn::Equals" : [{"Ref" : "useRoot"}, "true"]},
+    "CreateNestedRecord": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "useRoot"}, "false"]}] }
+  },
+
   "Resources": {
     "LambdaFunction": {
       "Type": "AWS::Lambda::Function",
@@ -85,7 +97,6 @@
         },
         "ManagedPolicyArns": [
           "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
           "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
         ],
         "Path": "/"
@@ -302,6 +313,7 @@
       }
     },
     "ACMCertificate": {
+      "Condition": "CreateNestedRecord",
       "Type": "AWS::CertificateManager::Certificate",
       "Properties": {
         "Tags": [
@@ -373,12 +385,18 @@
       "Type": "AWS::ApiGateway::DomainName",
       "Properties": {
         "DomainName": {
-          "Fn::Join": [
-            ".",
-            [
-              { "Ref": "dnsName" },
-              { "Ref": "hostedName" }
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            { "Ref": "hostedName" },
+            {
+              "Fn::Join": [
+                ".",
+                [
+                  { "Ref": "dnsName" },
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            }
           ]
         },
         "EndpointConfiguration" : {
@@ -391,14 +409,28 @@
       "Type": "AWS::ApiGateway::DomainName",
       "Properties": {
         "DomainName": {
-          "Fn::Join": [
-            "",
-            [
-              "tst-",
-              { "Ref": "dnsName" },
-              ".",
-              { "Ref": "hostedName" }
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            {
+              "Fn::Join": [
+                ".",
+                [
+                  "tst",
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "tst-",
+                  { "Ref": "dnsName" },
+                  ".",
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            }
           ]
         },
         "EndpointConfiguration" : {
@@ -493,17 +525,27 @@
           ]
         },
         "Name": {
-          "Fn::Join": [
-            ".",
-            [
-              {
-                "Ref": "dnsName"
-              },
-              {
-                "Ref": "hostedName"
-              },
-              ""
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            {
+              "Fn::Join": [
+                "",
+                [
+                  { "Ref": "hostedName" },
+                  "."
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                ".",
+                [
+                  { "Ref": "dnsName" },
+                  { "Ref": "hostedName" },
+                  ""
+                ]
+              ]
+            }
           ]
         },
         "Type": "A"
@@ -545,15 +587,30 @@
           ]
         },
         "Name": {
-          "Fn::Join": [
-            "",
-            [
-              "tst-",
-              { "Ref": "dnsName" },
-              ".",
-              { "Ref": "hostedName" },
-              "."
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "tst.",
+                  { "Ref": "hostedName" },
+                  "."
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "tst-",
+                  { "Ref": "dnsName" },
+                  ".",
+                  { "Ref": "hostedName" },
+                  "."
+                ]
+              ]
+            }
           ]
         },
         "Type": "A"
@@ -563,12 +620,18 @@
       "Type" : "AWS::ApiGateway::BasePathMapping",
       "Properties" : {
         "DomainName": {
-          "Fn::Join": [
-            ".",
-            [
-              { "Ref": "dnsName" },
-              { "Ref": "hostedName" }
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            { "Ref": "hostedName" },
+            {
+              "Fn::Join": [
+                ".",
+                [
+                  { "Ref": "dnsName" },
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            }
           ]
         },
         "RestApiId" : { "Ref": "ApiGateway" },
@@ -580,14 +643,28 @@
       "Type" : "AWS::ApiGateway::BasePathMapping",
       "Properties" : {
         "DomainName": {
-          "Fn::Join": [
-            "",
-            [
-              "tst-",
-              { "Ref": "dnsName" },
-              ".",
-              { "Ref": "hostedName" }
-            ]
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            {
+              "Fn::Join": [
+                ".",
+                [
+                  "tst",
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "tst-",
+                  { "Ref": "dnsName" },
+                  ".",
+                  { "Ref": "hostedName" }
+                ]
+              ]
+            }
           ]
         },
         "RestApiId" : { "Ref": "ApiGateway" }
