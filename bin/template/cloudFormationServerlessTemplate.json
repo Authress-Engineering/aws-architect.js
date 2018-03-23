@@ -1,6 +1,5 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Transform": "AWS::Serverless-2016-10-31",
   "Description": "AWS Architect Microservice",
   "Parameters": {
     "serviceName": {
@@ -40,9 +39,9 @@
       "Description": "Create the service record at the root level."
     }
   },
-  "Conditions" : {
-    "CreateARecordAtRootDomain": {"Fn::Equals" : [{"Ref" : "useRoot"}, "true"]},
-    "CreateNestedRecord": {"Fn::Not": [{"Fn::Equals" : [{"Ref" : "useRoot"}, "false"]}] }
+  "Conditions": {
+    "CreateARecordAtRootDomain": {"Fn::Equals": [{"Ref": "useRoot"}, "true"]},
+    "CreateNestedRecord": {"Fn::Not": [{"Fn::Equals": [{"Ref": "useRoot"}, "false"]}] }
   },
 
   "Resources": {
@@ -285,16 +284,16 @@
             }
           }
         },
-        "EndpointConfiguration" : {
+        "EndpointConfiguration": {
           "Types": [ "REGIONAL" ]
         }
       },
       "DependsOn": "LambdaFunction"
     },
     "StageDeployment": {
-      "Type" : "AWS::ApiGateway::Deployment",
-      "Properties" : {
-        "Description" : {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "Description": {
           "Fn::Join": [
             "",
             [
@@ -303,13 +302,13 @@
             ]
           ]
         },
-        "RestApiId" : { "Ref": "ApiGateway" },
+        "RestApiId": { "Ref": "ApiGateway" },
         "StageDescription": {
           "Variables": {
             "lambdaVersion": "production"
           }
         },
-        "StageName" : "production"
+        "StageName": "production"
       }
     },
     "ACMCertificate": {
@@ -318,8 +317,8 @@
       "Properties": {
         "Tags": [
           {
-            "Key" : "Service",
-            "Value" : { "Ref": "serviceName" }
+            "Key": "Service",
+            "Value": { "Ref": "serviceName" }
           }
         ],
         "DomainValidationOptions": [
@@ -381,6 +380,68 @@
       },
       "DependsOn": "ApiGateway"
     },
+    "GetExistingAcmCertificateArnRole": {
+      "Condition": "CreateARecordAtRootDomain",
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": ["lambda.amazonaws.com"]
+            },
+            "Action": ["sts:AssumeRole"]
+          }]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess"
+        ]
+      }
+    },
+    "GetExistingAcmCertificateArnLambdaFunction": {
+      "Condition": "CreateARecordAtRootDomain",
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": {
+            "Fn::Join": [ "\n", [
+              "// http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html",
+              "const aws = require('aws-sdk');",
+              "const cloudFormationResponseHandler = require('cfn-response');",
+              "let acmClient = new aws.ACM();",
+              "exports.handler = function(event, context) {",
+              "  let domainName = event.ResourceProperties.DomainName;",
+              "  return acmClient.listCertificates({}).promise()",
+              "    .then(certs => {",
+              "      let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
+              "      return foundCert ? foundCert.CertificateArn: null;",
+              "    })",
+              "    .then(certArn => {",
+              "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { CertificateArn: certArn });",
+              "    })",
+              "    .catch(error => {",
+              "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get Certificate', error: error });",
+              "    });",
+              "}"
+            ]]
+          }
+        },
+        "Handler": "index.handler",
+        "Runtime": "nodejs6.10",
+        "Timeout": "30",
+        "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
+      }
+    },
+    "DynamicAcmCertificate": {
+      "Condition": "CreateARecordAtRootDomain",
+      "Type": "Custom::LambdaCallout",
+      "Properties": {
+        "ServiceToken": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnLambdaFunction", "Arn" ] },
+        "DomainName": { "Ref": "hostedName" }
+      }
+    },
     "ServiceDomainName": {
       "Type": "AWS::ApiGateway::DomainName",
       "Properties": {
@@ -399,10 +460,16 @@
             }
           ]
         },
-        "EndpointConfiguration" : {
+        "EndpointConfiguration": {
           "Types": [ "REGIONAL" ]
         },
-        "RegionalCertificateArn" : { "Ref": "ACMCertificate" }
+        "RegionalCertificateArn": {
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
+            { "Ref": "ACMCertificate" }
+          ]
+        }
       }
     },
     "ServiceDomainNameTst": {
@@ -433,10 +500,16 @@
             }
           ]
         },
-        "EndpointConfiguration" : {
+        "EndpointConfiguration": {
           "Types": [ "REGIONAL" ]
         },
-        "RegionalCertificateArn" : { "Ref": "ACMCertificate" }
+        "RegionalCertificateArn": {
+          "Fn::If": [
+            "CreateARecordAtRootDomain",
+            { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
+            { "Ref": "ACMCertificate" }
+          ]
+        }
       }
     },
     "GetRoute53ConfigurationInformationRole": {
@@ -501,8 +574,8 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName" : { "Fn::GetAtt" : [ "GetRoute53ConfigurationFromLambdaFunction", "RegionalDomainName" ] },
-          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunction", "RegionalDomainName" ] },
+          "HostedZoneId": { "Ref": "amazonHostedZoneIdForService" }
         },
         "HostedZoneName": {
           "Fn::Join": [
@@ -563,8 +636,8 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName" : { "Fn::GetAtt" : [ "GetRoute53ConfigurationFromLambdaFunctionTst", "RegionalDomainName" ] },
-          "HostedZoneId" : { "Ref": "amazonHostedZoneIdForService" }
+          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunctionTst", "RegionalDomainName" ] },
+          "HostedZoneId": { "Ref": "amazonHostedZoneIdForService" }
         },
         "HostedZoneName": {
           "Fn::Join": [
@@ -617,8 +690,8 @@
       }
     },
     "BasePathMapping": {
-      "Type" : "AWS::ApiGateway::BasePathMapping",
-      "Properties" : {
+      "Type": "AWS::ApiGateway::BasePathMapping",
+      "Properties": {
         "DomainName": {
           "Fn::If": [
             "CreateARecordAtRootDomain",
@@ -634,14 +707,14 @@
             }
           ]
         },
-        "RestApiId" : { "Ref": "ApiGateway" },
-        "Stage" : "production"
+        "RestApiId": { "Ref": "ApiGateway" },
+        "Stage": "production"
       },
       "DependsOn": ["StageDeployment", "ServiceDomainName"]
     },
     "BasePathMappingTst": {
-      "Type" : "AWS::ApiGateway::BasePathMapping",
-      "Properties" : {
+      "Type": "AWS::ApiGateway::BasePathMapping",
+      "Properties": {
         "DomainName": {
           "Fn::If": [
             "CreateARecordAtRootDomain",
@@ -667,7 +740,7 @@
             }
           ]
         },
-        "RestApiId" : { "Ref": "ApiGateway" }
+        "RestApiId": { "Ref": "ApiGateway" }
       },
       "DependsOn": ["StageDeployment", "ServiceDomainNameTst"]
     },
