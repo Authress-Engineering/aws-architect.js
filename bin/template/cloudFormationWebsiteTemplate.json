@@ -138,6 +138,25 @@
       }
     },
 
+    "GetExistingAcmCertificateArnRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": ["lambda.amazonaws.com"]
+            },
+            "Action": ["sts:AssumeRole"]
+          }]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess"
+        ]
+      }
+    },
     "GetExistingAcmCertificateArnLambdaFunction": {
         "Type": "AWS::Lambda::Function",
         "Properties": {
@@ -156,6 +175,9 @@
                 "      return foundCert ? foundCert.CertificateArn : null;",
                 "    })",
                 "    .then(certArn => {",
+                "      if (!certArn && event.RequestType !== 'Delete') {",
+                "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'No Verified Certificate exists.' });",
+                "      }",
                 "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { CertificateArn: certArn });",
                 "    })",
                 "    .catch(error => {",
@@ -257,9 +279,6 @@
                   ]
                 ]
               },
-              "CustomOriginConfig": {
-                "OriginSSLProtocols": ["TLSv1.1"]
-              },
               "S3OriginConfig": {
                 "OriginAccessIdentity": {
                   "Fn::Join": [
@@ -320,7 +339,7 @@
               "ForwardedValues": {
                 "QueryString": false
               },
-              "PathPattern": "PR*.*.*/*",
+              "PathPattern": "PR-*/*",
               "TargetOriginId": {
                 "Fn::Join": [
                   "-",
@@ -341,6 +360,7 @@
           "Enabled": true,
           "ViewerCertificate": {
             "AcmCertificateArn": { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
+            "MinimumProtocolVersion": "TLSv1.1_2016",
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
