@@ -133,15 +133,13 @@ commander
 					let parameters = {
 						dnsName: packageMetadata.name,
 						hostedName: 'domain_name',
-						useRoot: 'true',
-						// Manually create in US-EAST-1
-						acmCertificateId: 'ACM_CERTIFICATE_ID_US_EAST_1'
+						useRoot: 'true'
 					};
 					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 				}
 			});
 		} else {
-			deploymentVersion = `PR${version}`;
+			deploymentVersion = `PR-${version}`;
 			deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
 		}
 	
