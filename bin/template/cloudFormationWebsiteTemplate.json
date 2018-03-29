@@ -19,10 +19,6 @@
       "AllowedValues": ["true", "false"],
       "Default": "false",
       "Description": "Create a DNS record at the root level."
-    },
-    "acmCertificateId": {
-      "Type": "String",
-      "Description": "us-east-1 ACM Certificate Id"
     }
   },
 
@@ -52,7 +48,7 @@
         "Tags" : [
           {
           "Key": "Service",
-          "Value": { "Ref": "dnsName" }
+          "Value": { "Ref": "hostedName" }
           }
         ],
         "WebsiteConfiguration" : {
@@ -66,7 +62,7 @@
       "Type" : "AWS::CloudFront::CloudFrontOriginAccessIdentity",
       "Properties" : {
         "CloudFrontOriginAccessIdentityConfig" : {
-          "Comment": { "Ref": "dnsName" }
+          "Comment": { "Ref": "hostedName" }
         }
       }
     },
@@ -142,6 +138,47 @@
       }
     },
 
+    "GetExistingAcmCertificateArnLambdaFunction": {
+        "Type": "AWS::Lambda::Function",
+        "Properties": {
+            "Code": {
+            "ZipFile": {
+                "Fn::Join": [ "\n", [
+                "// http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html",
+                "const aws = require('aws-sdk');",
+                "const cloudFormationResponseHandler = require('cfn-response');",
+                "let acmClient = new aws.ACM({ region: 'us-east-1' });",
+                "exports.handler = function(event, context) {",
+                "  let domainName = event.ResourceProperties.DomainName;",
+                "  return acmClient.listCertificates({}).promise()",
+                "    .then(certs => {",
+                "      let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
+                "      return foundCert ? foundCert.CertificateArn : null;",
+                "    })",
+                "    .then(certArn => {",
+                "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { CertificateArn: certArn });",
+                "    })",
+                "    .catch(error => {",
+                "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get Certificate', error: error });",
+                "    });",
+                "}"
+                ]]
+            }
+            },
+            "Handler": "index.handler",
+            "Runtime": "nodejs6.10",
+            "Timeout": "30",
+            "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
+        }
+    },
+    "AcmCertificate": {
+        "Type": "Custom::LambdaCallout",
+        "Properties": {
+            "ServiceToken": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnLambdaFunction", "Arn" ] },
+            "DomainName": { "Ref": "hostedName" }
+        }
+    },
+
     "CloudFrontDistribution": {
       "Type": "AWS::CloudFront::Distribution",
       "Properties": {
@@ -153,21 +190,9 @@
               [
                 {
                   "Fn::Join": [
-                    "",
+                    ".",
                     [
-                      "tst-",
-                      { "Ref": "dnsName" },
-                      ".",
-                      { "Ref": "hostedName" }
-                    ]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      { "Ref": "dnsName" },
-                      ".",
+                      "tst",
                       { "Ref": "hostedName" }
                     ]
                   ]
@@ -315,17 +340,7 @@
           ],
           "Enabled": true,
           "ViewerCertificate": {
-            "AcmCertificateArn": {
-              "Fn::Join": [
-                "",
-                [
-                  "arn:aws:acm:us-east-1:",
-                  { "Ref": "AWS::AccountId" },
-                  ":certificate/",
-                  { "Ref": "acmCertificateId" }
-                ]
-              ]
-            },
+            "AcmCertificateArn": { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
@@ -372,20 +387,31 @@
           ]
         },
         "Name": {
-          "Fn::Join": [
-            "",
-            [
-              "tst-",
-              {
-                "Ref": "dnsName"
-              },
-              ".",
-              {
-                "Ref": "hostedName"
-              },
-              "."
+            "Fn::If": [
+                "CreateARecordAtRootDomain",
+                {
+                    "Fn::Join": [
+                        ".",
+                        [
+                            "tst",
+                            { "Ref": "hostedName" },
+                            ""
+                        ]
+                    ]
+                },
+                {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "tst-",
+                            { "Ref": "dnsName" },
+                            ".",
+                            { "Ref": "hostedName" },
+                            "."
+                        ]
+                    ]
+                }
             ]
-          ]
         },
         "Type": "A"
       }
@@ -410,52 +436,28 @@
           ]
         },
         "Name": {
-          "Fn::Join": [
-            ".",
-            [
-              {
-                "Ref": "dnsName"
-              },
-              {
-                "Ref": "hostedName"
-              },
-              ""
+            "Fn::If": [
+                "CreateARecordAtRootDomain",
+                {
+                    "Fn::Join": [
+                        "",
+                        [
+                            { "Ref": "hostedName" },
+                            "."
+                        ]
+                    ]
+                },
+                {
+                    "Fn::Join": [
+                        ".",
+                        [
+                            { "Ref": "dnsName" },
+                            { "Ref": "hostedName" },
+                            ""
+                        ]
+                    ]
+                }
             ]
-          ]
-        },
-        "Type": "A"
-      }
-    },
-
-    "RootDNSRoute53": {
-      "Condition" : "CreateARecordAtRootDomain",
-      "Type": "AWS::Route53::RecordSet",
-      "Properties": {
-        "AliasTarget": {
-          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
-          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
-        },
-        "HostedZoneName": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "hostedName"
-              },
-              "."
-            ]
-          ]
-        },
-        "Name": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "hostedName"
-              },
-              "."
-            ]
-          ]
         },
         "Type": "A"
       }
