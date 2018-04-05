@@ -41,7 +41,7 @@
   },
   "Conditions": {
     "CreateARecordAtRootDomain": {"Fn::Equals": [{"Ref": "useRoot"}, "true"]},
-    "CreateNestedRecord": {"Fn::Not": [{"Fn::Equals": [{"Ref": "useRoot"}, "false"]}] }
+    "CreateNestedRecord": {"Fn::Not": [{"Fn::Equals": [{"Ref": "useRoot"}, "true"]}] }
   },
 
   "Resources": {
