@@ -466,7 +466,7 @@
         "RegionalCertificateArn": {
           "Fn::If": [
             "CreateARecordAtRootDomain",
-            { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
+            { "Fn::GetAtt": [ "DynamicAcmCertificate", "CertificateArn" ] },
             { "Ref": "ACMCertificate" }
           ]
         }
@@ -506,7 +506,7 @@
         "RegionalCertificateArn": {
           "Fn::If": [
             "CreateARecordAtRootDomain",
-            { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
+            { "Fn::GetAtt": [ "DynamicAcmCertificate", "CertificateArn" ] },
             { "Ref": "ACMCertificate" }
           ]
         }
