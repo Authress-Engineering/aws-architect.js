@@ -6,7 +6,7 @@ Visit the [changelog](CHANGELOG.md).
 
 ## Prerequisites
 
-* Install NodeJS (nodejs6.10 this is what lambda uses) & npm
+* Install NodeJS (nodejs8.10 this is what lambda uses) & npm
   ```bash
   curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
   sudo apt-get install -y nodejs
@@ -62,7 +62,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		// Use cloud formation to create objects instead of sdk
 		useCloudFormation: true,
 		//role: 'optional-role-override',
-		runtime: 'nodejs6.10',
+		runtime: 'nodejs8.10',
 		memorySize: 128,
 		publish: true,
 		timeout: 3,

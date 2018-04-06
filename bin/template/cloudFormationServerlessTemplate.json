@@ -46,7 +46,7 @@
         "FunctionName": { "Ref": "serviceName" },
         "Description": { "Ref": "serviceDescription" },
         "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
+        "Runtime": "nodejs8.10",
         "TracingConfig": {
           "Mode": "Active"
         },

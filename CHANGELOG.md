@@ -5,6 +5,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Remove hosting index html, recommendation is to use nodemon and serve for that.
 * Removed deprecated methods
 * Now supports calling schedule and event triggers locally via the REST api.
+* Nodejs8.10 by default
 
 ## 5.1 ##
 * Provide lower case names for methods.
