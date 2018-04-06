@@ -1,6 +1,11 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 6.0 ##
+* Remove hosting index html, recommendation is to use nodemon and serve for that.
+* Removed deprecated methods
+* Now supports calling schedule and event triggers locally via the REST api.
+
 ## 5.1 ##
 * Provide lower case names for methods.
 * Add deprecation warning to removal methods in **6.0**.

@@ -29,9 +29,6 @@
   "peerDependencies": {
     "aws-sdk": "*"
   },
-  "optionalDependencies": {
-    "openapi-factory": "*"
-  },
   "devDependencies": {
     "aws-sdk": "*",
     "chai": "^3.5.0",
