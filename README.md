@@ -78,7 +78,7 @@ let apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['eu-west-1'],
-	runtime: 'nodejs6.10',
+	runtime: 'nodejs8.10',
 	useCloudFormation: true,
 	memorySize: 128,
 	publish: true,
