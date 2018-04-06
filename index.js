@@ -17,23 +17,23 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-var archiver = require('archiver');
-var aws = require('aws-sdk');
-var exec = require('child_process').exec;
-var fs = require('fs-extra');
-var path = require('path');
-var os = require('os');
-var uuid = require('uuid');
-var http = require('http');
-var _ = require('lodash');
+let archiver = require('archiver');
+let aws = require('aws-sdk');
+let exec = require('child_process').exec;
+let fs = require('fs-extra');
+let path = require('path');
+let os = require('os');
+let uuid = require('uuid');
+let http = require('http');
+let _ = require('lodash');
 
-var Server = require('./lib/server');
-var ApiGatewayManager = require('./lib/ApiGatewayManager');
-var DynamoDbManager = require('./lib/DynamoDbManager');
-var LambdaManager = require('./lib/LambdaManager');
-var ApiConfiguration = require('./lib/ApiConfiguration');
-var BucketManager = require('./lib/BucketManager');
-var IamManager = require('./lib/IamManager');
+let Server = require('./lib/server');
+let ApiGatewayManager = require('./lib/ApiGatewayManager');
+let DynamoDbManager = require('./lib/DynamoDbManager');
+let LambdaManager = require('./lib/LambdaManager');
+let ApiConfiguration = require('./lib/ApiConfiguration');
+let BucketManager = require('./lib/BucketManager');
+let IamManager = require('./lib/IamManager');
 let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
 let LockFinder = require('./lib/lockFinder');
 
@@ -44,12 +44,11 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.UseCloudFormation = (apiOptions || {}).useCloudFormation;
 
 	this.GetApi = () => {
-		var indexPath = path.join(this.SourceDirectory, 'index.js');
+		let indexPath = path.join(this.SourceDirectory, 'index.js');
 		try {
 			fs.accessSync(indexPath);
 		} catch (innerException) {
-			var Api = require('openapi-factory');
-			return new Api();
+			return {};
 		}
 
 		try {
@@ -63,23 +62,23 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	}
 	this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
 
-	if(this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
-	if(this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
+	if (this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
+	if (this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
 	this.Region = this.Configuration.Regions[0];
 
-	var apiGatewayFactory = new aws.APIGateway({region: this.Region});
+	let apiGatewayFactory = new aws.APIGateway({region: this.Region});
 	this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, apiGatewayFactory);
 
-	var lambdaFactory = new aws.Lambda({region: this.Region});
+	let lambdaFactory = new aws.Lambda({region: this.Region});
 	this.LambdaManager = new LambdaManager(this.PackageMetadata.name, lambdaFactory, this.Configuration);
 
-	var dynamoDbFactory = new aws.DynamoDB({region: this.Region});
+	let dynamoDbFactory = new aws.DynamoDB({region: this.Region});
 	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
 
-	var s3Factory = new aws.S3({region: this.Region});
+	let s3Factory = new aws.S3({ region: this.Region });
 	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
 
-	var iamFactory = new aws.IAM({region: this.Region})
+	let iamFactory = new aws.IAM({ region: this.Region });
 	this.IamManager = new IamManager(iamFactory, null, this.UseCloudFormation);
 
 	let cloudFormationClient = new aws.CloudFormation({ region: this.Region });
@@ -88,19 +87,19 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
 function GetAccountIdPromise() {
 	return new aws.IAM().getUser({}).promise()
-	.then((data) => data.User.Arn.split(':')[4])
+	.then(data => data.User.Arn.split(':')[4])
 	.catch(() => {
 		//assume EC2 instance profile
 		return new Promise((s, f) => {
 			http.get('http://169.254.169.254/latest/dynamic/instance-identity/document', res => {
 				if(res.statusCode >= 400) { return Promise.reject('Failed to lookup AWS AccountID, please specify by running as IAM user or with credentials.'); }
-				var data = '';
+				let data = '';
 				res.on('data', chunk => {
 					data += chunk;
 				});
 				res.on('end', () => {
 					try {
-						var json = JSON.parse(data);
+						let json = JSON.parse(data);
 						s(json.accountId)
 					}
 					catch (exception) {
@@ -113,14 +112,9 @@ function GetAccountIdPromise() {
 	})
 }
 
-AwsArchitect.prototype.getApiGatewayPromise = AwsArchitect.prototype.GetApiGatewayPromise = function() {
-	console.error('DEPRECATION WARNING: getApiGatewayPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
-	return this.ApiGatewayManager.GetApiGatewayPromise();
-}
-
 AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	let lambdaZip = 'lambda.zip';
-	var tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
+	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 	let zipArchiveInformationPromise = new Promise((s, f) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
@@ -139,29 +133,29 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 	})
 	.then(() => {
 		return fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata)
-		.catch(error => ({Error: 'Failed writing production package.json file.', Details: error}));
+		.catch(error => ({ Error: 'Failed writing production package.json file.', Details: error }));
 	})
 	.then(() => {
-		return fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(err => false)
+		return fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(() => false)
 		.then(exists => {
 			let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
-			return new Promise((s, f) => {
+			return new Promise((resolve, reject) => {
 				exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
-					if(error) { return f({Error: 'Failed installing production npm modules.', Details: error}) }
-					return s(tmpDir);
+					if (error) { return reject({ Error: 'Failed installing production npm modules.', Details: error }); }
+					return resolve(tmpDir);
 				});
 			});
 		});
 	})
-	.then(() => new Promise((s, f) => {
-		var zipArchivePath = path.join(tmpDir, lambdaZip);
-		var zipStream = fs.createWriteStream(zipArchivePath);
-		zipStream.on('close', () => s({Archive: zipArchivePath}));
+	.then(() => new Promise((resolve, reject) => {
+		let zipArchivePath = path.join(tmpDir, lambdaZip);
+		let zipStream = fs.createWriteStream(zipArchivePath);
+		zipStream.on('close', () => resolve({ Archive: zipArchivePath }));
 
-		var archive = archiver.create('zip', {});
-		archive.on('error', (e) => f({Error: e}));
+		let archive = archiver.create('zip', {});
+		archive.on('error', e => reject({ Error: e }));
 		archive.pipe(zipStream);
-		archive.glob('**', {dot: true, cwd: tmpDir, ignore: lambdaZip});
+		archive.glob('**', { dot: true, cwd: tmpDir, ignore: lambdaZip });
 		archive.finalize();
 	}));
 
@@ -173,77 +167,25 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 	}).then(() => zipArchiveInformationPromise);
 }
 
-AwsArchitect.prototype.publishPromise = AwsArchitect.prototype.PublishPromise = function() {
-	console.error('DEPRECATION WARNING: publishPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
-	var accountIdPromise = GetAccountIdPromise();
-
-	var serviceRoleName = this.Configuration.Role || this.PackageMetadata.name;
-	var lambdaPromise = this.IamManager.EnsureServiceRole(serviceRoleName, this.PackageMetadata.name, '*')
-	.then(() => {
-		return this.publishLambdaArtifactPromise();
-	})
-	.then((zipInformation) => {
-		return accountIdPromise.then(accountId => this.LambdaManager.PublishLambdaPromise(accountId, zipInformation.Archive, serviceRoleName));
-	});
-
-	var apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
-	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
-	.then(result => {
-		try {
-			var lambda = result[0];
-			var lambdaArn = lambda.FunctionArn;
-			var lambdaVersion = lambda.Version;
-			var apiGateway = result[1];
-			var apiGatewayId = apiGateway.Id;
-			var accountId = result[2];
-
-			var permissionsPromise = accountIdPromise.then(accountId => this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region));
-
-			var lambdaArnStagedVersioned = lambdaArn.replace(`:${lambdaVersion}`, ':${stageVariables.lambdaVersion}');
-			var lambdaFullArn = `arn:aws:apigateway:${this.Region}:lambda:path/2015-03-31/functions/${lambdaArnStagedVersioned}/invocations`;
-			//Ignore non-openapi objects
-			var updateRestApiPromise = this.GetApi().Routes && !this.UseCloudFormation ? this.ApiGatewayManager.PutRestApiPromise(this.GetApi(), lambdaFullArn, apiGatewayId) : Promise.resolve();
-
-			return Promise.all([updateRestApiPromise, permissionsPromise])
-			.then(result => {
-				return {
-					LambdaFunctionArn: lambdaArn,
-					LambdaVersion: lambdaVersion,
-					RestApiId: apiGatewayId
-				};
-			});
-		}
-		catch (exception) {
-			return Promise.reject({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
-		}
-	});
-};
-
 AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
 	return this.CloudFormationDeployer.validateTemplate(stackTemplate);
-}
+};
 
 AwsArchitect.prototype.deployTemplate = AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {
 	return this.CloudFormationDeployer.deployTemplate(stackTemplate, stackConfiguration, parameters);
-}
+};
 
 AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
-	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-	if(!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
+	if (!stage) { throw new Error('Deployment stage is not defined.'); }
+	if (!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
 	return this.ApiGatewayManager.GetApiGatewayPromise()
 	.then(result => result.Id)
 	.then(restApiId => this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion));
 };
 
-AwsArchitect.prototype.publishDatabasePromise = AwsArchitect.prototype.PublishDatabasePromise = function(stage, databaseSchema) {
-	console.error('DEPRECATION WARNING: publishDatabasePromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
-	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-	return this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
-};
-
 AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePromise = function(stage) {
-	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+	if (!stage) { throw new Error('Deployment stage is not defined.'); }
+	let stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
 	return apiGatewayPromise
 	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stageName))
@@ -256,11 +198,11 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
 
 AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	let stage = options.stage;
-	var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+	let stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
 	let functionName = options.functionName;
 	let bucket = options.deploymentBucketName;
 	let deploymentKey = options.deploymentKeyName;
-	if(!stage) { throw new Error('Deployment stage is not defined.'); }
+	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 	
 	let lambdaPromise = this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey);
 	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
@@ -268,12 +210,12 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
 	.then(result => {
 		try {
-			var lambda = result[0];
-			var lambdaArn = lambda.FunctionArn;
-			var lambdaVersion = lambda.Version;
-			var apiGateway = result[1];
-			var apiGatewayId = apiGateway.Id;
-			var accountId = result[2];
+			let lambda = result[0];
+			let lambdaArn = lambda.FunctionArn;
+			let lambdaVersion = lambda.Version;
+			let apiGateway = result[1];
+			let apiGatewayId = apiGateway.Id;
+			let accountId = result[2];
 
 			return accountIdPromise
 			.then(accountId => {
@@ -282,7 +224,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 					return this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
 				});
 			})
-			.then(result => {
+			.then(() => {
 				return {
 					LambdaFunctionArn: lambdaArn,
 					LambdaVersion: lambdaVersion,
@@ -291,7 +233,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 			});
 		}
 		catch (exception) {
-			throw ({Error: 'Failed updating API Gateway.', Details: exception.stack || exception});
+			throw ({ Error: 'Failed updating API Gateway.', Details: exception.stack || exception });
 		}
 	})
 	.then(result => {
@@ -305,46 +247,17 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 		});
 	})
 	.catch(failure => {
-		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});
+		return Promise.reject({ Error: 'Failed to create and deploy updates.', Details: failure });
 	});
 }
 
-AwsArchitect.prototype.publishAndDeployPromise = AwsArchitect.prototype.PublishAndDeployPromise = function(stage, databaseSchema) {
-	console.error('DEPRECATION WARNING: publishAndDeployPromise will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
-	if(!stage) { throw new Error('Deployment stage is not defined.'); }
-
-	return this.publishPromise()
-	.then(result => {
-		var dynamoDbPublishPromise = this.DynamoDbManager.PublishDatabasePromise(stage, databaseSchema || []);
-		var stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
-		return dynamoDbPublishPromise.then(database => this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion))
-		.then(data => {
-			return {
-				LambdaResult: result,
-				ApiGatewayResult: data,
-				ServiceApi: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
-			};
-		});
-	})
-	.catch(failure => {
-		return Promise.reject({Error: 'Failed to create and deploy updates.', Details: failure});
-	});
-};
-
-AwsArchitect.prototype.promoteToStage = AwsArchitect.prototype.PromoteToStage = function(source, stage) {
-	console.error('DEPRECATION WARNING: promoteToStage will be removed in version 6.0.  For migration usage checkout the updated the templated make.js file.');
-	if(!source) { throw new Error('Source directory key not defined.'); }
-	if(!stage) { throw new Error('Stage directory key not defined.'); }
-	return this.BucketManager.CopyBucket(source, stage);
-};
-
 AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
-	var options = _.merge({ configureBucket: true}, optionsIn);
-	if(!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
-	if(!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
-	if(!version) { throw new Error('Deployment version is not defined.'); }
+	let options = _.merge({ configureBucket: true }, optionsIn);
+	if (!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
+	if (!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
+	if (!version) { throw new Error('Deployment version is not defined.'); }
 
-	var deploymentPromise = Promise.resolve();
+	let deploymentPromise = Promise.resolve();
 	if (options.configureBucket) {
 		deploymentPromise = this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region);
 	}
@@ -353,14 +266,13 @@ AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = 
 
 AwsArchitect.prototype.run = AwsArchitect.prototype.Run = function(port, logger) {
 	try {
-		var resolvedPort = port || 8080;
+		let resolvedPort = port || 8080;
 		new Server(this.ContentOptions.contentDirectory, this.GetApi(), logger).Run(resolvedPort);
-		return Promise.resolve({Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api.`});
+		return Promise.resolve({ Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api, /triggers/event, /triggers/schedule.` });
 	}
 	catch (exception) {
-		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception});
+		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception });
 	}
 };
-
 
 module.exports = AwsArchitect;

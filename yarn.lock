@@ -1050,10 +1050,6 @@ onetime@^2.0.0:
   dependencies:
     mimic-fn "^1.0.0"
 
-openapi-factory@*:
-  version "3.1.112"
-  resolved "https://registry.yarnpkg.com/openapi-factory/-/openapi-factory-3.1.112.tgz#78c61eb26155b8e43712f2e73f75dea72b35fcbd"
-
 optionator@^0.8.2:
   version "0.8.2"
   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
