@@ -27,11 +27,6 @@
       "Type": "String",
       "Description": "The top level domain name."
     },
-    "amazonHostedZoneIdForService": {
-      "Type": "String",
-      "Default": "ZLY8HYME6SFDD",
-      "Description": "The API Gateway regional zone id found at http://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region"
-    },
     "useRoot": {
       "Type": "String",
       "AllowedValues": ["true", "false"],
@@ -548,7 +543,7 @@
               "  let apiGatewayClient = new aws.APIGateway();",
               "  return apiGatewayClient.getDomainName({ domainName: domainName }).promise()",
               "  .then(response => {",
-              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { 'RegionalDomainName': response.regionalDomainName });",
+              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { 'DistributionDomainName': response.regionalDomainName || response.distributionDomainName, 'HostedZone': response.regionalHostedZoneId || response.distributionHostedZoneId });",
               "  }, failure => {",
               "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { 'Error': failure });",
               "  });",
@@ -574,8 +569,8 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunction", "RegionalDomainName" ] },
-          "HostedZoneId": { "Ref": "amazonHostedZoneIdForService" }
+          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunction", "DistributionDomainName" ] },
+          "HostedZoneId": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunction", "HostedZone" ] }
         },
         "HostedZoneName": {
           "Fn::Join": [
@@ -636,8 +631,8 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunctionTst", "RegionalDomainName" ] },
-          "HostedZoneId": { "Ref": "amazonHostedZoneIdForService" }
+          "DNSName": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunctionTst", "DistributionDomainName" ] },
+          "HostedZoneId": { "Fn::GetAtt": [ "GetRoute53ConfigurationFromLambdaFunctionTst", "HostedZone" ] }
         },
         "HostedZoneName": {
           "Fn::Join": [
