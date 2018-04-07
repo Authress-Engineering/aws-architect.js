@@ -1,41 +1,14 @@
-'use strict;'
-var esprima = require('esprima');
-var mocha = require('mocha');
-var assert = require('chai').assert;
-var fs = require('fs');
-var path = require('path');
+let { describe, it } = require('mocha');
+let assert = require('chai').assert;
 
 describe('src/index.js', function() {
-	describe('Syntax', function () {
-		it('Should be valid Javascript', function() {
-			try {
-				var userStringToTest = fs.readFileSync(path.resolve('src/index.js'));
-				esprima.parse(userStringToTest);
-				assert(true);
-			}
-			catch(e) {
-				console.log(e.stack);
-				assert(false, e.toString());
-			}
-		});
-		it('Should be valid node', function(){
-			try {
-				var app = require('../src/index');
-				assert(true);
-			}
-			catch(e) {
-				console.log(e.stack);
-				assert(false, e.toString());
-			}
-		});
-	});
 	describe('Test Handler', function () {
 		it('GET livecheck', function() {
 			try {
-				var api = require('../src/index');
+				let api = require('../src/index');
 
-				var result = api.Routes['GET']['/livecheck'].Handler();
-				var expectedResult = {
+				let result = api.Routes['GET']['/livecheck'].Handler();
+				let expectedResult = {
 					statusCode: 200,
 					body: JSON.stringify({
 						'field': 'hello world'
@@ -55,10 +28,10 @@ describe('src/index.js', function() {
 		});
 		it('ANY', function() {
 			try {
-				var api = require('../src/index');
+				let api = require('../src/index');
 
-				var result = api.Routes['ANY']['/{proxy+}'].Handler();
-				var expectedResult = {
+				let result = api.Routes['ANY']['/{proxy+}'].Handler();
+				let expectedResult = {
 					statusCode: 404,
 					body: JSON.stringify({}),
 					headers: {
@@ -79,7 +52,7 @@ describe('src/index.js', function() {
 		/*
 		it('GET', function(done) {
 			try {
-				var lambda = require('../src/index');
+				let lambda = require('../src/index');
 				new Promise((s, f) => {
 					lambda({}, {}, (failure, success) => {
 						if(success && !failure) { return s(success); }

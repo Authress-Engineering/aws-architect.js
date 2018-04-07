@@ -1,15 +1,12 @@
 'use strict';
-var esprima = require('esprima');
-var mocha = require('mocha');
-var assert = require('chai').assert;
-var fs = require('fs');
-var path = require('path');
+let { describe, it } = require('mocha');
+let assert = require('chai').assert;
 
 describe('bin/aws-architect.js', function() {
 	describe('Syntax', function () {
 		it('Should be valid node', function(){
 			try {
-				var app = require('../bin/aws-architect');
+				let app = require('../bin/aws-architect');
 				assert(true);
 			}
 			catch(e) {

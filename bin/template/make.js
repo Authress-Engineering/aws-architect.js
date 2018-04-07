@@ -15,11 +15,11 @@ let ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
 let version = ci.GetVersion();
 commander.version(version);
 
-var packageMetadataFile = path.join(__dirname, 'package.json');
-var packageMetadata = require(packageMetadataFile);
+let packageMetadataFile = path.join(__dirname, 'package.json');
+let packageMetadata = require(packageMetadataFile);
 
 const deploymentBucket = 'master-deployment-artifacts-s3-bucket';
-var apiOptions = {
+let apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['eu-west-1'],
@@ -31,11 +31,11 @@ var apiOptions = {
 	securityGroupIds: [],
 	subnetIds: []
 };
-var contentOptions = {
+let contentOptions = {
 	bucket: 'WEBSITE_BUCKET_NAME',
 	contentDirectory: path.join(__dirname, 'content')
 };
-var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 commander
 	.command('run')

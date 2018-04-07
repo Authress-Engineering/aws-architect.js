@@ -30,7 +30,7 @@ api.SetAuthorizer(request => {
 	});
 	let token = request.headers[authorization] ? request.headers[authorization].split(' ')[1] : null;
 	let unverifiedToken = jwtManager.decode(token, {complete: true});
-	var kid = ((unverifiedToken || {}).header || {}).kid;
+	let kid = ((unverifiedToken || {}).header || {}).kid;
 	return GetPublicKeyPromise(kid)
 	.then(key => {
 		try { return jwtManager.verify(token, key, { algorithms: ['RS256'] }); }

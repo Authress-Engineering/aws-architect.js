@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-var commander = require('commander');
-var fs = require('fs-extra');
-var path = require('path');
+let commander = require('commander');
+let fs = require('fs-extra');
+let path = require('path');
 
-var version = require(path.join(__dirname, '../package.json')).version;
+let version = require(path.join(__dirname, '../package.json')).version;
 commander.version(version);
 
-var displayHeader = () => {
+let displayHeader = () => {
 	console.log('AWS Architect (%s)', version);
 	console.log('---------------------------');
 };
@@ -20,7 +20,7 @@ commander
 		console.log("Creating new microservice.");
 		console.log('');
 
-		var currentWorkspace = path.resolve('.');
+		let currentWorkspace = path.resolve('.');
 		new Promise((s, f) => {
 			fs.copy(path.join(__dirname, 'template'), currentWorkspace, (error) => {
 				return error ? f({Error: error.stack || error}) : s({Result: `Template copied to ${path.resolve('.')}`});

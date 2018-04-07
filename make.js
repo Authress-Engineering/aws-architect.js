@@ -3,11 +3,11 @@
 /**
  * Module dependencies
  */
-var commander = require('commander');
-var fs = require('fs');
+let commander = require('commander');
+let fs = require('fs');
 
-var travis = require('travis-build-tools')(process.env.GIT_TAG_PUSHER);
-var version = travis.GetVersion();
+let travis = require('travis-build-tools')(process.env.GIT_TAG_PUSHER);
+let version = travis.GetVersion();
 commander.version(version);
 
 /**
@@ -17,7 +17,7 @@ commander
 	.command('build')
 	.description('Setup require build files for npm package.')
 	.action(() => {
-		var package_metadata = require('./package.json');
+		let package_metadata = require('./package.json');
 		package_metadata.version = version;
 		fs.writeFileSync('./package.json', JSON.stringify(package_metadata, null, 2));
 
@@ -32,7 +32,7 @@ commander
 	.command('after_build')
 	.description('Publishes git tags and reports failures.')
 	.action(() => {
-		var package_metadata = require('./package.json');
+		let package_metadata = require('./package.json');
 		console.log("After build package %s (%s)", package_metadata.name, version);
 		console.log('');
 		travis.PublishGitTag();
