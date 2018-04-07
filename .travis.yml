@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- '6.10.0'
+- '8.10'
 before_script:
 - node make.js build
 before_deploy:
