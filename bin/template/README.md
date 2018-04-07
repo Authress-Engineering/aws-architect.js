@@ -51,10 +51,10 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 	* Configure awsArchitect
 
 ```javascript
-	var packageMetadataFile = path.join(__dirname, 'package.json');
-	var packageMetadata = require(packageMetadataFile);
+	let packageMetadataFile = path.join(__dirname, 'package.json');
+	let packageMetadata = require(packageMetadataFile);
 
-	var apiOptions = {
+	let apiOptions = {
 		sourceDirectory: path.join(__dirname, 'src'),
 		description: 'This is the description of the lambda function',
 		regions: ['us-east-1'],
@@ -69,11 +69,11 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 		securityGroupIds: [],
 		subnetIds: []
 	};
-	var contentOptions = {
+	let contentOptions = {
 		bucket: 'WEBSITE_BUCKET_NAME',
 		contentDirectory: path.join(__dirname, 'content')
 	};
-	var awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 ```
 
 ### Setup
