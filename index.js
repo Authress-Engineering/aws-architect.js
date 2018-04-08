@@ -1,7 +1,6 @@
-'use strict';
 /*
 	Automatically configure microservice in AWS
-	Copyright (C) 2017 Warren Parad
+	Copyright (C) 2018 Warren Parad
 	
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -25,15 +24,12 @@ let path = require('path');
 let os = require('os');
 let uuid = require('uuid');
 let http = require('http');
-let _ = require('lodash');
 
 let Server = require('./lib/server');
 let ApiGatewayManager = require('./lib/ApiGatewayManager');
-let DynamoDbManager = require('./lib/DynamoDbManager');
 let LambdaManager = require('./lib/LambdaManager');
 let ApiConfiguration = require('./lib/ApiConfiguration');
 let BucketManager = require('./lib/BucketManager');
-let IamManager = require('./lib/IamManager');
 let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
 let LockFinder = require('./lib/lockFinder');
 
@@ -41,22 +37,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
 	this.ContentOptions = contentOptions || {};
 	this.SourceDirectory = (apiOptions || {}).sourceDirectory;
-	this.UseCloudFormation = (apiOptions || {}).useCloudFormation;
 
-	this.GetApi = () => {
-		let indexPath = path.join(this.SourceDirectory, 'index.js');
-		try {
-			fs.accessSync(indexPath);
-		} catch (innerException) {
-			return {};
-		}
-
-		try {
-			return require(indexPath);
-		} catch (exception) {
-			throw { title: 'Failed to expand index.js.', error: exception };
-		}
-	};
 	if (!aws.config.region && apiOptions.regions && apiOptions.regions[0]) {
 		aws.config.update({ region: apiOptions.regions[0] });
 	}
@@ -66,20 +47,14 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	if (this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
 	this.Region = this.Configuration.Regions[0];
 
-	let apiGatewayFactory = new aws.APIGateway({region: this.Region});
+	let apiGatewayFactory = new aws.APIGateway({ region: this.Region });
 	this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, apiGatewayFactory);
 
-	let lambdaFactory = new aws.Lambda({region: this.Region});
-	this.LambdaManager = new LambdaManager(this.PackageMetadata.name, lambdaFactory, this.Configuration);
-
-	let dynamoDbFactory = new aws.DynamoDB({region: this.Region});
-	this.DynamoDbManager = new DynamoDbManager(this.PackageMetadata.name, dynamoDbFactory);
+	let lambdaFactory = new aws.Lambda({ region: this.Region });
+	this.LambdaManager = new LambdaManager(this.PackageMetadata.name, lambdaFactory);
 
 	let s3Factory = new aws.S3({ region: this.Region });
 	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
-
-	let iamFactory = new aws.IAM({ region: this.Region });
-	this.IamManager = new IamManager(iamFactory, null, this.UseCloudFormation);
 
 	let cloudFormationClient = new aws.CloudFormation({ region: this.Region });
 	this.CloudFormationDeployer = new CloudFormationDeployer(cloudFormationClient);
@@ -90,9 +65,9 @@ function GetAccountIdPromise() {
 	.then(data => data.User.Arn.split(':')[4])
 	.catch(() => {
 		//assume EC2 instance profile
-		return new Promise((s, f) => {
+		return new Promise((resolve, reject) => {
 			http.get('http://169.254.169.254/latest/dynamic/instance-identity/document', res => {
-				if(res.statusCode >= 400) { return Promise.reject('Failed to lookup AWS AccountID, please specify by running as IAM user or with credentials.'); }
+				if (res.statusCode >= 400) { return Promise.reject('Failed to lookup AWS AccountID, please specify by running as IAM user or with credentials.'); }
 				let data = '';
 				res.on('data', chunk => {
 					data += chunk;
@@ -100,26 +75,26 @@ function GetAccountIdPromise() {
 				res.on('end', () => {
 					try {
 						let json = JSON.parse(data);
-						s(json.accountId)
-					}
-					catch (exception) {
-						f(JSON.stringify({ Title: 'Failure trying to parse AWS AccountID from metadata', Error: exception.stack || exception.toString(), Details: exception, Response: data }));
+						resolve(json.accountId);
+					} catch (exception) {
+						reject(JSON.stringify({ Title: 'Failure trying to parse AWS AccountID from metadata', Error: exception.stack || exception.toString(), Details: exception, Response: data }));
 					}
 				});
-				res.on('error', error => f(error));
+				res.on('error', error => reject(error));
+				return null;
 			});
 		});
-	})
+	});
 }
 
 AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	let lambdaZip = 'lambda.zip';
 	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
-	let zipArchiveInformationPromise = new Promise((s, f) => {
+	let zipArchiveInformationPromise = new Promise((resolve, reject) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
-			if(error) { return f({Error: `Path does not exist: ${this.SourceDirectory} - ${error}`}); }
-			if(!stats.isDirectory) { return f({Error: `Path is not a directory: ${this.SourceDirectory}`}); }
-			return s(null);
+			if (error) { return reject({ Error: `Path does not exist: ${this.SourceDirectory} - ${error}` }); }
+			if (!stats.isDirectory) { return reject({ Error: `Path is not a directory: ${this.SourceDirectory}` }); }
+			return resolve(null);
 		});
 	})
 	.then(() => {
@@ -140,6 +115,7 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 		.then(exists => {
 			let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
 			return new Promise((resolve, reject) => {
+				/* eslint-disable-next-line no-unused-vars */
 				exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
 					if (error) { return reject({ Error: 'Failed installing production npm modules.', Details: error }); }
 					return resolve(tmpDir);
@@ -164,8 +140,9 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 		if (options.bucket) {
 			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
 		}
+		return Promise.resolve();
 	}).then(() => zipArchiveInformationPromise);
-}
+};
 
 AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
 	return this.CloudFormationDeployer.validateTemplate(stackTemplate);
@@ -194,7 +171,7 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
 		stage: stageName,
 		details: result
 	}));
-}
+};
 
 AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	let stage = options.stage;
@@ -218,7 +195,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 			let accountId = result[2];
 
 			return accountIdPromise
-			.then(accountId => {
+			.then(() => {
 				return this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion)
 				.then(() => {
 					return this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
@@ -231,8 +208,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 					RestApiId: apiGatewayId
 				};
 			});
-		}
-		catch (exception) {
+		} catch (exception) {
 			throw ({ Error: 'Failed updating API Gateway.', Details: exception.stack || exception });
 		}
 	})
@@ -249,28 +225,24 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	.catch(failure => {
 		return Promise.reject({ Error: 'Failed to create and deploy updates.', Details: failure });
 	});
-}
+};
 
-AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, optionsIn) {
-	let options = _.merge({ configureBucket: true }, optionsIn);
+AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, options) {
 	if (!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
 	if (!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
 	if (!version) { throw new Error('Deployment version is not defined.'); }
 
-	let deploymentPromise = Promise.resolve();
-	if (options.configureBucket) {
-		deploymentPromise = this.BucketManager.EnsureBucket(this.PackageMetadata.name, this.Region);
-	}
-	return deploymentPromise.then(() => this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap));
+	return this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap);
 };
 
 AwsArchitect.prototype.run = AwsArchitect.prototype.Run = function(port, logger) {
 	try {
 		let resolvedPort = port || 8080;
-		new Server(this.ContentOptions.contentDirectory, this.GetApi(), logger).Run(resolvedPort);
+		let indexPath = path.join(this.SourceDirectory, 'index.js');
+		let api = require(indexPath);
+		new Server(this.ContentOptions.contentDirectory, api, logger).Run(resolvedPort);
 		return Promise.resolve({ Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api, /triggers/event, /triggers/schedule.` });
-	}
-	catch (exception) {
+	} catch (exception) {
 		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception });
 	}
 };

@@ -57,17 +57,7 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 	let apiOptions = {
 		sourceDirectory: path.join(__dirname, 'src'),
 		description: 'This is the description of the lambda function',
-		regions: ['us-east-1'],
-
-		// Use cloud formation to create objects instead of sdk
-		useCloudFormation: true,
-		//role: 'optional-role-override',
-		runtime: 'nodejs8.10',
-		memorySize: 128,
-		publish: true,
-		timeout: 3,
-		securityGroupIds: [],
-		subnetIds: []
+		regions: ['us-east-1']
 	};
 	let contentOptions = {
 		bucket: 'WEBSITE_BUCKET_NAME',
