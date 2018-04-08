@@ -5,7 +5,6 @@
  */
 const fs = require('fs');
 const path = require('path');
-const aws = require('aws-sdk');
 const commander = require('commander');
 const AwsArchitect = require('aws-architect');
 
@@ -22,14 +21,7 @@ const deploymentBucket = 'master-deployment-artifacts-s3-bucket';
 let apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
-	regions: ['eu-west-1'],
-	runtime: 'nodejs8.10',
-	useCloudFormation: true,
-	memorySize: 128,
-	publish: true,
-	timeout: 3,
-	securityGroupIds: [],
-	subnetIds: []
+	regions: ['eu-west-1']
 };
 let contentOptions = {
 	bucket: 'WEBSITE_BUCKET_NAME',
@@ -44,8 +36,8 @@ commander
 		// default logger is console.log, if you want to override it, can be done here.
 		let logger = logMessage => console.log(logMessage);
 		awsArchitect.run(8080, logger)
-		.then((result) => console.log(JSON.stringify(result, null, 2)))
-		.catch((failure) => console.log(JSON.stringify(failure, null, 2)));
+		.then(result => console.log(JSON.stringify(result, null, 2)))
+		.catch(failure => console.log(JSON.stringify(failure, null, 2)));
 	});
 
 commander
@@ -144,10 +136,9 @@ commander
 		}
 	
 		cloudFormationPromise.then(() => awsArchitect.publishWebsite(deploymentVersion, {
-			configureBucket: false,
 			cacheControlRegexMap: {
 				'index.html': 600,
-				default: 24 * 60 * 60
+				'default': 24 * 60 * 60
 			}
 		}))
 		.then(result => console.log(`${JSON.stringify(result, null, 2)}`))

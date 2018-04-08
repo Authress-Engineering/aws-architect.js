@@ -77,14 +77,7 @@ let packageMetadata = require(packageMetadataFile);
 let apiOptions = {
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
-	regions: ['eu-west-1'],
-	runtime: 'nodejs8.10',
-	useCloudFormation: true,
-	memorySize: 128,
-	publish: true,
-	timeout: 3,
-	securityGroupIds: [],
-	subnetIds: []
+	regions: ['eu-west-1']
 };
 let contentOptions = {
 	bucket: 'WEBSITE_BUCKET_NAME',
@@ -150,10 +143,7 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
 ##### Website publish options
 Publishing the website has an `options` object which defaults to:
 ```
-{
-	// setting to false will assume the bucket is correctly configured.
-	configureBucket: true,
-	
+{	
 	// provide overrides for paths to change bucket cache control policy, default 600 seconds,
 	cacheControlRegexMap: {
 		'index.html': 10,
