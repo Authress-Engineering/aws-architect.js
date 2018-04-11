@@ -235,12 +235,16 @@ AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = 
 	return this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap);
 };
 
-AwsArchitect.prototype.run = AwsArchitect.prototype.Run = function(port, logger) {
+AwsArchitect.prototype.run = AwsArchitect.prototype.Run = async function(port, logger) {
 	try {
-		let resolvedPort = port || 8080;
 		let indexPath = path.join(this.SourceDirectory, 'index.js');
 		let api = require(indexPath);
-		new Server(this.ContentOptions.contentDirectory, api, logger).Run(resolvedPort);
+		let server = new Server(this.ContentOptions.contentDirectory, api, logger);
+		let attemptPort = port || 8080;
+		let resolvedPort = await server.Run(attemptPort);
+		if (resolvedPort !== attemptPort) {
+			console.log('Requested Port is in use. Using the next available port.');
+		}
 		return Promise.resolve({ Message: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api, /triggers/event, /triggers/schedule.` });
 	} catch (exception) {
 		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception });
