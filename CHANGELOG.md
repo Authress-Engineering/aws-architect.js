@@ -6,6 +6,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Removed deprecated methods
 * Now supports calling schedule and event triggers locally via the REST api.
 * Nodejs8.10 by default
+* Auto increment port starting at 8080 or specified up to 10 ports before falling back to a random port.
 
 ## 5.1 ##
 * Provide lower case names for methods.
