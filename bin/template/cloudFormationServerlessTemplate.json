@@ -93,6 +93,89 @@
           "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
           "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
         ],
+        "Policies": [
+          {
+            "PolicyName": "MicroservicePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "DynamoDbWrite",
+                  "Effect": "Allow",
+                  "Action": "dynamodb:*",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:dynamodb:*:*:table/",
+                        { "Ref": "serviceName" },
+                        "-*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Sid": "SQSReader",
+                  "Effect": "Allow",
+                  "Action": "sqs:*",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:sqs:*:*:",
+                        { "Ref": "serviceName" },
+                        "-*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Sid": "ReadWriteS3Configuration",
+                  "Effect": "Allow",
+                  "Action": "s3:*",
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:s3:::",
+                        { "Ref": "AWS::AccountId"},
+                        ".",
+                        { "Ref": "serviceName" },
+                        ".",
+                        { "Ref": "hostedName" },
+                        "*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Sid": "ListObjectsForS3Configuration",
+                  "Effect": "Allow",
+                  "Action": "s3:ListObjects",
+                  "Resource": "*"
+                },
+                {
+                  "Sid": "AsyncExecutionPolicy",
+                  "Effect": "Allow",
+                  "Action": "lambda:InvokeFunction",
+                  "Resource": {
+                    "Fn::Join": [
+                      ":",
+                      [
+                        "arn:aws:lambda",
+                        { "Ref": "AWS::Region"},
+                        { "Ref": "AWS::AccountId"},
+                        "function",
+                        { "Ref": "serviceName" },
+                        "production"
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
         "Path": "/"
       }
     },
