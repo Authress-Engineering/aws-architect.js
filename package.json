@@ -9,6 +9,7 @@
     "bin"
   ],
   "scripts": {
+    "lint": "eslint --ext .js tests lib index.js",
     "test": "mocha tests/**/*.js -R spec"
   },
   "bin": {
