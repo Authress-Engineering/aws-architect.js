@@ -63,7 +63,7 @@ commander
 				return awsArchitect.publishLambdaArtifactPromise({ bucket: deploymentBucket })
 				.then(() => {
 					let stackConfiguration = {
-						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${version || '1' }`,
+						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${version || '1'}`,
 						stackName: packageMetadata.name
 					};
 					let parameters = {
@@ -71,9 +71,9 @@ commander
 						serviceDescription: packageMetadata.description,
 						deploymentBucketName: deploymentBucket,
 						deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
-						dnsName: packageMetadata.name,
-						hostedName: "toplevel.domain.io",
-						amazonHostedZoneIdForService: 'AMAZON_HOST_ZONE_ID_FOR_DNS'
+						dnsName: packageMetadata.name.toLowerCase(),
+						hostedName: 'toplevel.domain.io',
+						useRoot: 'false'
 					};
 					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 				});
@@ -119,12 +119,12 @@ commander
 			.then(() => {
 				if (isMasterBranch) {
 					let stackConfiguration = {
-						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1' }`,
+						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
 						stackName: packageMetadata.name
 					};
 					let parameters = {
-						dnsName: packageMetadata.name,
-						hostedName: 'domain_name',
+						dnsName: packageMetadata.name.toLowerCase(),
+						hostedName: 'toplevel.domain.io',
 						useRoot: 'true'
 					};
 					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);

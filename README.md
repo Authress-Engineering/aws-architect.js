@@ -108,7 +108,7 @@ let stackConfiguration = {
 let parameters = { /** PARAMATERS_FOR_YOUR_TEMPLATE, but also include these unless being overwritten in your template */
 	serviceName: packageMetadata.name,
 	serviceDescription: packageMetadata.description,
-	dnsName: packageMetadata.name
+	dnsName: packageMetadata.name.toLowerCase()
 };
 DeployTemplate(stackTemplate, stackConfiguration, parameters) {...}
 
