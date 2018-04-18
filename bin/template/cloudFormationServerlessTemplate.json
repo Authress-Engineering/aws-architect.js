@@ -763,6 +763,23 @@
         "Principal": "apigateway.amazonaws.com"
       },
       "DependsOn": "LambdaFunction"
+    },
+    "PermissionForCloudWatchToInvokeLambda": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            ":",
+            [
+              { "Fn::GetAtt": [ "LambdaFunction", "Arn" ] },
+              "production"
+            ]
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com"
+      },
+      "DependsOn": "LambdaFunction"
     }
   }
 }
