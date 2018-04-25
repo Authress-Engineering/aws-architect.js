@@ -427,12 +427,12 @@
               "    })",
               "    .then(certArn => {",
               "      if (!certArn) {",
-              "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'No certificate exist', error: error });",
+              "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'No certificate exists' });",
               "      }",
               "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { CertificateArn: certArn });",
               "    })",
               "    .catch(error => {",
-              "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get Certificate', error: error });",
+              "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get Certificate', error: error.message || error.toString() || error });",
               "    });",
               "}"
             ]]
@@ -554,7 +554,7 @@
               "  .then(response => {",
               "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { 'DistributionDomainName': response.regionalDomainName || response.distributionDomainName, 'HostedZone': response.regionalHostedZoneId || response.distributionHostedZoneId });",
               "  }, failure => {",
-              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { 'Error': failure });",
+              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get domain name',  error: failure.message || failure.toString() || failure });",
               "  });",
               "};"
             ]]
