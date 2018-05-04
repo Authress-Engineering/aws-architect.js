@@ -1,3 +1,4 @@
+require('error-object-polyfill');
 const fs = require('fs-extra');
 const path = require('path');
 const commander = require('commander');
