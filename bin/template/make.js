@@ -1,9 +1,4 @@
-'use strict';
-
-/**
- * Module dependencies
- */
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const commander = require('commander');
 const AwsArchitect = require('aws-architect');
@@ -43,58 +38,53 @@ commander
 commander
 	.command('deploy')
 	.description('Deploy to AWS.')
-	.action(() => {
+	.action(async () => {
 		if (!process.env.CI_COMMIT_REF_SLUG) {
 			console.log('Deployment should not be done locally.');
 			return;
 		}
 
 		packageMetadata.version = version;
-		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+		await fs.writeJson(packageMetadataFile, packageMetadata);
 	
 		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
-		let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
 		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 		
-		return cloudFormationPromise
-		.then(() => {
-			if (isMasterBranch === 'master') {
-				return awsArchitect.publishLambdaArtifactPromise({ bucket: deploymentBucket })
-				.then(() => {
-					let stackConfiguration = {
-						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${version || '1'}`,
-						stackName: packageMetadata.name
-					};
-					let parameters = {
-						serviceName: packageMetadata.name,
-						serviceDescription: packageMetadata.description,
-						deploymentBucketName: deploymentBucket,
-						deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
-						dnsName: packageMetadata.name.toLowerCase(),
-						hostedName: 'toplevel.domain.io',
-						useRoot: 'false'
-					};
-					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
-				});
+		try {
+			await awsArchitect.ValidateTemplate(stackTemplate);
+			await awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket });
+			if (isMasterBranch) {
+				let stackConfiguration = {
+					changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+					stackName: packageMetadata.name
+				};
+				let parameters = {
+					serviceName: packageMetadata.name,
+					serviceDescription: packageMetadata.description,
+					deploymentBucketName: deploymentBucket,
+					deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
+					dnsName: packageMetadata.name.toLowerCase(),
+					hostedName: 'toplevel.domain.io',
+					useRoot: 'false'
+				};
+				await awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
 			}
-		})
-		.then(() => {
-			return awsArchitect.publishAndDeployStagePromise({
+	
+			let publicResult = await awsArchitect.PublishAndDeployStagePromise({
 				stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
 				functionName: packageMetadata.name,
 				deploymentBucketName: deploymentBucket,
 				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
 			});
-		})
-		.then(result => {
-			console.log(result);
-		}, failure => {
+
+			console.log(publicResult);
+		} catch (failure) {
 			console.log(failure);
 			process.exit(1);
-		});
+		}
+		return null;
 	});
-
 
 commander
 	.command('deploy-website')
