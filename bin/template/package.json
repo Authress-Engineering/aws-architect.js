@@ -16,7 +16,7 @@
     "ci-build-tools": ">=1.0",
     "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
-    "openapi-factory": "^4.0"
+    "openapi-factory": "^4.1"
   },
   "devDependencies": {
     "aws-architect": "^6.0",
