@@ -21,7 +21,7 @@
     "commander": "^2.5.0",
     "cookie-parser": "^1.4.2",
     "express": "^4.13.4",
-    "fs-extra": "^5.0.0",
+    "fs-extra": "^6.0.1",
     "header-case-normalizer": "^1.0.3",
     "lodash": "^4.17.4",
     "morgan": "^1.7.0",

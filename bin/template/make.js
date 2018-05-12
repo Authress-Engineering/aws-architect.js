@@ -23,148 +23,147 @@ let contentOptions = {
 	bucket: 'WEBSITE_BUCKET_NAME',
 	contentDirectory: path.join(__dirname, 'content')
 };
-let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 commander
-	.command('run')
-	.description('Run lambda web service locally.')
-	.action(() => {
-		// default logger is console.log, if you want to override it, can be done here.
-		let logger = logMessage => console.log(logMessage);
-		awsArchitect.run(8080, logger)
-		.then(result => console.log(JSON.stringify(result, null, 2)))
-		.catch(failure => console.log(JSON.stringify(failure, null, 2)));
-	});
+.command('run')
+.description('Run lambda web service locally.')
+.action(() => {
+	// default logger is console.log, if you want to override it, can be done here.
+	let logger = logMessage => console.log(logMessage);
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
+	awsArchitect.run(8080, logger)
+	.then(result => console.log(JSON.stringify(result, null, 2)))
+	.catch(failure => console.log(JSON.stringify(failure, null, 2)));
+});
 
 commander
-	.command('deploy')
-	.description('Deploy to AWS.')
-	.action(async () => {
-		if (!process.env.CI_COMMIT_REF_SLUG) {
-			console.log('Deployment should not be done locally.');
-			return;
+.command('deploy')
+.description('Deploy to AWS.')
+.action(async () => {
+	if (!process.env.CI_COMMIT_REF_SLUG) {
+		console.log('Deployment should not be done locally.');
+		return;
+	}
+
+	packageMetadata.version = version;
+	await fs.writeJson(packageMetadataFile, packageMetadata);
+
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	let stackTemplate = require('./cloudFormationServerlessTemplate.json');
+	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
+	
+	try {
+		await awsArchitect.ValidateTemplate(stackTemplate);
+		await awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket });
+		if (isMasterBranch) {
+			let stackConfiguration = {
+				changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+				stackName: packageMetadata.name
+			};
+			let parameters = {
+				serviceName: packageMetadata.name,
+				serviceDescription: packageMetadata.description,
+				deploymentBucketName: deploymentBucket,
+				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
+				dnsName: packageMetadata.name.toLowerCase(),
+				hostedName: 'toplevel.domain.io',
+				useRoot: 'false'
+			};
+			await awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
 		}
 
-		packageMetadata.version = version;
-		await fs.writeJson(packageMetadataFile, packageMetadata);
+		let publicResult = await awsArchitect.PublishAndDeployStagePromise({
+			stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
+			functionName: packageMetadata.name,
+			deploymentBucketName: deploymentBucket,
+			deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
+		});
+
+		console.log(publicResult);
+	} catch (failure) {
+		console.log(failure);
+		process.exit(1);
+	}
+});
+
+commander
+.command('deploy-website')
+.description('Depling website to AWS.')
+.action(() => {
+	if (!process.env.CI_COMMIT_SHA) {
+		console.log('Deployment should not be done locally.');
+		return;
+	}
+
+	let deploymentVersion = 'v1';
+	let deploymentLocation = 'https://production.website.com/';
 	
-		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-		let stackTemplate = require('./cloudFormationServerlessTemplate.json');
-		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
-		
-		try {
-			await awsArchitect.ValidateTemplate(stackTemplate);
-			await awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket });
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
+	let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
+	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
+
+	if (isMasterBranch) {
+		let stackConfiguration = { stackName: 'STACK_NAME_FOR_WEBSITE' };
+		cloudFormationPromise = cloudFormationPromise
+		.then(() => {
 			if (isMasterBranch) {
 				let stackConfiguration = {
 					changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
 					stackName: packageMetadata.name
 				};
 				let parameters = {
-					serviceName: packageMetadata.name,
-					serviceDescription: packageMetadata.description,
-					deploymentBucketName: deploymentBucket,
-					deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
 					dnsName: packageMetadata.name.toLowerCase(),
 					hostedName: 'toplevel.domain.io',
-					useRoot: 'false'
+					useRoot: 'true'
 				};
-				await awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+				return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 			}
-	
-			let publicResult = await awsArchitect.PublishAndDeployStagePromise({
-				stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
-				functionName: packageMetadata.name,
-				deploymentBucketName: deploymentBucket,
-				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
-			});
+		});
+	} else {
+		deploymentVersion = `PR-${version}`;
+		deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
+	}
 
-			console.log(publicResult);
-		} catch (failure) {
-			console.log(failure);
-			process.exit(1);
+	cloudFormationPromise.then(() => awsArchitect.publishWebsite(deploymentVersion, {
+		cacheControlRegexMap: {
+			'index.html': 600,
+			'default': 24 * 60 * 60
 		}
-		return null;
+	}))
+	.then(result => console.log(`${JSON.stringify(result, null, 2)}`))
+	.then(() => console.log(`Deployed to ${deploymentLocation}`))
+	.catch(failure => {
+		console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`);
+		process.exit(1);
 	});
+});
 
 commander
-	.command('deploy-website')
-	.description('Depling website to AWS.')
-	.action(() => {
-		if (!process.env.CI_COMMIT_SHA) {
-			console.log('Deployment should not be done locally.');
-			return;
-		}
-	
-		let deploymentVersion = 'v1';
-		let deploymentLocation = 'https://production.website.com/';
-		
-		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-		let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
-		let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
-		let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
-	
-		if (isMasterBranch) {
-			let stackConfiguration = { stackName: 'STACK_NAME_FOR_WEBSITE' };
-			cloudFormationPromise = cloudFormationPromise
-			.then(() => {
-				if (isMasterBranch) {
-					let stackConfiguration = {
-						changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-						stackName: packageMetadata.name
-					};
-					let parameters = {
-						dnsName: packageMetadata.name.toLowerCase(),
-						hostedName: 'toplevel.domain.io',
-						useRoot: 'true'
-					};
-					return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
-				}
-			});
-		} else {
-			deploymentVersion = `PR-${version}`;
-			deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
-		}
-	
-		cloudFormationPromise.then(() => awsArchitect.publishWebsite(deploymentVersion, {
-			cacheControlRegexMap: {
-				'index.html': 600,
-				'default': 24 * 60 * 60
-			}
-		}))
-		.then(result => console.log(`${JSON.stringify(result, null, 2)}`))
-		.then(() => console.log(`Deployed to ${deploymentLocation}`))
-		.catch(failure => {
-			console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`);
-			process.exit(1);
-		});
+.command('delete')
+.description('Delete Stage from AWS.')
+.action(() => {
+	if (!process.env.CI_COMMIT_REF_SLUG) {
+		console.log('Deployment should not be done locally.');
+		return;
+	}
+
+	packageMetadata.version = version;
+	fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
+
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	return awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG)
+	.then(result => {
+		console.log(result);
+	}, failure => {
+		console.log(failure);
+		process.exit(1);
 	});
-
-commander
-	.command('delete')
-	.description('Delete Stage from AWS.')
-	.action(() => {
-		if (!process.env.CI_COMMIT_REF_SLUG) {
-			console.log('Deployment should not be done locally.');
-			return;
-		}
-
-		packageMetadata.version = version;
-		fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
-
-		let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-		return awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG)
-		.then(result => {
-			console.log(result);
-		}, failure => {
-			console.log(failure);
-			process.exit(1);
-		});
-	});
+});
 
 commander.on('*', () => {
 	if (commander.args.join(' ') === 'tests/**/*.js') { return; }
-	console.log('Unknown Command: ' + commander.args.join(' '));
+	console.log(`Unknown Command: ${commander.args.join(' ')}`);
 	commander.help();
 	process.exit(0);
 });
