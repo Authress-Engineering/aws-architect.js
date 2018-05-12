@@ -1,7 +1,8 @@
-'use strict';
-let expect = require('chai').expect;
-let path = require('path');
-let LockFinder = require('../lib/lockFinder');
+
+const { describe, it } = require('mocha');
+const { expect } = require('chai');
+const path = require('path');
+const LockFinder = require('../lib/lockFinder');
 
 describe('lib/lockFinder.js', function() {
 	let tests = [
