@@ -117,8 +117,10 @@
                   "Sid": "DynamoDbWritePreventDelete",
                   "Effect": "Deny",
                   "Action": [
+                    "dynamodb:DeleteBackup",
                     "dynamodb:DeleteTable",
-                    "dynamodb:DeleteBackup"
+                    "sqs:DeleteQueue",
+                    "sqs:PurgeQueue"
                   ],
                   "Resource": "*"
                 },
