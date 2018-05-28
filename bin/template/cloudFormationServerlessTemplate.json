@@ -114,6 +114,15 @@
                   }
                 },
                 {
+                  "Sid": "DynamoDbWritePreventDelete",
+                  "Effect": "Deny",
+                  "Action": [
+                    "dynamodb:DeleteTable",
+                    "dynamodb:DeleteBackup"
+                  ],
+                  "Resource": "*"
+                },
+                {
                   "Sid": "SQSReader",
                   "Effect": "Allow",
                   "Action": "sqs:*",
