@@ -383,7 +383,21 @@
               ]
             },
             "ViewerProtocolPolicy" : "redirect-to-https"
-          }
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode" : 403,
+              "ErrorCachingMinTTL" : 300,
+              "ResponseCode" : 200,
+              "ResponsePagePath" : "/index.html"
+            },
+            {
+              "ErrorCode" : 404,
+              "ErrorCachingMinTTL" : 300,
+              "ResponseCode" : 200,
+              "ResponsePagePath" : "/index.html"
+            }
+          ]
         }
       }
     },
