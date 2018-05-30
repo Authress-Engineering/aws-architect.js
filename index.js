@@ -160,9 +160,13 @@ AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePr
 	.then(restApiId => this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion));
 };
 
+function getStageName(stage) {
+	return stage.replace(/[^a-zA-Z0-9-]/g, '-');
+}
+
 AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePromise = function(stage) {
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
-	let stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+	let stageName = getStageName(stage);
 	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
 	return apiGatewayPromise
 	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stageName))
@@ -175,7 +179,7 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
 
 AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
 	let stage = options.stage;
-	let stageName = stage.replace(/[^a-zA-Z0-9_]/g, '_');
+	let stageName = getStageName(stage);
 	let functionName = options.functionName;
 	let bucket = options.deploymentBucketName;
 	let deploymentKey = options.deploymentKeyName;
