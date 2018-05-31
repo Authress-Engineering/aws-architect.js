@@ -129,6 +129,9 @@ commander
 		cacheControlRegexMap: {
 			'index.html': 600,
 			'default': 24 * 60 * 60
+		},
+		contentTypeMappingOverride: {
+			default: 'text/html'
 		}
 	}))
 	.then(result => console.log(`${JSON.stringify(result, null, 2)}`))
