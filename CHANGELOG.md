@@ -9,6 +9,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Auto increment port starting at 8080 or specified up to 10 ports before falling back to a random port.
 * Use `-`s in stage names instead of `_` so that more CIs can match their enviroments sligs correctl.
 * Added default override for S3 content type uploads.
+* Allow deploying `.files` using the `bucketManager`
 
 ## 5.1 ##
 * Provide lower case names for methods.
