@@ -1,5 +1,4 @@
 require('error-object-polyfill');
-const fs = require('fs-extra');
 const path = require('path');
 const commander = require('commander');
 const AwsArchitect = require('aws-architect');
@@ -46,7 +45,6 @@ commander
 	}
 
 	packageMetadata.version = version;
-	await fs.writeJson(packageMetadataFile, packageMetadata);
 
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 	let stackTemplate = require('./cloudFormationServerlessTemplate.json');
@@ -152,8 +150,6 @@ commander
 	}
 
 	packageMetadata.version = version;
-	fs.writeFileSync(packageMetadataFile, JSON.stringify(packageMetadata, null, 2));
-
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 	return awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG)
 	.then(result => {

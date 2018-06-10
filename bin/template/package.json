@@ -16,14 +16,13 @@
     "ci-build-tools": ">=1.0",
     "jsonwebtoken": "^8.1.0",
     "jwk-to-pem": "^1.2.6",
-    "openapi-factory": "^4.1"
+    "openapi-factory": "^4.2"
   },
   "devDependencies": {
     "aws-architect": "^6.0",
     "chai": "^3.2.0",
     "commander": "^2.5.0",
     "error-object-polyfill": "^1.0.11",
-    "fs-extra": "^6.0.0",
     "glob": "^5.0.0",
     "mocha": "^5.0.4",
     "nodemon": "^1.17.1",
