@@ -449,6 +449,15 @@
     "GetExistingAcmCertificateArnLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-", [
+              "Temporary",
+              { "Ref": "serviceName" },
+              "GetExistingAcmCertificateArn"
+            ]
+          ]
+        },
         "Code": {
           "ZipFile": {
             "Fn::Join": [ "\n", [
@@ -577,6 +586,15 @@
     "GetRoute53ConfigurationLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
+        "FunctionName": {
+          "Fn::Join": [
+            "-", [
+              "Temporary",
+              { "Ref": "serviceName" },
+              "GetRoute53Configuration"
+            ]
+          ]
+        },
         "Code": {
           "ZipFile": {
             "Fn::Join": [ "\n", [
