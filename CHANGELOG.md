@@ -10,6 +10,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Use `-`s in stage names instead of `_` so that more CIs can match their enviroments sligs correctl.
 * Added default override for S3 content type uploads.
 * Allow deploying `.files` using the `bucketManager`
+* Dynamically inject `http` and `api` subpath into url hrefs.
 
 ## 5.1 ##
 * Provide lower case names for methods.
