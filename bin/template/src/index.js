@@ -3,6 +3,8 @@ const Api = require('openapi-factory');
 const jwtManager = require('jsonwebtoken');
 const jwkConverter = require('jwk-to-pem');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 
 let api = new Api();
 module.exports = api;
@@ -70,7 +72,7 @@ api.get('/.well-known/openapi.json', () => {
 		"Access-Control-Allow-Origin" : '*'
 	}));
 });
-  
+
 api.get('/livecheck', () => {
 	return new Api.Response({ "field": "hello world" }, 200);
 });
@@ -86,7 +88,7 @@ api.options('/{proxy+}', request => {
 		"Access-Control-Allow-Origin" : request.headers.Origin || '*'
 	});
 });
-  
+
 api.any('/{proxy+}', request => {
 	/*
 		{
