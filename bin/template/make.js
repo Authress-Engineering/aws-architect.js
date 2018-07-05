@@ -87,7 +87,7 @@ commander
 commander
 .command('deploy-website')
 .description('Depling website to AWS.')
-.action(() => {
+.action(async () => {
 	if (!process.env.CI_COMMIT_SHA) {
 		console.log('Deployment should not be done locally.');
 		return;
@@ -96,48 +96,42 @@ commander
 	let deploymentVersion = 'v1';
 	let deploymentLocation = 'https://production.website.com/';
 	
-	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	let awsArchitect = new AwsArchitect(packageMetadata, null, contentOptions);
 	let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
-	let cloudFormationPromise = awsArchitect.validateTemplate(stackTemplate);
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 
-	if (isMasterBranch) {
-		let stackConfiguration = { stackName: 'STACK_NAME_FOR_WEBSITE' };
-		cloudFormationPromise = cloudFormationPromise
-		.then(() => {
-			if (isMasterBranch) {
-				let stackConfiguration = {
-					changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-					stackName: packageMetadata.name
-				};
-				let parameters = {
-					dnsName: packageMetadata.name.toLowerCase(),
-					hostedName: 'toplevel.domain.io',
-					useRoot: 'true'
-				};
-				return awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
+	try {
+		await awsArchitect.validateTemplate(stackTemplate);
+		if (isMasterBranch) {
+			let stackConfiguration = {
+				changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+				stackName: packageMetadata.name
+			};
+			let parameters = {
+				dnsName: packageMetadata.name.toLowerCase(),
+				hostedName: 'toplevel.domain.io',
+				useRoot: 'true'
+			};
+			await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
+		} else {
+			deploymentVersion = `PR-${version}`;
+			deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
+		}
+
+		let result = await awsArchitect.publishWebsite(deploymentVersion, {
+			cacheControlRegexMap: {
+				'index.html': 600,
+				'default': 24 * 60 * 60
+			},
+			contentTypeMappingOverride: {
+				default: 'text/html'
 			}
 		});
-	} else {
-		deploymentVersion = `PR-${version}`;
-		deploymentLocation = `https://tst-web.website.com/${deploymentVersion}/index.html`;
-	}
-
-	cloudFormationPromise.then(() => awsArchitect.publishWebsite(deploymentVersion, {
-		cacheControlRegexMap: {
-			'index.html': 600,
-			'default': 24 * 60 * 60
-		},
-		contentTypeMappingOverride: {
-			default: 'text/html'
-		}
-	}))
-	.then(result => console.log(`${JSON.stringify(result, null, 2)}`))
-	.then(() => console.log(`Deployed to ${deploymentLocation}`))
-	.catch(failure => {
-		console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`);
+		console.log(`Deployed to ${deploymentLocation}`, result);
+	} catch (error) {
+		console.log('Failed to upload website', error);
 		process.exit(1);
-	});
+	}
 });
 
 commander
