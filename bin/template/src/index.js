@@ -4,7 +4,7 @@ const jwtManager = require('jsonwebtoken');
 const jwkConverter = require('jwk-to-pem');
 const axios = require('axios');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 let api = new Api();
 module.exports = api;
