@@ -5,88 +5,54 @@ const jwkConverter = require('jwk-to-pem');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs-extra');
+const { Authorizer, RequestLogger, PlatformClient } = require('microservice-utilities');
 
-let api = new Api();
+let logger = new RequestLogger();
+const api = new Api({
+	requestMiddleware(request) {
+		logger.log({ title: 'RequestLogger', level: 'INFO', request: request });
+		let userToken = request.requestContext.authorizer && request.requestContext.authorizer.jwt;
+		request.userPlatformClient = new PlatformClient(msg => logger.log(msg), () => userToken);
+		return request;
+	}
+  });
 module.exports = api;
 
-const jwkKeyListUrl = 'https://auth0.com/.well-known/jwks.json';
-let publicKeysPromise = null;
-function GetPublicKeyPromise(kid) {
-	if(!publicKeysPromise) {
-		publicKeysPromise = axios.get(jwkKeyListUrl);
-	}
-	return publicKeysPromise.then(result => {
-		let jwk = result.data.keys.find(key => key.kid === kid);
-		if(jwk) {
-			return jwkConverter(jwk);
-		}
-		publicKeysPromise = null;
-		return Promise.reject({ title: 'PublicKey-Resolution-Failure', kid: kid || 'NO_KID_SPECIFIED', keys: result.data.keys});
-	});
-};
 
-api.SetAuthorizer(request => {
-	let methodArn = request.methodArn;
-	let authorization = Object.keys(request.headers).find(key => {
-		return key.match(/^Authorization$/i);
-	});
-	let token = request.headers[authorization] ? request.headers[authorization].split(' ')[1] : null;
-	let unverifiedToken = jwtManager.decode(token, {complete: true});
-	let kid = ((unverifiedToken || {}).header || {}).kid;
-	return GetPublicKeyPromise(kid)
-	.then(key => {
-		try { return jwtManager.verify(token, key, { algorithms: ['RS256'] }); }
-		catch (exception) { return Promise.reject(exception.stack || exception.toString()); }
-	})
-	.then(token => {
-		return {
-			principalId: token.sub,
-			policyDocument: {
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Action": [
-							"execute-api:Invoke"
-						],
-						"Resource": [
-							'arn:aws:execute-api:*:*:*'
-						]
-					}
-				]
-			},
-			context: {
-				stringKey: "stringval",
-				numberKey: 123,
-				booleanKey: true
-			}
-		};
-	});
+const authorizerConfiguration = { jwkKeyListUrl: 'https://authorization.domain.com/.well-known/jwks.json' };
+let authorizer = new Authorizer(msg => logger.log(msg), authorizerConfiguration);
+
+
+api.onEvent(trigger => {});
+api.onSchedule(trigger => {});
+
+api.setAuthorizer(request => {
+	return authorizer.getPolicy(request);
 });
 
-api.get('/.well-known/openapi.json', () => {
+api.get('/.well-known/openapi.json', async () => {
 	let openapiFile = path.join(__dirname, './openapi.json');
-	return fs.readJson(openapiFile)
-	.then(data => new Api.Response(data, 200, {
-		"Content-Type": "application/json",
-		"Access-Control-Allow-Origin" : '*'
-	}));
+	let data = await fs.readJson(openapiFile);
+	return { statusCode: 200, body: data };
 });
 
 api.get('/livecheck', () => {
-	return new Api.Response({ "field": "hello world" }, 200);
+	return { statusCode: 200, body: { "field": "hello world" } };
 });
 
 api.get('/v1/resource/{resourceId}', request => {
-	return new Api.Response({ resourceId: request.pathParameters.resourceId }, 200, { 'Content-Type': 'application/json' });
+	return { statusCode: 200, body: { resourceId: request.pathParameters.resourceId }, headers: { 'Content-Type': 'application/json' } };
 });
 
 api.options('/{proxy+}', request => {
-	return new Api.Response({}, 200, {
-		"Access-Control-Allow-Headers" : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
-		"Access-Control-Allow-Methods" : 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
-		"Access-Control-Allow-Origin" : request.headers.Origin || '*'
-	});
+	return {
+		statusCode: 200,
+		headers: {
+			"Access-Control-Allow-Headers" : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+			"Access-Control-Allow-Methods" : 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
+			"Access-Control-Allow-Origin" : request.headers.Origin || '*'
+		}
+	};
 });
 
 api.any('/{proxy+}', request => {
@@ -123,5 +89,5 @@ api.any('/{proxy+}', request => {
 			}
 		}
 	*/
-	return new Api.Response({ }, 404);
+	return { statusCode: 404 };
 });
