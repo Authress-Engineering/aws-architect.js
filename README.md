@@ -152,15 +152,15 @@ Publishing the website has an `options` object which defaults to:
 ```
 ## Built-in functionality
 
-* conventioned based static S3 website using the `/content` directory
-* conventioned based lambda functions.
-* Creates a ServiceRole to execute Lambda functions.
+* Standardize CF template to deploy microservice to Lambda, API Gateway, Route 53, etc..
+* Standardize CF template for S3 bucket hosting for a website
+* Default configuration to automatically handle the creation of pull request deployments to test infrastructure before production
+* Working templated sample and make.js file to run locally and CI build.
 * Lambda/API Gateway setup for seemless integration.
 * Automatic creation of AWS resources when using including:
 	* Lambda functions
 	* API Gateway resources
 	* Environments for managing resources in AWS
-	* IAM service roles
 	* S3 Buckets and directorys
 	* S3 static website hosting
 * Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally.
