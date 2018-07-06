@@ -26,13 +26,16 @@ let contentOptions = {
 commander
 .command('run')
 .description('Run lambda web service locally.')
-.action(() => {
-	// default logger is console.log, if you want to override it, can be done here.
+.action(async () => {
+	// default logger is console.log, if you want to override it, that can be done here.
 	let logger = logMessage => console.log(logMessage);
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
-	awsArchitect.run(8080, logger)
-	.then(result => console.log(JSON.stringify(result, null, 2)))
-	.catch(failure => console.log(JSON.stringify(failure, null, 2)));
+	try {
+		let result = await awsArchitect.run(8080, logger);
+		console.log(result.title);
+	} catch (failure) {
+		console.error(failure);
+	}
 });
 
 commander
