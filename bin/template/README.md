@@ -88,3 +88,54 @@ TL;DL
 
 * Static content => `content/index.html`
 * Lambda function => `src/index.js`
+
+#### Permissions to invoke lambda functions
+* From CloudWatch:
+```json
+{
+	"SourceAccount": { "Ref": "AWS::AccountId" },
+	"SourceArn": {
+		"Fn::Join": [
+			"",
+			[
+				"arn:aws:events:",
+				{ "Ref": "AWS::Region" },
+				":",
+				{ "Ref": "AWS::AccountId" },
+				":rule",
+				"/",
+				{ "Ref": "serviceName" },
+				"-*"
+			]
+		]
+	}
+}
+```
+
+* From SES:
+```json
+{
+	"SourceAccount": { "Ref": "AWS::AccountId" }
+}
+```
+
+* From API Gateway:
+```json
+{
+	"SourceAccount": { "Ref": "AWS::AccountId" },
+	"SourceArn": {
+		"Fn::Join": [
+			"",
+			[
+				"arn:aws:execute-api:",
+				{ "Ref": "AWS::Region" },
+				":",
+				{ "Ref": "AWS::AccountId" },
+				":",
+				{ "Ref": "ApiGateway" },
+				"/*"
+			]
+		]
+	}
+}
+```
