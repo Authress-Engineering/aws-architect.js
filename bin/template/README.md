@@ -90,7 +90,7 @@ TL;DL
 * Lambda function => `src/index.js`
 
 #### Permissions to invoke lambda functions
-* From CloudWatch:
+* From CloudWatch Rules:
 ```json
 {
 	"SourceAccount": { "Ref": "AWS::AccountId" },
@@ -108,6 +108,26 @@ TL;DL
 				"-*"
 			]
 		]
+	}
+}
+```
+
+* From CloudWatch Logs:
+```json
+{
+	"SourceAccount": { "Ref": "AWS::AccountId" },
+    "SourceArn": {
+        "Fn::Join": [
+			":",
+            [
+              "arn:aws:logs",
+              { "Ref": "AWS::Region" },
+              { "Ref": "AWS::AccountId" },
+              "log-group",
+              "*",
+              "*"
+            ]
+        ]
 	}
 }
 ```
