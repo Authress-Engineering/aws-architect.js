@@ -110,28 +110,6 @@
                   ]
                 ]
               }
-            },
-            {
-              "Sid":"Allow global access to private content",
-              "Effect":"Allow",
-              "Principal": "*",
-              "Action":"s3:GetObject",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    ".",
-                    {
-                      "Ref": "hostedName"
-                    },
-                    "/*"
-                  ]
-                ]
-              }
             }
           ]
         }

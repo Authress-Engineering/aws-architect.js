@@ -805,22 +805,6 @@
       },
       "DependsOn": ["StageDeployment", "ServiceDomainNameTst"]
     },
-    "PermissionForAPIGatewayToInvokeLambda": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::Join": [
-            "",
-            [
-              { "Fn::GetAtt": [ "LambdaFunction", "Arn" ] }
-            ]
-          ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "apigateway.amazonaws.com"
-      },
-      "DependsOn": "LambdaFunction"
-    },
     "PermissionForCloudWatchToInvokeLambda": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
@@ -834,7 +818,24 @@
           ]
         },
         "Action": "lambda:InvokeFunction",
-        "Principal": "events.amazonaws.com"
+        "Principal": "events.amazonaws.com",
+        "SourceAccount": { "Ref": "AWS::AccountId" },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              { "Ref": "AWS::Region" },
+              ":",
+              { "Ref": "AWS::AccountId" },
+              ":rule",
+              "/",
+              { "Ref": "serviceName" },
+              "-*"
+
+            ]
+          ]
+        }
       },
       "DependsOn": "LambdaFunction"
     }
