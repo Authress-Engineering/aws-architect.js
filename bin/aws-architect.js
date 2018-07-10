@@ -21,22 +21,24 @@ commander
 	console.log('');
 
 	let currentWorkspace = path.resolve('.');
-	new Promise((s, f) => {
-		fs.copy(path.join(__dirname, 'template'), currentWorkspace, (error) => {
-			return error ? f({Error: error.stack || error}) : s({Result: `Template copied to ${path.resolve('.')}`});
+	new Promise((resolve, reject) => {
+		fs.copy(path.join(__dirname, 'template'), currentWorkspace, error => {
+			return error ? reject({ Error: error.stack || error }) : resolve({ Result: `Template copied to ${path.resolve('.')}` });
 		});
 	}).then(result => {
 		/* WTF: https://github.com/npm/npm/issues/7252 */
-		return new Promise((s, f) => { fs.move(path.join(currentWorkspace, '.npmignore'), path.join(currentWorkspace, '.gitignore'),
-			error => error ? f({Error: 'Error creating .gitignore file', Detail: error}) : s(result)); });
-	}).then((result) => console.log(`success: ${JSON.stringify(result, null, 2)}`))
-	.catch((result) => console.log(`failure: ${JSON.stringify(result, null, 2)}`));
+		return new Promise((resolve, reject) => {
+			fs.move(path.join(currentWorkspace, '.npmignore'), path.join(currentWorkspace, '.gitignore'),
+				error => error ? reject({ Error: 'Error creating .gitignore file', Detail: error }) : resolve(result));
+		});
+	}).then(result => console.log(`success: ${JSON.stringify(result, null, 2)}`))
+	.catch(result => console.log(`failure: ${JSON.stringify(result, null, 2)}`));
 });
 
 commander.on('*', () => {
-	if(commander.args.join(' ') === 'tests/**/*.js') { return; }
+	if (commander.args.join(' ') === 'tests/**/*.js') { return; }
 	displayHeader();
-	console.log('Unknown Command: ' + commander.args.join(' '));
+	console.log(`Unknown Command: ${commander.args.join(' ')}`);
 	commander.help();
 	process.exit(0);
 });
