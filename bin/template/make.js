@@ -124,6 +124,8 @@ commander
 		let result = await awsArchitect.publishWebsite(deploymentVersion, {
 			cacheControlRegexMap: {
 				'index.html': 600,
+				'manifest.json': 600,
+				'service-worker.js': 600,
 				'default': 24 * 60 * 60
 			},
 			contentTypeMappingOverride: {
@@ -140,7 +142,7 @@ commander
 commander
 .command('delete')
 .description('Delete Stage from AWS.')
-.action(() => {
+.action(async () => {
 	if (!process.env.CI_COMMIT_REF_SLUG) {
 		console.log('Deployment should not be done locally.');
 		return;
@@ -148,13 +150,13 @@ commander
 
 	packageMetadata.version = version;
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
-	return awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG)
-	.then(result => {
+	try {
+		let result = await awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG);
 		console.log(result);
-	}, failure => {
+	} catch (failure) {
 		console.log(failure);
 		process.exit(1);
-	});
+	}
 });
 
 commander.on('*', () => {
