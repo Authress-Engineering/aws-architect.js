@@ -15,7 +15,7 @@ This will also configure your aws account to allow your build system to automati
 * `npm install`
 * Update:
 	* `package.json`: package name, the package name is used to name your resources
-	* `make.js`: API Gateway, Lambda, S3, DynamoDB, and IAM configuration. Contains abstract configuration to drive the publish command to match your service requirements.
+	* `make.js`: Deployment bucket, Resource, and DNS name parameters which are used for CF deployment
 
 #### API Sample
 Using `openapi-factory` we can create a declarative api to run inside the lambda function.
@@ -27,7 +27,7 @@ Using `openapi-factory` we can create a declarative api to run inside the lambda
 	module.exports = api;
 
 	api.get('/sample', (request) => {
-		return {'Value': 1};
+		return { statusCode: 200, body: { value: 1} };
 	});
 ```
 
@@ -85,22 +85,16 @@ let contentOptions = {
 };
 let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
-// Create the api gateway from an openapi enabled index.js file
-GetApiGatewayPromise() {...}
-
-// Package a directory in a zip archive and deploy to an S3 bucket
+// Package a directory in a zip archive and deploy to an S3 bucket, required for stage deployment and CF stack deployment
 let options = {
 	bucket: 'BUCKET_NAME'
 };
-PublishLambdaArtifactPromise(options = {}) {...}
+publishLambdaArtifactPromise(options = {}) {...}
 
-// Create a lambda with the directory code and the api gateway
-PublishPromise() {...}
+// Validate a cloud formation stack template usinc CloudFormation
+validateTemplate(stackTemplate) {...}
 
-// Validate a cloud formation stack template
-ValidateTemplate(stackTemplate) {...}
-
-// deploy a cloud formation stack template
+// Deploy a Cloudformation template to AWS, should be used to create all the infrastructure required and run only on master branches
 let stackConfiguration = {
 	stackName: 'STACK_NAME'
 	changeSetName: 'NAME_OF_CHANGE_SET'
@@ -110,19 +104,24 @@ let parameters = { /** PARAMATERS_FOR_YOUR_TEMPLATE, but also include these unle
 	serviceDescription: packageMetadata.description,
 	dnsName: packageMetadata.name.toLowerCase()
 };
-DeployTemplate(stackTemplate, stackConfiguration, parameters) {...}
+deployTemplate(stackTemplate, stackConfiguration, parameters) {...}
 
-// Create a stage in an api gateway pointing to a specific version of the lambda function
-DeployStagePromise(stage, lambdaVersion) {...}
+// Deploy the stage of your microservice stack, to be called for each build in master or a pull-request.
+publishAndDeployStagePromise(options) {
+  // options.stage
+  // options.functionName
+  // options.deploymentBucketName
+  // options.deploymentKeyName
+}
 
-// Calls `PublishPromise` and then `DeployStagePromise`
-PublishAndDeployPromise(stage) {...}
+// Removes a deployed stage, to be used on pull-request created stages (API gateway has a limit fo 5 stages)
+removeStagePromise(stage) {...}
 
 // Creates a website, see below
-PublishWebsite(version, optionsIn) {...}
+publishWebsite(version, options) {...}
 
 // Debug the running service on port at http://localhost:port/api
-Run(port) {...}
+run(port, logger) {...}
 
 ```
 
@@ -153,15 +152,15 @@ Publishing the website has an `options` object which defaults to:
 ```
 ## Built-in functionality
 
-* conventioned based static S3 website using the `/content` directory
-* conventioned based lambda functions.
-* Creates a ServiceRole to execute Lambda functions.
+* Standardize CF template to deploy microservice to Lambda, API Gateway, Route 53, etc..
+* Standardize CF template for S3 bucket hosting for a website
+* Default configuration to automatically handle the creation of pull request deployments to test infrastructure before production
+* Working templated sample and make.js file to run locally and CI build.
 * Lambda/API Gateway setup for seemless integration.
 * Automatic creation of AWS resources when using including:
 	* Lambda functions
 	* API Gateway resources
 	* Environments for managing resources in AWS
-	* IAM service roles
 	* S3 Buckets and directorys
 	* S3 static website hosting
 * Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally.
