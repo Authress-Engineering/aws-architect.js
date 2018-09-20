@@ -17,11 +17,8 @@ interface PublishLambdaOptions {
 }
 
 interface StackConfiguration {
-
-}
-
-interface StackParameters {
-
+	changeSetName: String;
+	stackName: String;
 }
 
 interface StageDeploymentOptions {
@@ -38,12 +35,12 @@ interface WebsiteDeploymentOptions {
 
 declare class AwsArchitect {
 	constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
-	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<Boolean>;
-	validateTemplate(stackTemplate: Object): Promise<Boolean>;
-	deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: StackParameters): Promise<Boolean>;
-	deployStagePromise(stage: String, lambdaVersion: String): Promise<Boolean>;
-	removeStagePromise(stage: String): Promise<Boolean>;
-	publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<Boolean>;
-	publishWebsite(version: String, options: WebsiteDeploymentOptions): Promise<Boolean>;
-	run(port: Short; logger: Function): Promise<Boolean>;
+	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<Object>;
+	validateTemplate(stackTemplate: Object): Promise<Object>;
+	deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: Object): Promise<Object>;
+	deployStagePromise(stage: String, lambdaVersion: String): Promise<Object>;
+	removeStagePromise(stage: String): Promise<Object>;
+	publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<Object>;
+	publishWebsite(version: String, options: WebsiteDeploymentOptions): Promise<Object>;
+	run(port: Number, logger: Function): Promise<Object>;
 }
