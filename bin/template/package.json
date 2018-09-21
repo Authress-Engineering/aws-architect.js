@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Description of the package",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "start": "nodemon make.js run",
     "build": "node make.js",
