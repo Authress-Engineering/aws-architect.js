@@ -177,7 +177,7 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
 	}));
 };
 
-AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = function(options = {}) {
+AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = async function(options = {}) {
 	let stage = options.stage;
 	let stageName = getStageName(stage);
 	let functionName = options.functionName;
@@ -185,36 +185,22 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	let deploymentKey = options.deploymentKeyName;
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 	
-	let lambdaPromise = this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey);
-	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
-	let accountIdPromise = GetAccountIdPromise();
-	return Promise.all([lambdaPromise, apiGatewayPromise, accountIdPromise])
-	.then(result => {
-		try {
-			let lambda = result[0];
-			let lambdaArn = lambda.FunctionArn;
-			let lambdaVersion = lambda.Version;
-			let apiGateway = result[1];
-			let apiGatewayId = apiGateway.Id;
-			let accountId = result[2];
+	let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
+	let apiGatewayId = apiGateway.Id;
 
-			return accountIdPromise
-			.then(() => {
-				return this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion)
-				.then(() => {
-					return this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
-				});
-			})
-			.then(() => {
-				return {
-					LambdaFunctionArn: lambdaArn,
-					LambdaVersion: lambdaVersion,
-					RestApiId: apiGatewayId
-				};
-			});
-		} catch (exception) {
-			throw ({ Error: 'Failed updating API Gateway.', Details: exception.stack || exception });
-		}
+	let accountId = await GetAccountIdPromise();
+	return this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey)
+	.then(async lambda => {
+		let lambdaArn = lambda.FunctionArn;
+		let lambdaVersion = lambda.Version;
+
+		await this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion);
+		await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
+		return {
+			LambdaFunctionArn: lambdaArn,
+			LambdaVersion: lambdaVersion,
+			RestApiId: apiGatewayId
+		};
 	})
 	.then(result => {
 		return this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion)
