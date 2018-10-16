@@ -11,6 +11,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Added default override for S3 content type uploads.
 * Allow deploying `.files` using the `bucketManager`
 * Dynamically inject `http` and `api` subpath into url hrefs.
+* Remove autocreation of api gateway when attempting to find it. The expectation is that "searching for the API" happens always after the CF stack creation.
 
 ## 5.1 ##
 * Provide lower case names for methods.

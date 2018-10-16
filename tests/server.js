@@ -2,14 +2,13 @@
 let { describe, it } = require('mocha');
 let assert = require('chai').assert;
 
-describe('lib/server.js', function() {
-	describe('Syntax', function () {
-		it('Should be valid node', function(){
+describe('lib/server.js', () => {
+	describe('Syntax', () => {
+		it('Should be valid node', () => {
 			try {
-				let app = require('../lib/server');
+				require('../lib/server');
 				assert(true);
-			}
-			catch(e) {
+			} catch (e) {
 				console.error(e);
 				assert(false, JSON.stringify(e, null, 2));
 			}
