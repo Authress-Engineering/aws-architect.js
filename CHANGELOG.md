@@ -12,6 +12,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Allow deploying `.files` using the `bucketManager`
 * Dynamically inject `http` and `api` subpath into url hrefs.
 * Remove autocreation of api gateway when attempting to find it. The expectation is that "searching for the API" happens always after the CF stack creation.
+* `awsArchitect.run` now returns the `server` which contains the only method `stop` allowing manual shutdown.
 
 ## 5.1 ##
 * Provide lower case names for methods.

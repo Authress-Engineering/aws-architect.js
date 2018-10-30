@@ -3,8 +3,6 @@ const path = require('path');
 const commander = require('commander');
 const AwsArchitect = require('aws-architect');
 
-// aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'default'});
-
 let ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
 let version = ci.GetVersion();
 commander.version(version);
@@ -27,12 +25,18 @@ commander
 .command('run')
 .description('Run lambda web service locally.')
 .action(async () => {
+	// aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'default'});
+
 	// default logger is console.log, if you want to override it, that can be done here.
 	let logger = logMessage => console.log(logMessage);
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 	try {
 		let result = await awsArchitect.run(8080, logger);
 		console.log(result.title);
+
+		// Manually stop the server
+		await new Promise(resolve => setTimeout(resolve, 3000));
+		await result.server.stop();
 	} catch (failure) {
 		console.error(failure);
 	}
