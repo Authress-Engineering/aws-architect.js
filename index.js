@@ -235,7 +235,7 @@ AwsArchitect.prototype.run = AwsArchitect.prototype.Run = async function(port, l
 		if (resolvedPort !== attemptPort) {
 			console.log('Requested Port is in use. Using the next available port.');
 		}
-		return Promise.resolve({ title: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api, /triggers/event, /triggers/schedule.` });
+		return Promise.resolve({ title: `Server started successfully at 'http://localhost:${resolvedPort}', lambda routes available at /api, /triggers/event, /triggers/schedule.`, server });
 	} catch (exception) {
 		return Promise.reject({ title: 'Failed to start server', error: exception.stack || exception });
 	}
