@@ -10,8 +10,8 @@ commander.version(version);
 let packageMetadataFile = path.join(__dirname, 'package.json');
 let packageMetadata = require(packageMetadataFile);
 
-const deploymentBucket = 'master-deployment-artifacts-s3-bucket';
 let apiOptions = {
+	deploymentBucket: 'master-deployment-artifacts-s3-bucket',
 	sourceDirectory: path.join(__dirname, 'src'),
 	description: 'This is the description of the lambda function',
 	regions: ['eu-west-1']
@@ -59,7 +59,7 @@ commander
 	
 	try {
 		await awsArchitect.ValidateTemplate(stackTemplate);
-		await awsArchitect.PublishLambdaArtifactPromise({ bucket: deploymentBucket });
+		await awsArchitect.PublishLambdaArtifactPromise();
 		if (isMasterBranch) {
 			let stackConfiguration = {
 				changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
@@ -68,7 +68,7 @@ commander
 			let parameters = {
 				serviceName: packageMetadata.name,
 				serviceDescription: packageMetadata.description,
-				deploymentBucketName: deploymentBucket,
+				deploymentBucketName: apiOptions.deploymentBucket,
 				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
 				dnsName: packageMetadata.name.toLowerCase(),
 				hostedName: 'toplevel.domain.io',
@@ -80,7 +80,6 @@ commander
 		let publicResult = await awsArchitect.PublishAndDeployStagePromise({
 			stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
 			functionName: packageMetadata.name,
-			deploymentBucketName: deploymentBucket,
 			deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
 		});
 

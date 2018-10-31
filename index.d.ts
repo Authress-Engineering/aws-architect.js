@@ -5,6 +5,9 @@ interface PackageMetadata {
 
 interface ApiOptions {
 	regions: String[];
+	deploymentBucket: String,
+	sourceDirectory: String,
+	description: String,
 }
 
 interface ContentOptions {

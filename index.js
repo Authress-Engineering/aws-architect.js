@@ -36,6 +36,7 @@ let LockFinder = require('./lib/lockFinder');
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.PackageMetadata = packageMetadata;
 	this.ContentOptions = contentOptions || {};
+	this.deploymentBucket = (apiOptions || {}).deploymentBucket;
 	this.SourceDirectory = (apiOptions || {}).sourceDirectory;
 
 	if (!aws.config.region && apiOptions.regions && apiOptions.regions[0]) {
@@ -57,7 +58,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
 
 	let cloudFormationClient = new aws.CloudFormation({ region: this.Region });
-	this.CloudFormationDeployer = new CloudFormationDeployer(cloudFormationClient);
+	this.CloudFormationDeployer = new CloudFormationDeployer(cloudFormationClient, this.BucketManager, this.deploymentBucket);
 }
 
 function GetAccountIdPromise() {
@@ -137,8 +138,9 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 
 	return zipArchiveInformationPromise
 	.then(zipInformation => {
-		if (options.bucket) {
-			return this.BucketManager.DeployLambdaPromise(options.bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
+		let bucket = options && options.bucket || this.deploymentBucket;
+		if (bucket) {
+			return this.BucketManager.DeployLambdaPromise(bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
 		}
 		return Promise.resolve();
 	}).then(() => zipArchiveInformationPromise);
@@ -149,7 +151,7 @@ AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplat
 };
 
 AwsArchitect.prototype.deployTemplate = AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {
-	return this.CloudFormationDeployer.deployTemplate(stackTemplate, stackConfiguration, parameters);
+	return this.CloudFormationDeployer.deployTemplate(stackTemplate, stackConfiguration, parameters, `${this.PackageMetadata.name}/${this.PackageMetadata.version}`);
 };
 
 AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
@@ -181,7 +183,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	let stage = options.stage;
 	let stageName = getStageName(stage);
 	let functionName = options.functionName;
-	let bucket = options.deploymentBucketName;
+	let bucket = options.deploymentBucketName || this.deploymentBucket;
 	let deploymentKey = options.deploymentKeyName;
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 	
