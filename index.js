@@ -146,8 +146,8 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 	}).then(() => zipArchiveInformationPromise);
 };
 
-AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate) {
-	return this.CloudFormationDeployer.validateTemplate(stackTemplate);
+AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate, stackConfiguration) {
+	return this.CloudFormationDeployer.validateTemplate(stackTemplate, stackConfiguration && stackConfiguration.stackName, `${this.PackageMetadata.name}/${this.PackageMetadata.version}`);
 };
 
 AwsArchitect.prototype.deployTemplate = AwsArchitect.prototype.DeployTemplate = function(stackTemplate, stackConfiguration, parameters) {

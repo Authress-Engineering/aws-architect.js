@@ -58,13 +58,13 @@ commander
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 	
 	try {
-		await awsArchitect.ValidateTemplate(stackTemplate);
+		let stackConfiguration = {
+			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+			stackName: packageMetadata.name
+		};
+		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
 		await awsArchitect.PublishLambdaArtifactPromise();
 		if (isMasterBranch) {
-			let stackConfiguration = {
-				changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-				stackName: packageMetadata.name
-			};
 			let parameters = {
 				serviceName: packageMetadata.name,
 				serviceDescription: packageMetadata.description,
@@ -107,12 +107,12 @@ commander
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 
 	try {
-		await awsArchitect.validateTemplate(stackTemplate);
+		let stackConfiguration = {
+			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+			stackName: packageMetadata.name
+		};
+		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
 		if (isMasterBranch) {
-			let stackConfiguration = {
-				changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-				stackName: packageMetadata.name
-			};
 			let parameters = {
 				dnsName: packageMetadata.name.toLowerCase(),
 				hostedName: 'toplevel.domain.io',
