@@ -3,6 +3,7 @@ This is the changelog for [AWS Architect](readme.md).
 
 ## 6.1 ##
 * Deploy CF templates to S3 deployment bucket before deploying to CF to increase allow size of templates to 450KB.
+* Allow cache control to be the full string, not just an number
 
 ## 6.0 ##
 * Remove hosting index html, recommendation is to use nodemon and serve for that.

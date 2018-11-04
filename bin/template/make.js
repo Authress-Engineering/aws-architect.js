@@ -126,10 +126,10 @@ commander
 
 		let result = await awsArchitect.publishWebsite(deploymentVersion, {
 			cacheControlRegexMap: {
-				'index.html': 600,
-				'manifest.json': 600,
-				'service-worker.js': 600,
-				'default': 24 * 60 * 60
+				'index.html': 'public, max-age=600',
+				'manifest.json': 'public, max-age=600',
+				'service-worker.js': 'public, max-age=600',
+				'default': 'public, max-age=86400'
 			},
 			contentTypeMappingOverride: {
 				default: 'text/html'
