@@ -1,8 +1,5 @@
 const aws = require('aws-sdk');
 const Api = require('openapi-factory');
-const jwtManager = require('jsonwebtoken');
-const jwkConverter = require('jwk-to-pem');
-const axios = require('axios');
 const path = require('path');
 const fs = require('fs-extra');
 const { Authorizer, RequestLogger, PlatformClient } = require('microservice-utilities');
@@ -15,13 +12,11 @@ const api = new Api({
 		request.userPlatformClient = new PlatformClient(msg => logger.log(msg), () => userToken);
 		return request;
 	}
-  });
+});
 module.exports = api;
-
 
 const authorizerConfiguration = { jwkKeyListUrl: 'https://authorization.domain.com/.well-known/jwks.json' };
 let authorizer = new Authorizer(msg => logger.log(msg), authorizerConfiguration);
-
 
 api.onEvent(trigger => {});
 api.onSchedule(trigger => {});
@@ -37,7 +32,7 @@ api.get('/.well-known/openapi.json', async () => {
 });
 
 api.get('/livecheck', () => {
-	return { statusCode: 200, body: { "field": "hello world" } };
+	return { statusCode: 200, body: { field: 'hello world' } };
 });
 
 api.get('/v1/resource/{resourceId}', request => {
@@ -48,9 +43,9 @@ api.options('/{proxy+}', request => {
 	return {
 		statusCode: 200,
 		headers: {
-			"Access-Control-Allow-Headers" : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
-			"Access-Control-Allow-Methods" : 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
-			"Access-Control-Allow-Origin" : request.headers.Origin || '*'
+			'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+			'Access-Control-Allow-Methods': 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
+			'Access-Control-Allow-Origin': request.headers.Origin || '*'
 		}
 	};
 });
