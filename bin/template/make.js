@@ -74,7 +74,7 @@ commander
 				hostedName: 'toplevel.domain.io',
 				useRoot: 'false'
 			};
-			await awsArchitect.DeployTemplate(stackTemplate, stackConfiguration, parameters);
+			await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 		}
 
 		let publicResult = await awsArchitect.PublishAndDeployStagePromise({
@@ -102,7 +102,7 @@ commander
 	let deploymentVersion = 'v1';
 	let deploymentLocation = 'https://production.website.com/';
 	
-	let awsArchitect = new AwsArchitect(packageMetadata, null, contentOptions);
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 	let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
 
