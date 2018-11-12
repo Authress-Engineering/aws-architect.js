@@ -33,7 +33,7 @@
   "devDependencies": {
     "aws-sdk": "*",
     "chai": "^3.5.0",
-    "eslint-config-cimpress-atsquad": "^1.0.14",
+    "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
     "mocha": "^2.4.5",
     "sinon": "^1.17.3",
@@ -63,5 +63,8 @@
   "bugs": {
     "url": "https://github.com/wparad/AWS-Architect/issues"
   },
-  "homepage": "https://github.com/wparad/AWS-Architect#readme"
+  "homepage": "https://github.com/wparad/AWS-Architect#readme",
+  "engines": {
+    "node": ">=8.9.4"
+  }
 }
