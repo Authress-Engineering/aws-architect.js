@@ -31,8 +31,14 @@ interface StageDeploymentOptions {
 	deploymentKeyName: String;
 }
 
+interface RegexOption {
+	explicit?: String,
+	regex?: RegExp,
+	value: String | Number
+}
+
 interface WebsiteDeploymentOptions {
-	cacheControlRegexMap: Object;
+	cacheControlRegexMap: RegexOption[];
 	contentTypeMappingOverride: Object;
 }
 
