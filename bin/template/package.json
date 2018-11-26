@@ -43,5 +43,8 @@
   "bugs": {
     "url": "https://source-code.com/issues"
   },
-  "homepage": "https://source-code.com"
+  "homepage": "https://source-code.com",
+  "engines": {
+    "node": "^8.10.0"
+  }
 }

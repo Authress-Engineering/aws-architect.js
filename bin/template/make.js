@@ -125,12 +125,12 @@ commander
 		}
 
 		let result = await awsArchitect.publishWebsite(deploymentVersion, {
-			cacheControlRegexMap: {
-				'index.html': 'public, max-age=600',
-				'manifest.json': 'public, max-age=600',
-				'service-worker.js': 'public, max-age=600',
-				'default': 'public, max-age=86400'
-			},
+			cacheControlRegexMap: [
+				{ regex: new RegExp(/index.html/), value: 'public, max-age=600' },
+				{ explicit: 'manifest.json', value: 'public, max-age=600' },
+				{ explicit: 'service-worker.js', value: 'public, max-age=600' },
+				{ value: 'public, max-age=86400' }
+			],
 			contentTypeMappingOverride: {
 				default: 'text/html'
 			}

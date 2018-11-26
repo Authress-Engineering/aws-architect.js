@@ -144,9 +144,10 @@ Publishing the website has an `options` object which defaults to:
 ```
 {	
 	// provide overrides for paths to change bucket cache control policy, default 600 seconds,
-	cacheControlRegexMap: {
-		'index.html': 'public, max-age=10',
-		default: 'public, max-age=600'
+	cacheControlRegexMap: [
+		{ regex: '/index.html/', value: 'public, max-age=10' },
+		{ explicit: 'only.this.static.file', value: 'public, max-age=10' }
+		{ value: 'public, max-age=600' }
 	}
 }
 ```
