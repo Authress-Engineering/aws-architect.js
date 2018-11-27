@@ -60,7 +60,8 @@ commander
 	try {
 		let stackConfiguration = {
 			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-			stackName: packageMetadata.name
+			stackName: packageMetadata.name,
+			automaticallyProtectStack: true
 		};
 		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
 		await awsArchitect.PublishLambdaArtifactPromise();
@@ -109,7 +110,8 @@ commander
 	try {
 		let stackConfiguration = {
 			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
-			stackName: packageMetadata.name
+			stackName: packageMetadata.name,
+			automaticallyProtectStack: true
 		};
 		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
 		if (isMasterBranch) {
