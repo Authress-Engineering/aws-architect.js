@@ -6,6 +6,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Allow cache control to be the full string, not just an number
 * Dynamically inject `http` and `api` subpath into Location urls.
 * `cacheControlRegexMap` supports array to keep order of regex mappings
+* `deployTemplate` StackConfiguration `options` now accepts `automaticallyProtectStack` which defaults to be `true`, to protect stacks. This will only protect stacks which are successfully created.
 
 ## 6.0 ##
 * Remove hosting index html, recommendation is to use nodemon and serve for that.

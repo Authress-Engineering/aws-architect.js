@@ -22,7 +22,9 @@ interface PublishLambdaOptions {
 interface StackConfiguration {
 	changeSetName: String;
 	stackName: String;
+	automaticallyProtectStack: Boolean;
 }
+
 
 interface StageDeploymentOptions {
 	stage: String;
