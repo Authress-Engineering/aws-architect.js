@@ -33,8 +33,18 @@
             "Fn::Join": [
                 "-",
                 [
-                    { "Ref": "hostedZoneName" },
-                    "CertResolver"
+                  {
+                    "Fn::Join": [
+                      "-",
+                      {
+                        "Fn::Split" : [
+                          ".",
+                          { "Ref": "hostedZoneName" }
+                        ]
+                      }
+                    ]
+                  },
+                  "CertResolver"
                 ]
             ]
         },
