@@ -8,6 +8,7 @@
     "start": "nodemon make.js run",
     "build": "node make.js",
     "deploy": "node make.js deploy",
+    "deploy-website": "node make.js deploy-website",
     "delete": "node make.js delete",
     "test": "mocha tests/**/*.js -R spec"
   },
