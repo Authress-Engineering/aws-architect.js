@@ -9,6 +9,7 @@
     "build": "node make.js",
     "deploy": "node make.js deploy",
     "deploy-website": "node make.js deploy-website",
+    "deploy-hosted-zone": "node make.js deploy-hosted-zone",
     "delete": "node make.js delete",
     "test": "mocha tests/**/*.js -R spec"
   },

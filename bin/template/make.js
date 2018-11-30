@@ -145,6 +145,34 @@ commander
 });
 
 commander
+.command('deploy-hosted-zone')
+.description('Deploy hosted zone to AWS.')
+.action(async () => {
+	packageMetadata.version = version;
+
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	let stackTemplate = require('./cloudFormationHostedZoneTemplate.json');
+	
+	try {
+		let stackConfiguration = {
+			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+			stackName: `${packageMetadata.name}-hostedzone`,
+			automaticallyProtectStack: true
+		};
+		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
+		let parameters = {
+			hostedZoneName: '<your domain / hosted zone>'
+		};
+		let result = await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
+
+		console.log(`Deploying hosted zone template resulted in ${result}.`);
+	} catch (failure) {
+		console.log(failure);
+		process.exit(1);
+	}
+});
+
+commander
 .command('delete')
 .description('Delete Stage from AWS.')
 .action(async () => {
