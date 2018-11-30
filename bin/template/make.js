@@ -13,7 +13,7 @@ let packageMetadata = require(packageMetadataFile);
 let apiOptions = {
 	deploymentBucket: 'master-deployment-artifacts-s3-bucket',
 	sourceDirectory: path.join(__dirname, 'src'),
-	description: 'This is the description of the lambda function',
+	description: `${packageMetadata.name}: ${packageMetadata.description}`,
 	regions: ['eu-west-1']
 };
 let contentOptions = {
