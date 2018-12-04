@@ -13,7 +13,7 @@ let packageMetadata = require(packageMetadataFile);
 let apiOptions = {
 	deploymentBucket: 'master-deployment-artifacts-s3-bucket',
 	sourceDirectory: path.join(__dirname, 'src'),
-	description: 'This is the description of the lambda function',
+	description: `${packageMetadata.name}: ${packageMetadata.description}`,
 	regions: ['eu-west-1']
 };
 let contentOptions = {
@@ -140,6 +140,34 @@ commander
 		console.log(`Deployed to ${deploymentLocation}`, result);
 	} catch (error) {
 		console.log('Failed to upload website', error);
+		process.exit(1);
+	}
+});
+
+commander
+.command('deploy-hosted-zone')
+.description('Deploy hosted zone to AWS.')
+.action(async () => {
+	packageMetadata.version = version;
+
+	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
+	let stackTemplate = require('./cloudFormationHostedZoneTemplate.json');
+	
+	try {
+		let stackConfiguration = {
+			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
+			stackName: `${packageMetadata.name}-hostedzone`,
+			automaticallyProtectStack: true
+		};
+		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
+		let parameters = {
+			hostedZoneName: '<your domain / hosted zone>'
+		};
+		let result = await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
+
+		console.log(`Deploying hosted zone template resulted in ${result}.`);
+	} catch (failure) {
+		console.log(failure);
 		process.exit(1);
 	}
 });
