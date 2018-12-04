@@ -20,10 +20,10 @@
     "jsonwebtoken": "^8.4.0",
     "jwk-to-pem": "^2.0.0",
     "microservice-utilities": "^0.1.78",
-    "openapi-factory": "^4.3.178"
+    "openapi-factory": "^4.3"
   },
   "devDependencies": {
-    "aws-architect": "^6.1.489",
+    "aws-architect": "^6.1",
     "aws-sdk": "^2.368.0",
     "chai": "^4.2.0",
     "commander": "^2.19.0",
