@@ -20,6 +20,10 @@ interface PublishLambdaOptions {
 	bucket: String;
 }
 
+interface PublishZipOptions {
+	zipFileName: String;
+}
+
 interface StackConfiguration {
 	changeSetName: String;
 	stackName: String;
@@ -47,6 +51,7 @@ interface WebsiteDeploymentOptions {
 
 declare class AwsArchitect {
 	constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
+	publishZipArchive(options: PublishZipOptions): Promise<Object>;
 	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<Object>;
 	validateTemplate(stackTemplate: Object): Promise<Object>;
 	deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: Object): Promise<Object>;

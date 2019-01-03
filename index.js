@@ -88,6 +88,28 @@ function GetAccountIdPromise() {
 	});
 }
 
+AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
+	if (!options.zipFileName || !this.deploymentBucket) {
+		throw Error('The zipFileName and api options deployment bucket must be specified.');
+	}
+	let tmpDir = path.join(os.tmpdir(), `zipDirectory-${uuid.v4()}`);
+	await new Promise((resolve, reject) => { fs.stat(this.SourceDirectory, (error, stats) => error || !stats.isDirectory ? reject(error || 'NotDirectoryError') : resolve()); });
+	await fs.copy(this.SourceDirectory, tmpDir);
+	let zipArchivePath = path.join(tmpDir, options.zipFileName);
+	await new Promise((resolve, reject) => {
+		let zipStream = fs.createWriteStream(zipArchivePath);
+		zipStream.on('close', () => resolve());
+
+		let archive = archiver.create('zip', {});
+		archive.on('error', e => reject({ Error: e }));
+		archive.pipe(zipStream);
+		archive.glob('**', { dot: true, cwd: tmpDir, ignore: options.zipFileName });
+		archive.finalize();
+	});
+
+	await this.BucketManager.DeployLambdaPromise(this.deploymentBucket, zipArchivePath, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${options.zipFileName}`);
+};
+
 AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
 	let lambdaZip = options && options.zipFileName || 'lambda.zip';
 	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
