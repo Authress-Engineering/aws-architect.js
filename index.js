@@ -89,7 +89,7 @@ function GetAccountIdPromise() {
 }
 
 AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
-	let lambdaZip = 'lambda.zip';
+	let lambdaZip = options && options.zipFileName || 'lambda.zip';
 	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 	let zipArchiveInformationPromise = new Promise((resolve, reject) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
