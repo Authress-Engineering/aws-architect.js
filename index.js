@@ -89,12 +89,12 @@ function GetAccountIdPromise() {
 }
 
 AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
-	if (!options.zipFileName || !this.deploymentBucket) {
-		throw Error('The zipFileName and api options deployment bucket must be specified.');
+	if (!options.zipFileName || !this.deploymentBucket || !options.sourceDirectory) {
+		throw Error('The zipFileName, sourceDirectory, api options deploymentBucket must be specified.');
 	}
 	let tmpDir = path.join(os.tmpdir(), `zipDirectory-${uuid.v4()}`);
-	await new Promise((resolve, reject) => { fs.stat(this.SourceDirectory, (error, stats) => error || !stats.isDirectory ? reject(error || 'NotDirectoryError') : resolve()); });
-	await fs.copy(this.SourceDirectory, tmpDir);
+	await new Promise((resolve, reject) => { fs.stat(options.sourceDirectory, (error, stats) => error || !stats.isDirectory ? reject(error || 'NotDirectoryError') : resolve()); });
+	await fs.copy(options.sourceDirectory, tmpDir);
 	let zipArchivePath = path.join(tmpDir, options.zipFileName);
 	await new Promise((resolve, reject) => {
 		let zipStream = fs.createWriteStream(zipArchivePath);
