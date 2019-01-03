@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 6.2 ##
+* Allow setting upload zip file directly to support creating lambda layers
+
 ## 6.1 ##
 * Deploy CF templates to S3 deployment bucket before deploying to CF to increase allow size of templates to 450KB.
 * Allow cache control to be the full string, not just an number

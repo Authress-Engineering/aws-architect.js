@@ -16,6 +16,7 @@ interface ContentOptions {
 }
 
 interface PublishLambdaOptions {
+	zipFileName: String;
 	bucket: String;
 }
 
