@@ -22,6 +22,7 @@ interface PublishLambdaOptions {
 
 interface PublishZipOptions {
 	zipFileName: String;
+	sourceDirectory: String;
 }
 
 interface StackConfiguration {
