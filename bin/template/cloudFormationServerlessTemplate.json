@@ -409,15 +409,7 @@
     "StageDeployment": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
-        "Description": {
-          "Fn::Join": [
-            "",
-            [
-              "Deployment for",
-              { "Ref": "deploymentKeyName" }
-            ]
-          ]
-        },
+        "Description": "Initial Setup Deployment (WARNING: This resource must stay constant, do not update in CF ever)",
         "RestApiId": { "Ref": "ApiGateway" },
         "StageDescription": {
           "Variables": {
