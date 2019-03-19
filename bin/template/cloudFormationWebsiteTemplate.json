@@ -1,6 +1,10 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
+    "serviceName": {
+      "Type": "String",
+      "Description": "The name of the service / website. Must not contain special characters except hyphens."
+    },
     "dnsName": {
       "Type": "String",
       "Description": "The DNS name to map to S3 bucket."

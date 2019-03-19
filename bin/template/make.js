@@ -116,6 +116,7 @@ commander
 		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
 		if (isMasterBranch) {
 			let parameters = {
+				serviceName: 'example-service', // must result in a valid Lambda name; for example cannot contain "."
 				dnsName: packageMetadata.name.toLowerCase(),
 				hostedName: 'toplevel.domain.io',
 				useRoot: 'true'
