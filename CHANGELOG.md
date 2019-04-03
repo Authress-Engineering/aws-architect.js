@@ -4,7 +4,6 @@ This is the changelog for [AWS Architect](readme.md).
 ## 6.2 ##
 * Allow setting upload zip file directly to support creating lambda layers
 * Add `publishZipArchive` to publish layers and other zip files directly to S3, using the package name and version automatically.
-* Upgrade default nodejs version to 8.10. for Lambda Callouts (mostly around creating and managing ACM certificates).
 
 ## 6.1 ##
 * Deploy CF templates to S3 deployment bucket before deploying to CF to increase allow size of templates to 450KB.
