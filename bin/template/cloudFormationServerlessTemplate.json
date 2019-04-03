@@ -479,7 +479,7 @@
           }
         },
         "Handler": "index.handler",
-        "Runtime": "nodejs8.10",
+        "Runtime": "nodejs6.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
       }
@@ -610,7 +610,7 @@
           }
         },
         "Handler": "index.handler",
-        "Runtime": "nodejs8.10",
+        "Runtime": "nodejs6.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "GetRoute53ConfigurationInformationRole", "Arn" ] }
       }
