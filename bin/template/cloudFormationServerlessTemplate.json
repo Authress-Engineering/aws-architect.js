@@ -460,7 +460,7 @@
               "  let domainName = event.ResourceProperties.DomainName;",
               "  let region = event.ResourceProperties.Region;",
               "  let acmClient = new aws.ACM({ region: region });",
-              "  return acmClient.listCertificates({}).promise()",
+              "  acmClient.listCertificates({}).promise()",
               "    .then(certs => {",
               "      let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
               "      return foundCert ? foundCert.CertificateArn: null;",
@@ -479,7 +479,7 @@
           }
         },
         "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
+        "Runtime": "nodejs8.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
       }
@@ -595,11 +595,11 @@
               "const aws = require('aws-sdk');",
               "exports.handler = function(event, context) {",
               "  if (event.RequestType === 'Delete') {",
-              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
+              "    cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
               "  }",
               "  let domainName = event.ResourceProperties.DomainName;",
               "  let apiGatewayClient = new aws.APIGateway();",
-              "  return apiGatewayClient.getDomainName({ domainName: domainName }).promise()",
+              "  apiGatewayClient.getDomainName({ domainName: domainName }).promise()",
               "  .then(response => {",
               "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { 'DistributionDomainName': response.regionalDomainName || response.distributionDomainName, 'HostedZone': response.regionalHostedZoneId || response.distributionHostedZoneId });",
               "  }, failure => {",
@@ -610,7 +610,7 @@
           }
         },
         "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
+        "Runtime": "nodejs8.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "GetRoute53ConfigurationInformationRole", "Arn" ] }
       }

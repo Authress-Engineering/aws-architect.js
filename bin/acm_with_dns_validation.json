@@ -30,7 +30,7 @@
             "exports.handler = function(event, context) {",
             "  let domainName = event.ResourceProperties.DomainName;",
             "  if (event.RequestType === 'Delete') {",
-            "    return acmClient.listCertificates({}).promise()",
+            "    acmClient.listCertificates({}).promise()",
             "      .then(certs => {",
             "        let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
             "        if (foundCert) {",
@@ -47,10 +47,10 @@
             "  }",
             "  ",
             "  if (event.RequestType !== 'Create') {",
-            "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
+            "    cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
             "  }",
             "  ",
-            "  return acmClient.requestCertificate({ DomainName: domainName, SubjectAlternativeNames: [`*.${domainName}`], ValidationMethod: 'DNS' }).promise()",
+            "  acmClient.requestCertificate({ DomainName: domainName, SubjectAlternativeNames: [`*.${domainName}`], ValidationMethod: 'DNS' }).promise()",
             "    .then(data => {",
             "      return new Promise(resolve => setTimeout(resolve, 10000))",
             "        .then(() => {",
@@ -75,7 +75,7 @@
         }
     },
     "Handler": "index.handler",
-    "Runtime": "nodejs6.10",
+    "Runtime": "nodejs8.10",
     "Timeout": "30",
     "Role": { "Fn::GetAtt": [ "CreateAndReturnAcmCertificateArnRole", "Arn" ] }
     }

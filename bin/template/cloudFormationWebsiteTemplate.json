@@ -160,7 +160,7 @@
             "let acmClient = new aws.ACM({ region: 'us-east-1' });",
             "exports.handler = function(event, context) {",
             "  let domainName = event.ResourceProperties.DomainName;",
-            "  return acmClient.listCertificates({}).promise()",
+            "  acmClient.listCertificates({}).promise()",
             "    .then(certs => {",
             "      let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
             "      return foundCert ? foundCert.CertificateArn : null;",
@@ -179,7 +179,7 @@
           }
         },
         "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
+        "Runtime": "nodejs8.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
       }
