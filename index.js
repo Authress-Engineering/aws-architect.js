@@ -114,7 +114,7 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 	let lambdaZip = options && options.zipFileName || 'lambda.zip';
 	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
 
-	const zipInformation = await new Promise((resolve, reject) => {
+	await new Promise((resolve, reject) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if (error) { return reject({ Error: `Path does not exist: ${this.SourceDirectory} - ${error}` }); }
 			if (!stats.isDirectory) { return reject({ Error: `Path is not a directory: ${this.SourceDirectory}` }); }
@@ -147,8 +147,8 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 		});
 	}
 
+	let zipArchivePath = path.join(tmpDir, lambdaZip);
 	await new Promise((resolve, reject) => {
-		let zipArchivePath = path.join(tmpDir, lambdaZip);
 		let zipStream = fs.createWriteStream(zipArchivePath);
 		zipStream.on('close', () => resolve({ Archive: zipArchivePath }));
 
@@ -161,10 +161,8 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 
 	let bucket = options && options.bucket || this.deploymentBucket;
 	if (bucket) {
-		await this.BucketManager.DeployLambdaPromise(bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
+		await this.BucketManager.DeployLambdaPromise(bucket, zipArchivePath, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
 	}
-
-	return zipInformation;
 };
 
 AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate, stackConfiguration) {
