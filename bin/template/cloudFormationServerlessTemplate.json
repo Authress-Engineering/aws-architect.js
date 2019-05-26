@@ -58,7 +58,7 @@
           "S3Key": { "Ref": "deploymentKeyName" }
         },
         "MemorySize": 128,
-        "Timeout": 6,
+        "Timeout": 60,
         "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
         "Tags": [
           {
@@ -659,40 +659,6 @@
         "RestApiId": { "Ref": "ApiGateway" }
       },
       "DependsOn": ["StageDeployment", "ServiceDomainNameTst"]
-    },
-    "PermissionForCloudWatchToInvokeLambda": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::Join": [
-            ":",
-            [
-              { "Fn::GetAtt": [ "LambdaFunction", "Arn" ] },
-              "production"
-            ]
-          ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "events.amazonaws.com",
-        "SourceAccount": { "Ref": "AWS::AccountId" },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:aws:execute-api:",
-              { "Ref": "AWS::Region" },
-              ":",
-              { "Ref": "AWS::AccountId" },
-              ":rule",
-              "/",
-              { "Ref": "serviceName" },
-              "-*"
-
-            ]
-          ]
-        }
-      },
-      "DependsOn": "LambdaFunction"
     }
   }
 }
