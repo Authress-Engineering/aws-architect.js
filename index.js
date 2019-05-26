@@ -1,19 +1,19 @@
 /*
 	Automatically configure microservice in AWS
 	Copyright (C) 2018 Warren Parad
-	
+
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
-	
+
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 	GNU General Public License for more details.
-	
+
 	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	along with this program.	If not, see <https://www.gnu.org/licenses/>.
 */
 
 let archiver = require('archiver');
@@ -110,43 +110,44 @@ AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
 	await this.BucketManager.DeployLambdaPromise(this.deploymentBucket, zipArchivePath, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${options.zipFileName}`);
 };
 
-AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = function(options = {}) {
+AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = async function(options = {}) {
 	let lambdaZip = options && options.zipFileName || 'lambda.zip';
 	let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
-	let zipArchiveInformationPromise = new Promise((resolve, reject) => {
+
+	const zipInformation = await new Promise((resolve, reject) => {
 		fs.stat(this.SourceDirectory, (error, stats) => {
 			if (error) { return reject({ Error: `Path does not exist: ${this.SourceDirectory} - ${error}` }); }
 			if (!stats.isDirectory) { return reject({ Error: `Path is not a directory: ${this.SourceDirectory}` }); }
 			return resolve(null);
 		});
-	})
-	.then(() => {
-		return fs.copy(this.SourceDirectory, tmpDir);
-	})
-	.then(() => {
-		return new LockFinder().findLockFile(this.SourceDirectory)
-		.then(lockFile => {
+	});
+
+	await fs.copy(this.SourceDirectory, tmpDir);
+
+	// (default: true) If set to true, will attempt to copy and install packages related to deployment (i.e. package.json for node)
+	if (options.autoHandleCompileOfSourceDirectory !== false) {
+		await new LockFinder().findLockFile(this.SourceDirectory).then(lockFile => {
 			return lockFile ? fs.copy(lockFile.file, path.join(tmpDir, path.basename(lockFile.file))) : Promise.resolve();
 		});
-	})
-	.then(() => {
-		return fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata)
-		.catch(error => ({ Error: 'Failed writing production package.json file.', Details: error }));
-	})
-	.then(() => {
-		return fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(() => false)
-		.then(exists => {
-			let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
-			return new Promise((resolve, reject) => {
-				/* eslint-disable-next-line no-unused-vars */
-				exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
-					if (error) { return reject({ Error: 'Failed installing production npm modules.', Details: error }); }
-					return resolve(tmpDir);
-				});
+
+		try {
+			await fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata);
+		} catch (error) {
+			return { Error: 'Failed writing production package.json file.', Details: error };
+		}
+
+		const exists = await fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(() => false);
+		let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
+		await new Promise((resolve, reject) => {
+			/* eslint-disable-next-line no-unused-vars */
+			exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
+				if (error) { return reject({ Error: 'Failed installing production npm modules.', Details: error }); }
+				return resolve(tmpDir);
 			});
 		});
-	})
-	.then(() => new Promise((resolve, reject) => {
+	}
+
+	await new Promise((resolve, reject) => {
 		let zipArchivePath = path.join(tmpDir, lambdaZip);
 		let zipStream = fs.createWriteStream(zipArchivePath);
 		zipStream.on('close', () => resolve({ Archive: zipArchivePath }));
@@ -156,16 +157,14 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 		archive.pipe(zipStream);
 		archive.glob('**', { dot: true, cwd: tmpDir, ignore: lambdaZip });
 		archive.finalize();
-	}));
+	});
 
-	return zipArchiveInformationPromise
-	.then(zipInformation => {
-		let bucket = options && options.bucket || this.deploymentBucket;
-		if (bucket) {
-			return this.BucketManager.DeployLambdaPromise(bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
-		}
-		return Promise.resolve();
-	}).then(() => zipArchiveInformationPromise);
+	let bucket = options && options.bucket || this.deploymentBucket;
+	if (bucket) {
+		await this.BucketManager.DeployLambdaPromise(bucket, zipInformation.Archive, `${this.PackageMetadata.name}/${this.PackageMetadata.version}/${lambdaZip}`);
+	}
+
+	return zipInformation;
 };
 
 AwsArchitect.prototype.validateTemplate = AwsArchitect.prototype.ValidateTemplate = function(stackTemplate, stackConfiguration) {
@@ -208,7 +207,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	let bucket = options.deploymentBucketName || this.deploymentBucket;
 	let deploymentKey = options.deploymentKeyName;
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
-	
+
 	let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
 	let apiGatewayId = apiGateway.Id;
 

@@ -17,7 +17,8 @@ interface ContentOptions {
 
 interface PublishLambdaOptions {
 	zipFileName: String;
-	bucket: String;
+  bucket: String;
+  autoHandleCompileOfSourceDirectory: Boolean;
 }
 
 interface PublishZipOptions {
