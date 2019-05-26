@@ -30,8 +30,11 @@
     "CreateARecordAtRootDomain" : {"Fn::Equals" : [{"Ref" : "useRoot"}, "true"]}
   },
 
-  "Resources": {
+  "Transform": [
+    "AwsArchitectMacros"
+  ],
 
+  "Resources": {
     "S3Bucket": {
       "Type" : "AWS::S3::Bucket",
       "Properties" : {
@@ -120,75 +123,11 @@
       }
     },
 
-    "GetExistingAcmCertificateArnRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": {
-              "Service": ["lambda.amazonaws.com"]
-            },
-            "Action": ["sts:AssumeRole"]
-          }]
-        },
-        "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-          "arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess"
-        ]
-      }
-    },
-    "GetExistingAcmCertificateArnLambdaFunction": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "FunctionName": {
-          "Fn::Join": [
-            "-", [
-              "Temporary",
-              { "Ref": "serviceName" },
-              "GetExistingAcmCertificateArn"
-            ]
-          ]
-        },
-        "Code": {
-          "ZipFile": {
-            "Fn::Join": [ "\n", [
-            "// http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html",
-            "const aws = require('aws-sdk');",
-            "const cloudFormationResponseHandler = require('cfn-response');",
-            "let acmClient = new aws.ACM({ region: 'us-east-1' });",
-            "exports.handler = function(event, context) {",
-            "  let domainName = event.ResourceProperties.DomainName;",
-            "  return acmClient.listCertificates({}).promise()",
-            "    .then(certs => {",
-            "      let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
-            "      return foundCert ? foundCert.CertificateArn : null;",
-            "    })",
-            "    .then(certArn => {",
-            "      if (!certArn && event.RequestType !== 'Delete') {",
-            "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'No Verified Certificate exists.' });",
-            "      }",
-            "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, { CertificateArn: certArn });",
-            "    })",
-            "    .catch(error => {",
-            "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to get Certificate', error: error });",
-            "    });",
-            "}"
-            ]]
-          }
-        },
-        "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
-        "Timeout": "30",
-        "Role": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnRole", "Arn" ] }
-      }
-    },
     "AcmCertificate": {
-      "Type": "Custom::LambdaCallout",
+      "Type": "AwsArchitectResource::VirtualCertificate",
       "Properties": {
-        "ServiceToken": { "Fn::GetAtt": [ "GetExistingAcmCertificateArnLambdaFunction", "Arn" ] },
-        "DomainName": { "Ref": "hostedName" }
+        "DomainName": { "Ref": "hostedName" },
+        "Region": "us-east-1"
       }
     },
 

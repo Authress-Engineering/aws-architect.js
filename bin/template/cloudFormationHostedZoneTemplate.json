@@ -6,134 +6,12 @@
       "Description": "The name of the new Hosted Zone to create"
     }
   },
+
+  "Transform": [
+    "AwsArchitectMacros"
+  ],
+
   "Resources": {
-    "CreateAndReturnAcmCertificateArnRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [{
-            "Effect": "Allow",
-            "Principal": {
-              "Service": ["lambda.amazonaws.com"]
-            },
-            "Action": ["sts:AssumeRole"]
-          }]
-        },
-        "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-          "arn:aws:iam::aws:policy/AWSCertificateManagerFullAccess"
-        ]
-      }
-    },
-    "CreateAndReturnAcmCertificateArnLambdaFunction": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "FunctionName": {
-            "Fn::Join": [
-                "-",
-                [
-                  {
-                    "Fn::Join": [
-                      "-",
-                      {
-                        "Fn::Split" : [
-                          ".",
-                          { "Ref": "hostedZoneName" }
-                        ]
-                      }
-                    ]
-                  },
-                  "CertResolver"
-                ]
-            ]
-        },
-        "Code": {
-          "ZipFile": {
-            "Fn::Join": [ "\n", [
-              "// http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html",
-              "const aws = require('aws-sdk');",
-              "const cloudFormationResponseHandler = require('cfn-response');",
-              "let acmClient = new aws.ACM();",
-              "exports.handler = function(event, context) {",
-              "  let domainName = event.ResourceProperties.DomainName;",
-              "  if (event.RequestType === 'Delete') {",
-              "    return acmClient.listCertificates({}).promise()",
-              "      .then(certs => {",
-              "        let foundCert = certs.CertificateSummaryList.find(cert => cert.DomainName === domainName);",
-              "        if (foundCert) {",
-              "          console.log('Certificate Deleted', foundCert.CertificateArn);",
-              "          return acmClient.deleteCertificate({ CertificateArn: foundCert.CertificateArn }).promise();",
-              "        }",
-              "        return null;",
-              "      })",
-              "      .then(() => {",
-              "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
-              "      })",
-              "      .catch(error => {",
-              "        return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to delete Certificate', error: error });",
-              "      });",
-              "  }",
-              "  ",
-              "  if (event.RequestType !== 'Create') {",
-              "    return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS);",
-              "  }",
-              "  ",
-              "  return acmClient.requestCertificate({ DomainName: domainName, SubjectAlternativeNames: [`*.${domainName}`], ValidationMethod: 'DNS' }).promise()",
-              "    .then(data => {",
-              "      return new Promise(resolve => setTimeout(resolve, 20000))",
-              "        .then(() => {",
-              "          return acmClient.describeCertificate({ CertificateArn: data.CertificateArn }).promise()",
-              "            .then(validationData => {",
-              "              let response = {",
-              "                CertificateArn: data.CertificateArn,",
-              "                VerificationRecordName: validationData.Certificate.DomainValidationOptions[0].ResourceRecord.Name,",
-              "                VerificationRecordValue: validationData.Certificate.DomainValidationOptions[0].ResourceRecord.Value",
-              "              };",
-              "              console.log('Certificate created', response);",
-              "              return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.SUCCESS, response);",
-              "            });",
-              "        });",
-              "    })",
-              "    .catch(error => {",
-              "      return cloudFormationResponseHandler.send(event, context, cloudFormationResponseHandler.FAILED, { title: 'Failed to created Certificate', error: error });",
-              "    });",
-              "}"
-            ]]
-          }
-        },
-        "Handler": "index.handler",
-        "Runtime": "nodejs6.10",
-        "Timeout": "30",
-        "Role": { "Fn::GetAtt": [ "CreateAndReturnAcmCertificateArnRole", "Arn" ] }
-      }
-    },
-    "AcmCertificateForHostedZone": {
-      "Type": "Custom::LambdaCallout",
-      "Properties": {
-        "ServiceToken": { "Fn::GetAtt": [ "CreateAndReturnAcmCertificateArnLambdaFunction", "Arn" ] },
-        "DomainName": { "Ref": "hostedZoneName" }
-      }
-    },
-    "AcmCertificateValidationForHostedZone": {
-      "Type": "AWS::Route53::RecordSet",
-      "Properties": {
-        "HostedZoneName": {
-            "Fn::Join": [
-                "",
-                [
-                    { "Ref": "hostedZoneName" },
-                    "."
-                ]
-            ]
-        },
-        "Name": { "Fn::GetAtt": [ "AcmCertificateForHostedZone", "VerificationRecordName" ] },
-        "ResourceRecords": [{ "Fn::GetAtt": [ "AcmCertificateForHostedZone", "VerificationRecordValue" ] }],
-        "TTL": "300",
-        "Type": "CNAME"
-      },
-      "DependsOn": "AcmCertificateForHostedZone"
-    },
     "HostedZone": {
       "Type": "AWS::Route53::HostedZone",
       "Properties": {
@@ -141,6 +19,37 @@
           "Comment": "Dynamic Hosted Zone"
         },
         "Name": { "Ref": "hostedZoneName" }
+      }
+    },
+
+    "AcmCertificateForHostedZone": {
+      "Type": "AWS::CertificateManager::Certificate",
+      "Properties": {
+        "DomainName": { "Ref": "hostedZoneName" },
+        "SubjectAlternativeNames": [
+          {
+            "Fn::Sub": [
+              "*.${Domain}.",
+              { "Domain": { "Ref": "hostedZoneName" } }
+            ]
+          }
+        ],
+        "ValidationMethod": "DNS"
+      }
+    },
+
+    "AcmCertificateValidationForHostedZone": {
+      "Type": "AwsArchitectResource::Route53DnsValidationRecord",
+      "Properties": {
+        "HostedZoneName": {
+          "Fn::Sub": [
+            "${Domain}.",
+            { "Domain": { "Ref": "hostedZoneName" } }
+          ]
+        },
+        "CertificateArn": { "Ref": "AcmCertificateForHostedZone" },
+        "TTL": "300",
+        "Type": "CNAME"
       }
     }
   }
