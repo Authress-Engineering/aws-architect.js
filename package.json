@@ -37,7 +37,7 @@
     "chai": "^3.5.0",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
-    "mocha": "^2.4.5",
+    "mocha": "^6.1.4",
     "sinon": "^1.17.3",
     "travis-build-tools": "~1.2"
   },
