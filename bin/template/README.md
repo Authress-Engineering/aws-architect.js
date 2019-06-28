@@ -42,7 +42,9 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 
 ### Deploying to AWS
 
-	* Using the built in make.js file
+#### Configure your make file with the necessary account information
+
+* Using the built in make.js file
 
 ```bash
 	npm install
@@ -66,28 +68,15 @@ AWS Architect uses [OpenAPI Factory](https://github.com/wparad/openapi-factory.j
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 ```
 
+#### First time setup
+AWS Architect uses some CF macros that need to be deployed to CloudFormation. These exist to make your stacks simplier. To deploy them, run these two commands. You'll want to replace the two variables with an S3 bucket and AWS credentials profile (unless you want to use the default).
+
+```sh
+  npm install -g aws-architect-cf-macros
+  aws-architect-cf-macros deploy TMP_DEPLOYMENT_BUCKET --profile PROFILE_NAME
+```
+
 ### Setup
-
-#### Setting up Google authentication, Cognito, and API Gateway
-
-* Create a project in Google: https://console.developers.google.com/project
-	* Enable and Manage API's
-	* Credentials: OAuth 2.0 and Client IDs: Create a new client id, and use this in the later steps.	You will have to set up the redirects to actually work on login successes
-* Create a new Identity pool to associate with the application (save the IdentityPoolId)
-	* Add in the google client to the IdentityPool
-* [Optional: used for non-REST Lambdas] Create a UserRole, set it to have access to API Gateway and Cognito Sync using the IdentityPoolId
-	* Set the Trust Policy to be (based on [Amazon Docs](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)):
-		* [example trust policy](../userrole-trust-relationship.json)
-	* Set the permission policy to be [example user role permissions](../userrole-policy.json)
-* Create a Service Role, to have access to the back end AWS needed resources: [example service user permissions](../service-policy.json) and [example trust relationship](../service-trust-relationship.json).
-* `content/index.html`:
-	* Update google usercontent token (`google-signin-client_id`) in the index.html with client id.
-	* Update `IDENTITY_POOL_ID` with the identityPoolId
-
-TL;DL
-
-* Static content => `content/index.html`
-* Lambda function => `src/index.js`
 
 #### Permissions to invoke lambda functions
 * From CloudWatch Rules:
