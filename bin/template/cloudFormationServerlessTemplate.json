@@ -193,6 +193,44 @@
         "Path": "/"
       }
     },
+    "LambdaFunctionVersion" : {
+      "Type" : "AWS::Lambda::Version",
+      "Properties" : {
+        "FunctionName" : { "Ref" : "LambdaFunction" },
+        "Description" : "Initial Production Deployed Version"
+      }
+    },
+    "ProductionAlias": {
+      "Type" : "AWS::Lambda::Alias",
+      "Properties" : {
+        "Description" : "The production alias",
+        "FunctionName" : { "Fn::GetAtt" : ["LambdaFunction", "Arn"] },
+        "FunctionVersion" : { "Fn::GetAtt" : ["LambdaFunctionVersion", "Version"] },
+        "Name" : "production"
+      }
+    },
+    "LambdaInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName" : { "Ref": "ProductionAlias" },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              { "Ref": "AWS::Region" },
+              ":",
+              { "Ref": "AWS::AccountId" },
+              ":",
+              { "Ref": "ApiGateway" },
+              "/*"
+            ]
+          ]
+        }
+      }
+    },
     "ApiGateway": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
@@ -206,7 +244,7 @@
             "title": { "Ref": "serviceName" }
           },
           "securityDefinitions": {
-            "auth0": {
+            "defaultAuth": {
               "type": "apiKey",
               "name": "Authorization",
               "in": "header",
@@ -339,7 +377,7 @@
                   "application/json"
                 ],
                 "security": [{
-                  "auth0": []
+                  "defaultAuth": []
                 }],
                 "parameters": [{
                   "name": "proxy",
@@ -370,35 +408,54 @@
                 }
               },
               "options": {
-                "produces": [
-                  "application/json"
-                ],
                 "parameters": [{
                   "name": "proxy",
                   "in": "path",
                   "required": true,
                   "type": "string"
                 }],
-                "responses": {},
+                "consumes": [
+                  "application/json"
+                ],
+                "produces": [
+                  "application/json"
+                ],
+                "responses": {
+                  "200": {
+                    "description": "200 response",
+                    "headers": {
+                      "Cache-Control": {
+                        "type": "string"
+                      },
+                      "Access-Control-Allow-Origin": {
+                        "type": "string"
+                      },
+                      "Access-Control-Allow-Methods": {
+                        "type": "string"
+                      },
+                      "Access-Control-Allow-Headers": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
                 "x-amazon-apigateway-integration": {
-                  "uri": {
-                    "Fn::Join": [
-                      ":",
-                      [
-                        "arn:aws:apigateway",
-                        { "Ref": "AWS::Region" },
-                        "lambda:path/2015-03-31/functions/arn:aws:lambda",
-                        { "Ref": "AWS::Region" },
-                        { "Ref": "AWS::AccountId" },
-                        "function",
-                        { "Ref": "serviceName" },
-                        "${stageVariables.lambdaVersion}/invocations"
-                      ]
-                    ]
+                  "responses": {
+                    "default": {
+                      "statusCode": "200",
+                      "responseParameters": {
+                        "method.response.header.Cache-Control": "'public, max-age=86400'",
+                        "method.response.header.Access-Control-Allow-Origin": "'*'",
+                        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+                        "method.response.header.Access-Control-Allow-Methods": "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+                      }
+                    }
                   },
-                  "passthroughBehavior": "when_no_match",
-                  "httpMethod": "POST",
-                  "type": "aws_proxy"
+                  "requestTemplates": {
+                    "application/json": "{\"statusCode\": 200}"
+                  },
+                  "passthroughBehavior": "when_no_templates",
+                  "type": "mock"
                 }
               }
             }
@@ -407,8 +464,7 @@
         "EndpointConfiguration": {
           "Types": [ "REGIONAL" ]
         }
-      },
-      "DependsOn": "LambdaFunction"
+      }
     },
     "StageDeployment": {
       "Type": "AWS::ApiGateway::Deployment",

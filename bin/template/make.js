@@ -1,6 +1,7 @@
 require('error-object-polyfill');
 const path = require('path');
 const commander = require('commander');
+const aws = require('aws-sdk');
 const AwsArchitect = require('aws-architect');
 
 let ci = require('ci-build-tools')(process.env.GIT_TAG_PUSHER);
@@ -25,7 +26,7 @@ commander
 .command('run')
 .description('Run lambda web service locally.')
 .action(async () => {
-	// aws.config.credentials = new aws.SharedIniFileCredentials({profile: 'default'});
+	aws.config.credentials = new aws.SharedIniFileCredentials({ profile: 'default' });
 
 	// default logger is console.log, if you want to override it, that can be done here.
 	let logger = logMessage => console.log(logMessage);
@@ -56,15 +57,15 @@ commander
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 	let stackTemplate = require('./cloudFormationServerlessTemplate.json');
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
-	
+
 	try {
 		let stackConfiguration = {
 			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
 			stackName: packageMetadata.name,
 			automaticallyProtectStack: true
 		};
-		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
-		await awsArchitect.PublishLambdaArtifactPromise();
+		await awsArchitect.validateTemplate(stackTemplate, stackConfiguration);
+		await awsArchitect.publishLambdaArtifactPromise();
 		if (isMasterBranch) {
 			let parameters = {
 				serviceName: packageMetadata.name,
@@ -78,7 +79,7 @@ commander
 			await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 		}
 
-		let publicResult = await awsArchitect.PublishAndDeployStagePromise({
+		let publicResult = await awsArchitect.publishAndDeployStagePromise({
 			stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
 			functionName: packageMetadata.name,
 			deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
@@ -102,7 +103,7 @@ commander
 
 	let deploymentVersion = 'v1';
 	let deploymentLocation = 'https://production.website.com/';
-	
+
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 	let stackTemplate = require('./cloudFormationWebsiteTemplate.json');
 	let isMasterBranch = process.env.CI_COMMIT_REF_SLUG === 'master';
@@ -113,7 +114,7 @@ commander
 			stackName: packageMetadata.name,
 			automaticallyProtectStack: true
 		};
-		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
+		await awsArchitect.validateTemplate(stackTemplate, stackConfiguration);
 		if (isMasterBranch) {
 			let parameters = {
 				serviceName: 'example-service', // must result in a valid Lambda name; for example cannot contain "."
@@ -153,14 +154,14 @@ commander
 
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 	let stackTemplate = require('./cloudFormationHostedZoneTemplate.json');
-	
+
 	try {
 		let stackConfiguration = {
 			changeSetName: `${process.env.CI_COMMIT_REF_SLUG}-${process.env.CI_PIPELINE_ID || '1'}`,
 			stackName: `${packageMetadata.name}-hostedzone`,
 			automaticallyProtectStack: true
 		};
-		await awsArchitect.ValidateTemplate(stackTemplate, stackConfiguration);
+		await awsArchitect.validateTemplate(stackTemplate, stackConfiguration);
 		let parameters = {
 			hostedZoneName: '<your domain / hosted zone>'
 		};

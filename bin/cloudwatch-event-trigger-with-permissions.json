@@ -1,35 +1,35 @@
-"PermissionForCloudWatchToInvokeLambda": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::Join": [
-            ":",
-            [
-              { "Fn::GetAtt": [ "LambdaFunction", "Arn" ] },
-              "production"
-            ]
+{
+  "CloudWatchEventsRuleResource": {
+    "Type": "AWS::Events::Rule",
+    "Properties": {
+      "Description": { "Ref": "serviceDescription" },
+      "Name": {
+        "Fn::Join": [
+          "-",
+          [
+            { "Ref": "serviceName" },
+            "Queue",
+            "prod"
           ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "events.amazonaws.com",
-        "SourceAccount": { "Ref": "AWS::AccountId" },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:aws:execute-api:",
-              { "Ref": "AWS::Region" },
-              ":",
-              { "Ref": "AWS::AccountId" },
-              ":rule",
-              "/",
-              { "Ref": "serviceName" },
-              "-*"
-
-            ]
-          ]
-        }
+        ]
       },
-      "DependsOn": "LambdaFunction"
+      "ScheduleExpression": "cron(0 15 ? * MON *)",
+      "State": "ENABLED",
+      "Targets": [
+        {
+          "Arn": { "Ref": "ProductionAlias" },
+          "Id": "QueueEventTargetId"
+        }
+      ]
+    }
+  },
+  "PermissionForCloudWatchToInvokeLambda": {
+    "Type": "AWS::Lambda::Permission",
+    "Properties": {
+      "FunctionName": { "Ref": "ProductionAlias" },
+      "Action": "lambda:InvokeFunction",
+      "Principal": "events.amazonaws.com",
+      "SourceArn": { "Fn::GetAtt": [ "CloudWatchEventsRuleResource", "Arn" ] }
     }
   }
+}
