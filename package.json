@@ -17,7 +17,7 @@
     "aws-architect": "./bin/aws-architect.js"
   },
   "dependencies": {
-    "archiver": "^3.0.0",
+    "archiver": "^3.1.1",
     "body-parser": "^1.18.2",
     "commander": "^2.5.0",
     "cookie-parser": "^1.4.2",
@@ -37,7 +37,7 @@
     "chai": "^3.5.0",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.0",
     "sinon": "^1.17.3",
     "travis-build-tools": "~1.2"
   },
