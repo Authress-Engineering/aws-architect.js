@@ -21,11 +21,12 @@
     "body-parser": "^1.18.2",
     "commander": "^2.5.0",
     "cookie-parser": "^1.4.2",
+    "eslint-config-cimpress-atsquad": "^1.0.67",
     "express": "^4.13.4",
     "fs-extra": "^6.0.1",
     "header-case-normalizer": "^1.0.3",
     "json-stringify-safe": "^5.0.1",
-    "morgan": "^1.7.0",
+    "morgan": "^1.9.1",
     "tmp": "^0.0.33",
     "uuid": "^2.0.2"
   },
@@ -35,7 +36,6 @@
   "devDependencies": {
     "aws-sdk": "*",
     "chai": "^3.5.0",
-    "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
     "mocha": "^6.2.0",
     "sinon": "^1.17.3",
