@@ -21,33 +21,21 @@
         "Name": { "Ref": "hostedZoneName" }
       }
     },
-
     "AcmCertificateForHostedZone": {
       "Type": "AWS::CertificateManager::Certificate",
       "Properties": {
         "DomainName": { "Ref": "hostedZoneName" },
         "SubjectAlternativeNames": [
-          {
-            "Fn::Sub": [
-              "*.${Domain}.",
-              { "Domain": { "Ref": "hostedZoneName" } }
-            ]
-          }
+          { "Fn::Sub": "*.${hostedZoneName}" }
         ],
         "ValidationMethod": "DNS"
       }
     },
-
     "AcmCertificateValidationForHostedZone": {
       "Type": "AwsArchitectResource::Route53DnsValidationRecord",
       "Properties": {
-        "HostedZoneName": {
-          "Fn::Sub": [
-            "${Domain}.",
-            { "Domain": { "Ref": "hostedZoneName" } }
-          ]
-        },
-        "CertificateArn": { "Ref": "AcmCertificateForHostedZone" },
+        "HostedZoneName": { "Fn::Sub": "${hostedZoneName}." },
+        "CertificateName": { "Ref": "hostedZoneName" },
         "TTL": "300",
         "Type": "CNAME"
       }
