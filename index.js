@@ -133,7 +133,7 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 		try {
 			await fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata);
 		} catch (error) {
-			return { Error: 'Failed writing production package.json file.', Details: error };
+			throw { Error: 'Failed writing production package.json file.', Details: error };
 		}
 
 		const exists = await fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(() => false);
@@ -234,7 +234,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 		});
 	})
 	.catch(failure => {
-		return Promise.reject({ Error: 'Failed to create and deploy updates.', Details: failure });
+		throw { Error: 'Failed to create and deploy updates.', Details: failure };
 	});
 };
 
