@@ -5,6 +5,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Allow setting upload zip file directly to support creating lambda layers
 * Add `publishZipArchive` to publish layers and other zip files directly to S3, using the package name and version automatically.
 * New option in `publishLambdaArtifactPromise` to allow turning off running npm or yarn for package deployment `autoHandleCompileOfSourceDirectory = false`.
+* Now uploads to the S3 directory file that matches any directory that contains an index.html for automatic redirects to the index.html.
 
 ## 6.1 ##
 * Deploy CF templates to S3 deployment bucket before deploying to CF to increase allow size of templates to 450KB.
