@@ -51,8 +51,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 	let apiGatewayFactory = new aws.APIGateway({ region: this.Region });
 	this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, apiGatewayFactory);
 
-	let lambdaFactory = new aws.Lambda({ region: this.Region });
-	this.LambdaManager = new LambdaManager(this.PackageMetadata.name, lambdaFactory);
+	this.LambdaManager = new LambdaManager(this.Region);
 
 	let s3Factory = new aws.S3({ region: this.Region });
 	this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
@@ -185,17 +184,15 @@ function getStageName(stage) {
 	return stage.replace(/[^a-zA-Z0-9-]/g, '-');
 }
 
-AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePromise = function(stage) {
+AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePromise = async function(stage, functionName) {
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 	let stageName = getStageName(stage);
-	let apiGatewayPromise = this.ApiGatewayManager.GetApiGatewayPromise();
-	return apiGatewayPromise
-	.then(result => this.ApiGatewayManager.RemoveStagePromise(result.Id, stageName))
-	.then(result => ({
-		title: 'Successfully delete stage',
-		stage: stageName,
-		details: result
-	}));
+	const apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
+	const result = await this.ApiGatewayManager.RemoveStagePromise(apiGateway.Id, stageName);
+	if (functionName) {
+		await this.LambdaManager.removeVersion(functionName, stageName);
+	}
+	return { title: 'Successfully deleted stage', stage: stageName, details: result };
 };
 
 AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = async function(options = {}) {
@@ -236,6 +233,10 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	.catch(failure => {
 		throw { Error: 'Failed to create and deploy updates.', Details: failure };
 	});
+};
+
+AwsArchitect.prototype.cleanupPreviousFunctionVersions = async function(functionName, forceRemovalOfAliases) {
+	await this.LambdaManager.cleanupProduction(functionName, forceRemovalOfAliases, false);
 };
 
 AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, options = {}) {

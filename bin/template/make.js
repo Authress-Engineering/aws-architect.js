@@ -85,6 +85,10 @@ commander
 			deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`
 		});
 
+		if (isMasterBranch) {
+			await awsArchitect.cleanupPreviousFunctionVersions(packageMetadata.name, false /*true: Remove old versions even if they have an alias */);
+		}
+
 		console.log(publicResult);
 	} catch (failure) {
 		console.log(failure);
@@ -186,7 +190,7 @@ commander
 	packageMetadata.version = version;
 	let awsArchitect = new AwsArchitect(packageMetadata, apiOptions);
 	try {
-		let result = await awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG);
+		let result = await awsArchitect.removeStagePromise(process.env.CI_COMMIT_REF_SLUG, packageMetadata.name);
 		console.log(result);
 	} catch (failure) {
 		console.log(failure);
