@@ -1,5 +1,9 @@
 {
   "files.exclude": {
     "**/bin/": false,
-  }
+  },
+  "cSpell.words": [
+    "unixified",
+    "unixify"
+  ]
 }
