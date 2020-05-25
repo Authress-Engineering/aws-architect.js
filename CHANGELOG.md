@@ -2,7 +2,8 @@
 This is the changelog for [AWS Architect](readme.md).
 
 ## 6.3 ##
-Automatically delete the stage lambda alias and version when deleting a stage by passing in the lambda function name as the second parameter to `awsArchitect.removeStagePromise`.
+* Automatically delete the stage lambda alias and version when deleting a stage by passing in the lambda function name as the second parameter to `awsArchitect.removeStagePromise`.
+* Add support for all mime-types for S3 uploads
 
 ## 6.2 ##
 * Allow setting upload zip file directly to support creating lambda layers
