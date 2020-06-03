@@ -32,6 +32,12 @@ interface StackConfiguration {
 	automaticallyProtectStack: Boolean;
 }
 
+interface StackSetConfiguration {
+  changeSetName: String;
+  stackSetName: String;
+  regions: String[];
+}
+
 
 interface StageDeploymentOptions {
 	stage: String;
@@ -56,7 +62,8 @@ declare class AwsArchitect {
 	publishZipArchive(options: PublishZipOptions): Promise<Object>;
 	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<Object>;
 	validateTemplate(stackTemplate: Object): Promise<Object>;
-	deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: Object): Promise<Object>;
+  deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: Object): Promise<Object>;
+  deployStackSetTemplate(stackTemplate: Object, stackSetConfiguration: StackSetConfiguration, parameters: Object): Promise<Object>;
 	deployStagePromise(stage: String, lambdaVersion: String): Promise<Object>;
 	removeStagePromise(stage: String, functionName: String): Promise<Object>;
 	cleanupPreviousFunctionVersions(functionName: String, forceRemovalOfAliases: String): Promise<Object>;
