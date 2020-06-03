@@ -1,73 +1,75 @@
 interface PackageMetadata {
-	name: String;
-	version: String;
+  name: string;
+  version: string;
 }
 
 interface ApiOptions {
-	regions: String[];
-	deploymentBucket: String,
-	sourceDirectory: String,
-	description: String,
+  regions: string[];
+  deploymentBucket: string,
+  sourceDirectory: string,
+  description: string,
 }
 
 interface ContentOptions {
-	bucket: String;
-	contentDirectory: String;
+  bucket: string;
+  contentDirectory: string;
 }
 
 interface PublishLambdaOptions {
-	zipFileName: String;
-  bucket: String;
-  autoHandleCompileOfSourceDirectory: Boolean;
+  zipFileName: string;
+  bucket: string;
+  autoHandleCompileOfSourceDirectory: boolean;
 }
 
 interface PublishZipOptions {
-	zipFileName: String;
-	sourceDirectory: String;
+  zipFileName: string;
+  sourceDirectory: string;
 }
 
 interface StackConfiguration {
-	changeSetName: String;
-	stackName: String;
-	automaticallyProtectStack: Boolean;
+  changeSetName: string;
+  stackName: string;
+  automaticallyProtectStack: boolean;
 }
 
 interface StackSetConfiguration {
-  changeSetName: String;
-  stackSetName: String;
-  regions: String[];
+  changeSetName: string;
+  stackSetName: string;
+  regions: string[];
 }
 
 
 interface StageDeploymentOptions {
-	stage: String;
-	functionName: String;
-	deploymentBucketName: String;
-	deploymentKeyName: String;
+  stage: string;
+  functionName: string;
+  deploymentBucketName: string;
+  deploymentKeyName: string;
 }
 
 interface RegexOption {
-	explicit?: String,
-	regex?: RegExp,
-	value: String | Number
+  explicit?: string,
+  regex?: RegExp,
+  value: string | number
 }
 
 interface WebsiteDeploymentOptions {
-	cacheControlRegexMap: RegexOption[];
-	contentTypeMappingOverride: Object;
+  cacheControlRegexMap: RegexOption[];
+  contentTypeMappingOverride: object;
 }
 
 declare class AwsArchitect {
 	constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
-	publishZipArchive(options: PublishZipOptions): Promise<Object>;
-	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<Object>;
-	validateTemplate(stackTemplate: Object): Promise<Object>;
-  deployTemplate(stackTemplate: Object, stackConfiguration: StackConfiguration, parameters: Object): Promise<Object>;
-  deployStackSetTemplate(stackTemplate: Object, stackSetConfiguration: StackSetConfiguration, parameters: Object): Promise<Object>;
-	deployStagePromise(stage: String, lambdaVersion: String): Promise<Object>;
-	removeStagePromise(stage: String, functionName: String): Promise<Object>;
-	cleanupPreviousFunctionVersions(functionName: String, forceRemovalOfAliases: String): Promise<Object>;
-	publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<Object>;
-	publishWebsite(version: String, options: WebsiteDeploymentOptions): Promise<Object>;
-	run(port: Number, logger: Function): Promise<Object>;
+	publishZipArchive(options: PublishZipOptions): Promise<object>;
+	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<object>;
+	validateTemplate(stackTemplate: object): Promise<object>;
+  deployTemplate(stackTemplate: object, stackConfiguration: StackConfiguration, parameters: object): Promise<object>;
+  deployStackSetTemplate(stackTemplate: object, stackSetConfiguration: StackSetConfiguration, parameters: object): Promise<object>;
+	deployStagePromise(stage: string, lambdaVersion: string): Promise<object>;
+	removeStagePromise(stage: string, functionName: string): Promise<object>;
+	cleanupPreviousFunctionVersions(functionName: string, forceRemovalOfAliases: string): Promise<object>;
+	publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<object>;
+	publishWebsite(version: string, options: WebsiteDeploymentOptions): Promise<object>;
+	run(port: number, logger: Function): Promise<object>;
 }
+
+export = AwsArchitect;

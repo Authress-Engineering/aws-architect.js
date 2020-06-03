@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "AWS Architect is a node based tool to configure and deploy AWS-based microservices.",
   "main": "index.js",
+  "types": "index.d.ts",
   "files": [
     "index.js",
     "index.d.ts",
