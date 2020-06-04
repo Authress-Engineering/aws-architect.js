@@ -226,7 +226,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	let deploymentKey = options.deploymentKeyName;
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 
-	let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
+  let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
 	let apiGatewayId = apiGateway.Id;
 
 	let accountId = await GetAccountIdPromise();
@@ -239,17 +239,16 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 		await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
 		return {
 			LambdaFunctionArn: lambdaArn,
-			LambdaVersion: lambdaVersion,
-			RestApiId: apiGatewayId
+			LambdaVersion: lambdaVersion
 		};
 	})
 	.then(result => {
-		return this.ApiGatewayManager.DeployStagePromise(result.RestApiId, stageName, stage, result.LambdaVersion)
+		return this.ApiGatewayManager.DeployStagePromise(apiGatewayId, stageName, stage, result.LambdaVersion)
 		.then(data => {
 			return {
 				LambdaResult: result,
 				ApiGatewayResult: data,
-				ServiceApi: `https://${result.RestApiId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
+				ServiceApi: `https://${apiGatewayId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
 			};
 		});
 	})
