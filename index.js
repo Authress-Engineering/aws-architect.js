@@ -226,7 +226,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 	let deploymentKey = options.deploymentKeyName;
 	if (!stage) { throw new Error('Deployment stage is not defined.'); }
 
-  let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
+	let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
 	let apiGatewayId = apiGateway.Id;
 
 	let accountId = await GetAccountIdPromise();
