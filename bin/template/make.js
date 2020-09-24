@@ -73,8 +73,7 @@ commander
 				deploymentBucketName: apiOptions.deploymentBucket,
 				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
 				dnsName: packageMetadata.name.toLowerCase(),
-				hostedName: 'toplevel.domain.io',
-				useRoot: 'false'
+				hostedName: 'toplevel.domain.io'
 			};
 			await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 		}
