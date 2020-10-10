@@ -8,10 +8,11 @@
   ],
   "rules": {
     "arrow-parens": ["error", "as-needed"],
-    "indent": ["error", "tab", { "SwitchCase": 1, "MemberExpression": 0 }],
-    "node/no-unsupported-features": ["off"],
+    "indent": ["error", 2, { "SwitchCase": 1, "MemberExpression": 0 }],
+    "node/no-unsupported-features/es-syntax": ["off"],
     "no-throw-literal": "off",
     "spaced-comment": "off",
-    "no-unused-expressions": "off"
+    "no-continue": "off",
+    "require-atomic-updates": "off"
   }
 }
