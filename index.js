@@ -226,35 +226,41 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
   let deploymentKey = options.deploymentKeyName;
   if (!stage) { throw new Error('Deployment stage is not defined.'); }
 
-  let apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
-  let apiGatewayId = apiGateway.Id;
-
-  let accountId = await GetAccountIdPromise();
-  return this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey)
-  .then(async lambda => {
-    let lambdaArn = lambda.FunctionArn;
-    let lambdaVersion = lambda.Version;
-
+  try {
+    const lambda = await this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey);
+    const lambdaArn = lambda.FunctionArn;
+    const lambdaVersion = lambda.Version;
     await this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion);
-    await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGatewayId, this.Region, stageName);
+
+    let apiGateway;
+    try {
+      apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
+    } catch (error) {
+      if (error.code === 'ApiGatewayServiceNotFound') {
+        return {
+          LambdaResult: {
+            LambdaFunctionArn: lambdaArn,
+            LambdaVersion: lambdaVersion
+          }
+        };
+      }
+      throw error;
+    }
+
+    let accountId = await GetAccountIdPromise();
+    await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGateway.Id, this.Region, stageName);
+    const data = await this.ApiGatewayManager.DeployStagePromise(apiGateway.Id, stageName, stage, lambdaVersion);
     return {
-      LambdaFunctionArn: lambdaArn,
-      LambdaVersion: lambdaVersion
+      LambdaResult: {
+        LambdaFunctionArn: lambdaArn,
+        LambdaVersion: lambdaVersion
+      },
+      ApiGatewayResult: data,
+      ServiceApi: `https://${apiGateway.Id}.execute-api.${this.Region}.amazonaws.com/${stageName}`
     };
-  })
-  .then(result => {
-    return this.ApiGatewayManager.DeployStagePromise(apiGatewayId, stageName, stage, result.LambdaVersion)
-    .then(data => {
-      return {
-        LambdaResult: result,
-        ApiGatewayResult: data,
-        ServiceApi: `https://${apiGatewayId}.execute-api.${this.Region}.amazonaws.com/${stageName}`
-      };
-    });
-  })
-  .catch(failure => {
+  } catch (failure) {
     throw { Error: 'Failed to create and deploy updates.', Details: failure };
-  });
+  }
 };
 
 AwsArchitect.prototype.cleanupPreviousFunctionVersions = async function(functionName, forceRemovalOfAliases) {
