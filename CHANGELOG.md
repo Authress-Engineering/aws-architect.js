@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 6.5 ##
+* Support APIGW version 2
+
 ## 6.4 ##
 * Add stackset support for AWS to cross regions
 * Skip stack deployment if template body already matches stack
