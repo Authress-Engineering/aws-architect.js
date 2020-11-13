@@ -48,8 +48,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
   if (this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
   this.Region = this.Configuration.Regions[0];
 
-  let apiGatewayFactory = new aws.APIGateway({ region: this.Region });
-  this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, apiGatewayFactory);
+  this.ApiGatewayManager = new ApiGatewayManager(this.PackageMetadata.name, this.PackageMetadata.version, this.Region);
 
   this.LambdaManager = new LambdaManager(this.Region);
 
@@ -199,8 +198,7 @@ AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePr
   if (!stage) { throw new Error('Deployment stage is not defined.'); }
   if (!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
   return this.ApiGatewayManager.GetApiGatewayPromise()
-  .then(result => result.Id)
-  .then(restApiId => this.ApiGatewayManager.DeployStagePromise(restApiId, stage, lambdaVersion));
+  .then(restApi => this.ApiGatewayManager.DeployStagePromise(restApi, stage, lambdaVersion));
 };
 
 function getStageName(stage) {
@@ -211,7 +209,7 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
   if (!stage) { throw new Error('Deployment stage is not defined.'); }
   let stageName = getStageName(stage);
   const apiGateway = await this.ApiGatewayManager.GetApiGatewayPromise();
-  const result = await this.ApiGatewayManager.RemoveStagePromise(apiGateway.Id, stageName);
+  const result = await this.ApiGatewayManager.RemoveStagePromise(apiGateway, stageName);
   if (functionName) {
     await this.LambdaManager.removeVersion(functionName, stageName);
   }
@@ -249,7 +247,7 @@ AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.Pub
 
     let accountId = await GetAccountIdPromise();
     await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGateway.Id, this.Region, stageName);
-    const data = await this.ApiGatewayManager.DeployStagePromise(apiGateway.Id, stageName, stage, lambdaVersion);
+    const data = await this.ApiGatewayManager.DeployStagePromise(apiGateway, stageName, stage, lambdaVersion);
     return {
       LambdaResult: {
         LambdaFunctionArn: lambdaArn,
