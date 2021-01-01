@@ -1,61 +1,25 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Parameters": {
-    "serviceName": {
-      "Type": "String",
-      "Description": "The name of the service / website. Must not contain special characters except hyphens."
-    },
     "dnsName": {
       "Type": "String",
-      "Description": "The DNS name to map to S3 bucket."
+      "Description": "The full DNS name for the site."
     },
     "hostedName": {
       "Type": "String",
-      "Description": "Base path to add to DNS Name."
-    },
-    "zoneIdForServiceDomain": {
-      "Type": "String",
-      "Default": "Z2FDTNDATAQYW2",
-      "Description": "The zoneId for the CloudFront Hosted Zone in Route 53, if using Cloudfront: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid"
-    },
-    "useRoot": {
-      "Type": "String",
-      "AllowedValues": ["true", "false"],
-      "Default": "false",
-      "Description": "Create a DNS record at the root level."
+      "Description": "The name of the hostedZone"
     }
   },
-
-  "Conditions" : {
-    "CreateARecordAtRootDomain" : {"Fn::Equals" : [{"Ref" : "useRoot"}, "true"]}
-  },
-
-  "Transform": [
-    "AwsArchitectMacros"
-  ],
 
   "Resources": {
     "S3Bucket": {
       "Type" : "AWS::S3::Bucket",
       "Properties" : {
-        "BucketName" : {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "dnsName"
-              },
-              ".",
-              {
-                "Ref": "hostedName"
-              }
-            ]
-          ]
-        },
+        "BucketName": { "Ref": "dnsName" },
         "Tags" : [
           {
           "Key": "Service",
-          "Value": { "Ref": "hostedName" }
+          "Value": { "Ref": "dnsName" }
           }
         ],
         "WebsiteConfiguration" : {
@@ -69,28 +33,15 @@
       "Type" : "AWS::CloudFront::CloudFrontOriginAccessIdentity",
       "Properties" : {
         "CloudFrontOriginAccessIdentityConfig" : {
-          "Comment": { "Ref": "hostedName" }
+          "Comment": { "Ref": "dnsName" }
         }
       }
     },
 
     "S3BucketPolicy": {
-      "Type" : "AWS::S3::BucketPolicy",
-      "Properties" : {
-        "Bucket" : {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "dnsName"
-              },
-              ".",
-              {
-                "Ref": "hostedName"
-              }
-            ]
-          ]
-        },
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": { "Ref": "dnsName" },
         "PolicyDocument" : {
           "Version": "2012-10-17",
           "Statement": [
@@ -101,22 +52,7 @@
                 "CanonicalUser": { "Fn::GetAtt": [ "CloudFrontOriginAccessIdentity", "S3CanonicalUserId" ] }
               },
               "Action":"s3:GetObject",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    ".",
-                    {
-                      "Ref": "hostedName"
-                    },
-                    "/*"
-                  ]
-                ]
-              }
+              "Resource": { "Fn::Sub": "arn:aws:s3:::${dnsName}/*" }
             }
           ]
         }
@@ -124,10 +60,13 @@
     },
 
     "AcmCertificate": {
-      "Type": "AwsArchitectResource::VirtualCertificate",
+      "Type": "AWS::CertificateManager::Certificate",
       "Properties": {
-        "DomainName": { "Ref": "hostedName" },
-        "Region": "us-east-1"
+        "DomainName": { "Fn::Sub": "${dnsName}" },
+        "SubjectAlternativeNames": [
+          { "Fn::Sub": "*.${dnsName}" }
+        ],
+        "ValidationMethod": "DNS"
       }
     },
 
@@ -136,183 +75,53 @@
       "Properties": {
         "DistributionConfig": {
           "DefaultRootObject": "index.html",
-          "Aliases": {
-            "Fn::If": [
-              "CreateARecordAtRootDomain",
-              [
-                {
-                  "Fn::Join": [
-                    ".",
-                    [
-                      "tst",
-                      { "Ref": "hostedName" }
-                    ]
-                  ]
-                },
-                { "Ref": "hostedName" }
-              ],
-              [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "tst-",
-                      { "Ref": "dnsName" },
-                      ".",
-                      { "Ref": "hostedName" }
-                    ]
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      { "Ref": "dnsName" },
-                      ".",
-                      { "Ref": "hostedName" }
-                    ]
-                  ]
-                }
-              ]
-            ]
-          },
+          "Aliases": [
+            { "Fn::Sub": "tst.${dnsName}" },
+            { "Ref": "dnsName" },
+            { "Fn::Sub": "*.${dnsName}" }
+          ],
           "HttpVersion": "http2",
           "PriceClass": "PriceClass_100",
           "Origins": [
             {
               "OriginPath": "/v1",
-              "DomainName": {
-                "Fn::Join": [
-                  ".",
-                  [
-                    {
-                      "Ref": "dnsName"
-                    },
-                    {
-                      "Ref": "hostedName"
-                    },
-                    "s3.amazonaws.com"
-                  ]
-                ]
-              },
-              "Id": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "S3",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    {
-                      "Ref": "hostedName"
-                    }
-                  ]
-                ]
-              },
+              "DomainName": { "Fn::Sub": "${dnsName}.s3.amazonaws.com" },
+              "Id": "S3",
               "S3OriginConfig": {
-                "OriginAccessIdentity": {
-                  "Fn::Join": [
-                    "/",
-                    [
-                      "origin-access-identity/cloudfront",
-                      { "Ref": "CloudFrontOriginAccessIdentity" }
-                    ]
-                  ]
-                }
+                "OriginAccessIdentity": { "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}" }
               }
             },
             {
-              "DomainName": {
-                "Fn::Join": [
-                  ".",
-                  [
-                    {
-                      "Ref": "dnsName"
-                    },
-                    {
-                      "Ref": "hostedName"
-                    },
-                    "s3.amazonaws.com"
-                  ]
-                ]
-              },
-              "Id": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "TST-S3",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    {
-                      "Ref": "hostedName"
-                    }
-                  ]
-                ]
-              },
+              "DomainName": { "Fn::Sub": "${dnsName}.s3.amazonaws.com" },
+              "Id": "TST-S3",
               "S3OriginConfig": {
-                "OriginAccessIdentity": {
-                  "Fn::Join": [
-                    "/",
-                    [
-                      "origin-access-identity/cloudfront",
-                      { "Ref": "CloudFrontOriginAccessIdentity" }
-                    ]
-                  ]
-                }
+                "OriginAccessIdentity": { "Fn::Sub": "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}" }
               }
             }
           ],
           "CacheBehaviors": [
             {
+              "AllowedMethods": ["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE"],
               "Compress": true,
-              "ForwardedValues": {
-                "QueryString": false
-              },
+              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "OriginRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf",
               "PathPattern": "PR-*/*",
-              "TargetOriginId": {
-                "Fn::Join": [
-                  "-",
-                  [
-                    "TST-S3",
-                    {
-                      "Ref": "dnsName"
-                    },
-                    {
-                      "Ref": "hostedName"
-                    }
-                  ]
-                ]
-              },
+              "TargetOriginId": "TST-S3",
               "ViewerProtocolPolicy": "redirect-to-https"
             }
           ],
           "Enabled": true,
           "ViewerCertificate": {
-            "AcmCertificateArn": { "Fn::GetAtt": [ "AcmCertificate", "CertificateArn" ] },
-            "MinimumProtocolVersion": "TLSv1.1_2016",
+            "AcmCertificateArn": { "Ref": "AcmCertificate" },
+            "MinimumProtocolVersion": "TLSv1.2_2019",
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
             "Compress": true,
-            "ForwardedValues" : {
-              "QueryString" : false
-            },
-            "TargetOriginId" : {
-              "Fn::Join": [
-                "-",
-                [
-                  "S3",
-                  {
-                    "Ref": "dnsName"
-                  },
-                  {
-                    "Ref": "hostedName"
-                  }
-                ]
-              ]
-            },
-            "ViewerProtocolPolicy" : "redirect-to-https"
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "OriginRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf",
+            "TargetOriginId": "S3",
+            "ViewerProtocolPolicy": "redirect-to-https"
           },
           "CustomErrorResponses": [
             {
@@ -336,47 +145,11 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
-          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "HostedZoneName": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "hostedName"
-              },
-              "."
-            ]
-          ]
-        },
-        "Name": {
-            "Fn::If": [
-                "CreateARecordAtRootDomain",
-                {
-                    "Fn::Join": [
-                        ".",
-                        [
-                            "tst",
-                            { "Ref": "hostedName" },
-                            ""
-                        ]
-                    ]
-                },
-                {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "tst-",
-                            { "Ref": "dnsName" },
-                            ".",
-                            { "Ref": "hostedName" },
-                            "."
-                        ]
-                    ]
-                }
-            ]
-        },
+        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "Name":  { "Fn::Sub": "tst.${dnsName}." },
         "Type": "A"
       }
     },
@@ -385,44 +158,24 @@
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
         "AliasTarget": {
-          "DNSName" : { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
-          "HostedZoneId" : { "Ref": "zoneIdForServiceDomain" }
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "HostedZoneName": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Ref": "hostedName"
-              },
-              "."
-            ]
-          ]
+        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "Name":  { "Fn::Sub": "${dnsName}." },
+        "Type": "A"
+      }
+    },
+
+    "WildcardProdRoute53": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "Name": {
-            "Fn::If": [
-                "CreateARecordAtRootDomain",
-                {
-                    "Fn::Join": [
-                        "",
-                        [
-                            { "Ref": "hostedName" },
-                            "."
-                        ]
-                    ]
-                },
-                {
-                    "Fn::Join": [
-                        ".",
-                        [
-                            { "Ref": "dnsName" },
-                            { "Ref": "hostedName" },
-                            ""
-                        ]
-                    ]
-                }
-            ]
-        },
+        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "Name":  { "Fn::Sub": "*.${dnsName}." },
         "Type": "A"
       }
     }
