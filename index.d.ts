@@ -53,8 +53,9 @@ interface RegexOption {
 }
 
 interface WebsiteDeploymentOptions {
-  cacheControlRegexMap: RegexOption[];
-  contentTypeMappingOverride: object;
+  cacheControlRegexMap?: RegexOption[];
+  contentTypeMappingOverride?: object;
+  enableIndexConversion?: Boolean;
 }
 
 declare class AwsArchitect {
