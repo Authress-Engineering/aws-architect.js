@@ -270,7 +270,7 @@ AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = 
   if (!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
   if (!version) { throw new Error('Deployment version is not defined.'); }
 
-  return this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap || [], options.contentTypeMappingOverride);
+  return this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap || [], options.contentTypeMappingOverride, options.enableIndexConversion);
 };
 
 AwsArchitect.prototype.run = AwsArchitect.prototype.Run = async function(port, logger) {
