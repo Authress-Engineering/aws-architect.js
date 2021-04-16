@@ -13,7 +13,7 @@ AWS Architect uses some CF macros that need to be deployed to CloudFormation. Th
   aws-architect-cf-macros deploy TMP_DEPLOYMENT_BUCKET --profile PROFILE_NAME
 ```
 
-### Creating microservice: `init`
+### Creating a microservice: `init`
 This will also configure your aws account to allow your build system to automatically deploy to AWS. Run locally
 
 * Create git repository and clone locally
