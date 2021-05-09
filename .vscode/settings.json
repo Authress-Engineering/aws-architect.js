@@ -3,6 +3,7 @@
     "**/bin/": false,
   },
   "cSpell.words": [
+    "clonedeep",
     "unixified",
     "unixify"
   ]
