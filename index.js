@@ -54,9 +54,7 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
 
   let s3Factory = new aws.S3({ region: this.Region });
   this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
-
-  let cloudFormationClient = new aws.CloudFormation({ region: this.Region });
-  this.CloudFormationDeployer = new CloudFormationDeployer(cloudFormationClient, this.BucketManager, this.deploymentBucket);
+  this.CloudFormationDeployer = new CloudFormationDeployer(this.Region, this.BucketManager, this.deploymentBucket);
 }
 
 function GetAccountIdPromise() {
