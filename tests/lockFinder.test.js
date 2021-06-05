@@ -22,7 +22,7 @@ describe('lib/lockFinder.js', function() {
     it(test.name, () => {
       return new LockFinder().findLockFile(test.startLocation)
       .then(location => {
-        expect(location).to.eql(test.expectedResult);
+        expect(location).to.eql(test.expectedResult, location && location.file);
       });
     });
   });
