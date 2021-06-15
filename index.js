@@ -57,31 +57,9 @@ function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
   this.CloudFormationDeployer = new CloudFormationDeployer(this.Region, this.BucketManager, this.deploymentBucket);
 }
 
-function GetAccountIdPromise() {
-  return new aws.IAM().getUser({}).promise()
-  .then(data => data.User.Arn.split(':')[4])
-  .catch(() => {
-    //assume EC2 instance profile
-    return new Promise((resolve, reject) => {
-      http.get('http://169.254.169.254/latest/dynamic/instance-identity/document', res => {
-        if (res.statusCode >= 400) { return Promise.reject('Failed to lookup AWS AccountID, please specify by running as IAM user or with credentials.'); }
-        let data = '';
-        res.on('data', chunk => {
-          data += chunk;
-        });
-        res.on('end', () => {
-          try {
-            let json = JSON.parse(data);
-            resolve(json.accountId);
-          } catch (exception) {
-            reject(JSON.stringify({ Title: 'Failure trying to parse AWS AccountID from metadata', Error: exception.stack || exception.toString(), Details: exception, Response: data }));
-          }
-        });
-        res.on('error', error => reject(error));
-        return null;
-      });
-    });
-  });
+async function GetAccountIdPromise() {
+  const callerData = await new aws.STS().getCallerIdentity().promise();
+  return callerData.Account;
 }
 
 AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
