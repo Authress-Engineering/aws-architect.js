@@ -23,8 +23,8 @@
     "openapi-factory": "^4.3"
   },
   "devDependencies": {
-    "aws-architect": "^6.2",
-    "aws-sdk": "^2.510.0",
+    "aws-architect": "^6.5",
+    "aws-sdk": "^2.877.0",
     "chai": "^4.2.0",
     "commander": "^2.19.0",
     "error-object-polyfill": "^1.0.13",
