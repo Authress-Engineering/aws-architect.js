@@ -23,7 +23,6 @@ let fs = require('fs-extra');
 let path = require('path');
 let os = require('os');
 let uuid = require('uuid');
-let http = require('http');
 
 let Server = require('./lib/server');
 let ApiGatewayManager = require('./lib/ApiGatewayManager');
@@ -34,7 +33,7 @@ let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
 let LockFinder = require('./lib/lockFinder');
 
 function AwsArchitect(packageMetadata, apiOptions, contentOptions) {
-  this.PackageMetadata = packageMetadata;
+  this.PackageMetadata = packageMetadata || {};
   this.ContentOptions = contentOptions || {};
   this.deploymentBucket = (apiOptions || {}).deploymentBucket;
   this.SourceDirectory = (apiOptions || {}).sourceDirectory;
