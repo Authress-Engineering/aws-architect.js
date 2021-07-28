@@ -65,19 +65,17 @@ commander
 			automaticallyProtectStack: true
 		};
 		await awsArchitect.validateTemplate(stackTemplate, stackConfiguration);
-		await awsArchitect.publishLambdaArtifactPromise();
 		if (isMasterBranch) {
 			let parameters = {
 				serviceName: packageMetadata.name,
 				serviceDescription: packageMetadata.description,
-				deploymentBucketName: apiOptions.deploymentBucket,
-				deploymentKeyName: `${packageMetadata.name}/${version}/lambda.zip`,
 				dnsName: packageMetadata.name.toLowerCase(),
 				hostedName: 'toplevel.domain.io'
 			};
 			await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
 		}
 
+    await awsArchitect.publishLambdaArtifactPromise();
 		let publicResult = await awsArchitect.publishAndDeployStagePromise({
 			stage: isMasterBranch ? 'production' : process.env.CI_COMMIT_REF_SLUG,
 			functionName: packageMetadata.name,
