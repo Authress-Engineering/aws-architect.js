@@ -58,7 +58,7 @@ In some cases authorization is necessary. Cognito is always an option, but for m
         ]
       },
       context: {
-        "stringKey": "stringval",
+        "stringKey": "string-val",
         "numberKey": 123,
         "booleanKey": true
       }
@@ -90,7 +90,7 @@ let options = {
 };
 publishLambdaArtifactPromise(options = {}) {...}
 
-// Validate a cloud formation stack template usinc CloudFormation
+// Validate a cloud formation stack template using CloudFormation
 validateTemplate(stackTemplate) {...}
 
 // Deploy a Cloudformation template to AWS, should be used to create all the infrastructure required and run only on master branches
@@ -98,7 +98,7 @@ let stackConfiguration = {
   stackName: 'STACK_NAME'
   changeSetName: 'NAME_OF_CHANGE_SET'
 };
-let parameters = { /** PARAMATERS_FOR_YOUR_TEMPLATE, but also include these unless being overwritten in your template */
+let parameters = { /** PARAMETERS_FOR_YOUR_TEMPLATE, but also include these unless being overwritten in your template */
   serviceName: packageMetadata.name,
   serviceDescription: packageMetadata.description,
   dnsName: packageMetadata.name.toLowerCase()
@@ -156,7 +156,7 @@ Publishing the website has an `options` object which defaults to:
 * Standardize CF template for S3 bucket hosting for a website
 * Default configuration to automatically handle the creation of pull request deployments to test infrastructure before production
 * Working templated sample and make.js file to run locally and CI build.
-* Lambda/API Gateway setup for seemless integration.
+* Lambda/API Gateway setup for seamless integration.
 * Automatic creation of AWS resources when using including:
   * Lambda functions
   * API Gateway resources
