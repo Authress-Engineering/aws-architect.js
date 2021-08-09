@@ -5,14 +5,6 @@ It should be easy, and it also should be automated. But both of those things usu
 [![Build Status](https://travis-ci.org/wparad/aws-architect.js.svg?branch=master)](https://travis-ci.org/wparad/aws-architect.js)
 
 ## Usage
-
-### First time setup
-AWS Architect uses some CF macros that need to be deployed to CloudFormation. These exist to make your stacks simplier. To deploy them, run these two commands. You'll want to replace the two variables with an S3 bucket and AWS credentials profile (unless you want to use the default).
-```sh
-  npm install -g aws-architect-cf-macros
-  aws-architect-cf-macros deploy TMP_DEPLOYMENT_BUCKET --profile PROFILE_NAME
-```
-
 ### Creating a microservice: `init`
 This will also configure your aws account to allow your build system to automatically deploy to AWS. Run locally
 
