@@ -13,57 +13,57 @@ This will also configure your aws account to allow your build system to automati
 * `aws-architect init`
 * `npm install`
 * Update:
-	* `package.json`: package name, the package name is used to name your resources
-	* `make.js`: Deployment bucket, Resource, and DNS name parameters which are used for CF deployment
+  * `package.json`: package name, the package name is used to name your resources
+  * `make.js`: Deployment bucket, Resource, and DNS name parameters which are used for CF deployment
 
 #### API Sample
 Using `openapi-factory` we can create a declarative api to run inside the lambda function.
 
 ```javascript
-	let aws = require('aws-sdk');
-	let Api = require('openapi-factory');
-	let api = new Api();
-	module.exports = api;
+  let aws = require('aws-sdk');
+  let Api = require('openapi-factory');
+  let api = new Api();
+  module.exports = api;
 
-	api.get('/sample', (request) => {
-		return { statusCode: 200, body: { value: 1} };
-	});
+  api.get('/sample', (request) => {
+    return { statusCode: 200, body: { value: 1} };
+  });
 ```
 
 ##### Lambda with no API sample
 Additionally, `openapi-factory` is not required, and executing the lambda handler directly can be done as well.
 
 ```javascript
-	exports.handler = (event, context, callback) => {
-		console.log(`event: ${JSON.stringify(event, null, 2)}`);
-		console.log(`context: ${JSON.stringify(context, null, 2)}`);
-		callback(null, {Event: event, Context: context});
-	};
+  exports.handler = (event, context, callback) => {
+    console.log(`event: ${JSON.stringify(event, null, 2)}`);
+    console.log(`context: ${JSON.stringify(context, null, 2)}`);
+    callback(null, {Event: event, Context: context});
+  };
 ```
 ##### Set a custom authorizer
 In some cases authorization is necessary. Cognito is always an option, but for more fine grained control, your lambda can double as an authorizer.
 
 ```javascript
-	api.SetAuthorizer(event => {
-		return {
-			principalId: 'computed-authorized-principal-id',
-			policyDocument: {
-				Version: '2012-10-17',
-				Statement: [
-					{
-						Action: 'execute-api:Invoke',
-						Effect: 'Deny',
-						Resource: event.methodArn //'arn:aws:execute-api:*:*:*'
-					}
-				]
-			},
-			context: {
-				"stringKey": "stringval",
-				"numberKey": 123,
-				"booleanKey": true
-			}
-		};
-	});
+  api.SetAuthorizer(event => {
+    return {
+      principalId: 'computed-authorized-principal-id',
+      policyDocument: {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Action: 'execute-api:Invoke',
+            Effect: 'Deny',
+            Resource: event.methodArn //'arn:aws:execute-api:*:*:*'
+          }
+        ]
+      },
+      context: {
+        "stringKey": "stringval",
+        "numberKey": 123,
+        "booleanKey": true
+      }
+    };
+  });
 ```
 
 ### Library Functions
@@ -74,19 +74,19 @@ let packageMetadataFile = path.join(__dirname, 'package.json');
 let packageMetadata = require(packageMetadataFile);
 
 let apiOptions = {
-	sourceDirectory: path.join(__dirname, 'src'),
-	description: 'This is the description of the lambda function',
-	regions: ['eu-west-1']
+  sourceDirectory: path.join(__dirname, 'src'),
+  description: 'This is the description of the lambda function',
+  regions: ['eu-west-1']
 };
 let contentOptions = {
-	bucket: 'WEBSITE_BUCKET_NAME',
-	contentDirectory: path.join(__dirname, 'content')
+  bucket: 'WEBSITE_BUCKET_NAME',
+  contentDirectory: path.join(__dirname, 'content')
 };
 let awsArchitect = new AwsArchitect(packageMetadata, apiOptions, contentOptions);
 
 // Package a directory in a zip archive and deploy to an S3 bucket, required for stage deployment and CF stack deployment
 let options = {
-	bucket: 'BUCKET_NAME'
+  bucket: 'BUCKET_NAME'
 };
 publishLambdaArtifactPromise(options = {}) {...}
 
@@ -95,13 +95,13 @@ validateTemplate(stackTemplate) {...}
 
 // Deploy a Cloudformation template to AWS, should be used to create all the infrastructure required and run only on master branches
 let stackConfiguration = {
-	stackName: 'STACK_NAME'
-	changeSetName: 'NAME_OF_CHANGE_SET'
+  stackName: 'STACK_NAME'
+  changeSetName: 'NAME_OF_CHANGE_SET'
 };
 let parameters = { /** PARAMATERS_FOR_YOUR_TEMPLATE, but also include these unless being overwritten in your template */
-	serviceName: packageMetadata.name,
-	serviceDescription: packageMetadata.description,
-	dnsName: packageMetadata.name.toLowerCase()
+  serviceName: packageMetadata.name,
+  serviceDescription: packageMetadata.description,
+  dnsName: packageMetadata.name.toLowerCase()
 };
 deployTemplate(stackTemplate, stackConfiguration, parameters) {...}
 
@@ -129,25 +129,25 @@ AWS Architect has the ability to set up and configure an S3 bucket for static we
 Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
 ```javascript
-	awsArchitect.publishWebsite('deadc0de-1', options)
-	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-	.catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
+  awsArchitect.publishWebsite('deadc0de-1', options)
+  .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+  .catch((failure) => console.log(`Failed to upload website ${failure} - ${JSON.stringify(failure, null, 2)}`));
 
-	awsArchitect.promoteToStage('deadc0de-1', 'production')
-	.then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
-	.catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
+  .promoteToStage('deadc0de-1', 'production')
+  .then((result) => console.log(`${JSON.stringify(result, null, 2)}`))
+  .catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
 ```
 
 ##### Website publish options
 Publishing the website has an `options` object which defaults to:
-```
+```js
 {
-	// provide overrides for paths to change bucket cache control policy, default 600 seconds,
-	cacheControlRegexMap: [
-		{ regex: '/index.html/', value: 'public, max-age=10' },
-		{ explicit: 'only.this.static.file', value: 'public, max-age=10' }
-		{ value: 'public, max-age=600' }
-	}
+  // provide overrides for paths to change bucket cache control policy, default 600 seconds,
+  cacheControlRegexMap: [
+    { regex: '/index.html/', value: 'public, max-age=10' },
+    { explicit: 'only.this.static.file', value: 'public, max-age=10' }
+    { value: 'public, max-age=600' }
+  ]
 }
 ```
 ## Built-in functionality
@@ -158,11 +158,11 @@ Publishing the website has an `options` object which defaults to:
 * Working templated sample and make.js file to run locally and CI build.
 * Lambda/API Gateway setup for seemless integration.
 * Automatic creation of AWS resources when using including:
-	* Lambda functions
-	* API Gateway resources
-	* Environments for managing resources in AWS
-	* S3 Buckets and directorys
-	* S3 static website hosting
+  * Lambda functions
+  * API Gateway resources
+  * Environments for managing resources in AWS
+  * S3 Buckets and directories
+  * S3 static website hosting
 * Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally.
 
 ### Service Configuration
