@@ -243,7 +243,6 @@ AwsArchitect.prototype.cleanupPreviousFunctionVersions = async function(function
 AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = function(version, options = {}) {
   if (!this.BucketManager.Bucket) { throw new Error('Bucket in cotent options has not been defined.'); }
   if (!this.ContentOptions.contentDirectory) { throw new Error('Content directory is not defined.'); }
-  if (!version) { throw new Error('Deployment version is not defined.'); }
 
   return this.BucketManager.Deploy(this.ContentOptions.contentDirectory, version, options.cacheControlRegexMap || [], options.contentTypeMappingOverride, options.enableIndexConversion);
 };
