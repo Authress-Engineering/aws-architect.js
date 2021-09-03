@@ -326,6 +326,13 @@ chalk@^4.0.0:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
+ci-build-tools@^1.0.13:
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/ci-build-tools/-/ci-build-tools-1.0.13.tgz#5c63e99d088a3052e06c2a07ebede586bd14cffc"
+  integrity sha1-XGPpnQiKMFLgbCoH6+3lhr0Uz/w=
+  dependencies:
+    semver "^5.0.3"
+
 cliui@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-5.0.0.tgz#deefcfdb2e800784aa34f46fa08e06851c7bbbc5"
@@ -2028,13 +2035,6 @@ toidentifier@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha512-yaOH/Pk/VEhBWWTlhI+qXxDFXlejDGcQipMlyxda9nthulaxLZUNcUqFxokp0vcYnvteJln5FNQDRrxj3YcbVw==
-
-travis-build-tools@~1.2:
-  version "1.2.39"
-  resolved "https://registry.yarnpkg.com/travis-build-tools/-/travis-build-tools-1.2.39.tgz#6c7b820046f3bcee3a71a17719ee619b4f2f0909"
-  integrity sha1-bHuCAEbzvO46caF3Ge5hm08vCQk=
-  dependencies:
-    semver "^5.0.3"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
