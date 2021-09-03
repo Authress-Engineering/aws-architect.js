@@ -39,11 +39,11 @@
   "devDependencies": {
     "aws-sdk": "*",
     "chai": "^3.5.0",
+    "ci-build-tools": "^1.0.13",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
     "mocha": "^6.2.0",
-    "sinon": "^1.17.3",
-    "travis-build-tools": "~1.2"
+    "sinon": "^1.17.3"
   },
   "repository": {
     "type": "git",
