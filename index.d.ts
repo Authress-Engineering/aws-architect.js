@@ -59,18 +59,19 @@ interface WebsiteDeploymentOptions {
 }
 
 declare class AwsArchitect {
-	constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
-	publishZipArchive(options: PublishZipOptions): Promise<object>;
-	publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<object>;
-	validateTemplate(stackTemplate: object): Promise<object>;
+  constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
+  publishZipArchive(options: PublishZipOptions): Promise<object>;
+  publishLambdaArtifactPromise(options: PublishLambdaOptions): Promise<object>;
+  validateTemplate(stackTemplate: object): Promise<object>;
   deployTemplate(stackTemplate: object, stackConfiguration: StackConfiguration, parameters: object): Promise<object>;
   deployStackSetTemplate(stackTemplate: object, stackSetConfiguration: StackSetConfiguration, parameters: object): Promise<object>;
-	deployStagePromise(stage: string, lambdaVersion: string): Promise<object>;
-	removeStagePromise(stage: string, functionName: string): Promise<object>;
-	cleanupPreviousFunctionVersions(functionName: string, forceRemovalOfAliases: string): Promise<object>;
-	publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<object>;
-	publishWebsite(version: string, options: WebsiteDeploymentOptions): Promise<object>;
-	run(port: number, logger: Function): Promise<object>;
+  deployStagePromise(stage: string, lambdaVersion: string): Promise<object>;
+  removeStagePromise(stage: string, functionName: string): Promise<object>;
+  cleanupPreviousFunctionVersions(functionName: string, forceRemovalOfAliases: string): Promise<object>;
+  publishAndDeployStagePromise(options: StageDeploymentOptions): Promise<object>;
+  publishWebsite(version: string, options: WebsiteDeploymentOptions): Promise<object>;
+  deleteWebsiteVersion(version: string): Promise<object>;
+  run(port: number, logger: Function): Promise<object>;
 }
 
 export = AwsArchitect;
