@@ -1,6 +1,9 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 6.6 ##
+* Add support to `deleteWebsiteVersion(version)`
+
 ## 6.5 ##
 * Support APIGW version 2
 

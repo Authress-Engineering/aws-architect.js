@@ -41,6 +41,7 @@
     "aws-sdk": "*",
     "chai": "^3.5.0",
     "ci-build-tools": "^1.0.13",
+    "error-object-polyfill": "^1.1.14",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
     "mocha": "^6.2.0",

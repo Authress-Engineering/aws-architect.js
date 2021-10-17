@@ -558,6 +558,11 @@ enquirer@^2.3.5:
   dependencies:
     ansi-colors "^4.1.1"
 
+error-object-polyfill@^1.1.14:
+  version "1.1.14"
+  resolved "https://registry.yarnpkg.com/error-object-polyfill/-/error-object-polyfill-1.1.14.tgz#0a61a1c403f8eace3d9b181c6b9724d5b628936a"
+  integrity sha512-t/5BSk/VviY32dta1vPgeFFYy1pv7ZExZ6iOKFpOXeXt7+4jvYBlHmQkBf+kC47qGfJiCWwO+v1ZaxmXMfbxvw==
+
 es-abstract@^1.18.0-next.1, es-abstract@^1.18.0-next.2:
   version "1.18.0"
   resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.18.0.tgz#ab80b359eecb7ede4c298000390bc5ac3ec7b5a4"
