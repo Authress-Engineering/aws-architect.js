@@ -249,7 +249,7 @@ AwsArchitect.prototype.publishWebsite = AwsArchitect.prototype.PublishWebsite = 
 
 AwsArchitect.prototype.deleteWebsiteVersion = function(version) {
   if (!this.BucketManager.Bucket) { throw new Error('Bucket in content options has not been defined.'); }
-  if (!this.version) { throw new Error('Website version is required.'); }
+  if (!version) { throw new Error('Website version is required.'); }
 
   return this.BucketManager.deletePath(version);
 };
