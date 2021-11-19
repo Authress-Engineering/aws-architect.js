@@ -35,7 +35,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Now supports calling schedule and event triggers locally via the REST api.
 * Nodejs8.10 by default
 * Auto increment port starting at 8080 or specified up to 10 ports before falling back to a random port.
-* Use `-`s in stage names instead of `_` so that more CIs can match their enviroments sligs correctl.
+* Use `-`s in stage names instead of `_` so that more CIs can match their environments stages correctly.
 * Added default override for S3 content type uploads.
 * Allow deploying `.files` using the `bucketManager`
 * Dynamically inject `http` and `api` subpath into url hrefs.
