@@ -120,7 +120,7 @@ commander
       let parameters = {
         serviceName: 'example-service', // must result in a valid Lambda name; for example cannot contain "."
         dnsName: packageMetadata.name.toLowerCase(),
-        hostedName: 'toplevel.domain.io',
+        hostedZoneId: 'ZHostedZoneID-Route53',
         useRoot: 'true'
       };
       await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
