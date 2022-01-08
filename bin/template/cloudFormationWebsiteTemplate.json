@@ -5,9 +5,9 @@
       "Type": "String",
       "Description": "The full DNS name for the site."
     },
-    "hostedName": {
+    "hostedZoneId": {
       "Type": "String",
-      "Description": "The name of the hostedZone"
+      "Description": "The hostedZone ID"
     }
   },
 
@@ -66,7 +66,17 @@
         "SubjectAlternativeNames": [
           { "Fn::Sub": "*.${dnsName}" }
         ],
-        "ValidationMethod": "DNS"
+        "ValidationMethod": "DNS",
+        "DomainValidationOptions": [
+          {
+            "DomainName": { "Fn::Sub": "${dnsName}" },
+            "HostedZoneId": { "Ref": "hostedZoneId" }
+          },
+          {
+            "DomainName": { "Fn::Sub": "*.${dnsName}" },
+            "HostedZoneId": { "Ref": "hostedZoneId" }
+          }
+        ]
       }
     },
 
@@ -148,7 +158,7 @@
           "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
           "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
         "Name":  { "Fn::Sub": "tst.${dnsName}." },
         "Type": "A"
       }
@@ -161,7 +171,7 @@
           "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
           "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
         "Name":  { "Fn::Sub": "${dnsName}." },
         "Type": "A"
       }
@@ -174,7 +184,7 @@
           "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
           "HostedZoneId": "Z2FDTNDATAQYW2"
         },
-        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
         "Name":  { "Fn::Sub": "*.${dnsName}." },
         "Type": "A"
       }
