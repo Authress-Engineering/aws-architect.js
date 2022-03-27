@@ -31,8 +31,8 @@
     "lodash.isequal": "^4.5.0",
     "mime-types": "^2.1.27",
     "morgan": "^1.9.1",
-    "tmp": "^0.0.33",
-    "uuid": "^2.0.2"
+    "short-uuid": "^4.2.0",
+    "tmp": "^0.0.33"
   },
   "peerDependencies": {
     "aws-sdk": ">=2.877.0"

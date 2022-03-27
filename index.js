@@ -4,7 +4,7 @@ let exec = require('child_process').exec;
 let fs = require('fs-extra');
 let path = require('path');
 let os = require('os');
-let uuid = require('uuid');
+const shortUuid = require('short-uuid');
 
 let Server = require('./lib/server');
 let ApiGatewayManager = require('./lib/ApiGatewayManager');
@@ -47,7 +47,7 @@ AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
   if (!options.zipFileName || !this.deploymentBucket || !options.sourceDirectory) {
     throw Error('The zipFileName, sourceDirectory, api options deploymentBucket must be specified.');
   }
-  let tmpDir = path.join(os.tmpdir(), `zipDirectory-${uuid.v4()}`);
+  let tmpDir = path.join(os.tmpdir(), `zipDirectory-${shortUuid.generate()}`);
   await new Promise((resolve, reject) => { fs.stat(options.sourceDirectory, (error, stats) => error || !stats.isDirectory ? reject(error || 'NotDirectoryError') : resolve()); });
   await fs.copy(options.sourceDirectory, tmpDir);
   let zipArchivePath = path.join(tmpDir, options.zipFileName);
@@ -67,7 +67,7 @@ AwsArchitect.prototype.publishZipArchive = async function(options = {}) {
 
 AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.PublishLambdaArtifactPromise = async function(options = {}) {
   let lambdaZip = options && options.zipFileName || 'lambda.zip';
-  let tmpDir = path.join(os.tmpdir(), `lambda-${uuid.v4()}`);
+  let tmpDir = path.join(os.tmpdir(), `lambda-${shortUuid.generate()}`);
 
   await new Promise((resolve, reject) => {
     fs.stat(this.SourceDirectory, (error, stats) => {
