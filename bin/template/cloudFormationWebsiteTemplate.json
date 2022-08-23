@@ -90,8 +90,8 @@
             { "Ref": "dnsName" },
             { "Fn::Sub": "*.${dnsName}" }
           ],
-          "HttpVersion": "http2",
-          "PriceClass": "PriceClass_100",
+          "HttpVersion": "http2and3",
+          "PriceClass": "PriceClass_200",
           "Origins": [
             {
               "OriginPath": "/v1",
@@ -123,7 +123,7 @@
           "Enabled": true,
           "ViewerCertificate": {
             "AcmCertificateArn": { "Ref": "AcmCertificate" },
-            "MinimumProtocolVersion": "TLSv1.2_2019",
+            "MinimumProtocolVersion": "TLSv1.2_2021",
             "SslSupportMethod": "sni-only"
           },
           "DefaultCacheBehavior": {
