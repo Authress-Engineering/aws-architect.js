@@ -44,7 +44,7 @@
     "error-object-polyfill": "^1.1.14",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "glob": "^5.0.15",
-    "mocha": "^9.2.1",
+    "mocha": "^10.1.0",
     "sinon": "^1.17.3"
   },
   "repository": {
