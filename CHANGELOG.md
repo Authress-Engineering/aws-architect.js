@@ -5,6 +5,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Add support to `deleteWebsiteVersion(version)`
 * Fix `The function must be in an Active state. The current state for function arn:aws:lambda:Function:514 is Pending`.
 * Automatically delete existing ROLLBACK_COMPLETE stacks.
+* Add Ipv6 records to the cloudformation templates.
 
 ## 6.5 ##
 * Support APIGW version 2

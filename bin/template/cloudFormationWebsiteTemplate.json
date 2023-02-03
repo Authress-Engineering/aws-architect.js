@@ -164,6 +164,19 @@
       }
     },
 
+    "TestRoute53Ipv6": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
+        },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
+        "Name":  { "Fn::Sub": "tst.${dnsName}." },
+        "Type": "AAAA"
+      }
+    },
+
     "ProdRoute53": {
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
@@ -174,6 +187,18 @@
         "HostedZoneId": { "Ref": "hostedZoneId" },
         "Name":  { "Fn::Sub": "${dnsName}." },
         "Type": "A"
+      }
+    },
+    "ProdRoute53Ipv6": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
+        },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
+        "Name":  { "Fn::Sub": "${dnsName}." },
+        "Type": "AAAA"
       }
     },
 
@@ -187,6 +212,19 @@
         "HostedZoneId": { "Ref": "hostedZoneId" },
         "Name":  { "Fn::Sub": "*.${dnsName}." },
         "Type": "A"
+      }
+    },
+
+    "WildcardProdRoute53Ipv6": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt" : [ "CloudFrontDistribution", "DomainName" ] },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
+        },
+        "HostedZoneId": { "Ref": "hostedZoneId" },
+        "Name":  { "Fn::Sub": "*.${dnsName}." },
+        "Type": "AAAA"
       }
     }
   }

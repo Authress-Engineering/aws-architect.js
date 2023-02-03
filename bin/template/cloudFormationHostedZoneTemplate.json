@@ -7,10 +7,6 @@
     }
   },
 
-  "Transform": [
-    "AwsArchitectMacros"
-  ],
-
   "Resources": {
     "HostedZone": {
       "Type": "AWS::Route53::HostedZone",
@@ -28,16 +24,11 @@
         "SubjectAlternativeNames": [
           { "Fn::Sub": "*.${hostedZoneName}" }
         ],
-        "ValidationMethod": "DNS"
-      }
-    },
-    "AcmCertificateValidationForHostedZone": {
-      "Type": "AwsArchitectResource::Route53DnsValidationRecord",
-      "Properties": {
-        "HostedZoneName": { "Fn::Sub": "${hostedZoneName}." },
-        "CertificateName": { "Ref": "hostedZoneName" },
-        "TTL": "300",
-        "Type": "CNAME"
+        "ValidationMethod": "DNS",
+        "DomainValidationOptions": [{
+          "DomainName": { "Ref": "hostedZoneName" },
+          "HostedZoneId": { "Ref": "HostedZone" }
+        }]
       }
     }
   }

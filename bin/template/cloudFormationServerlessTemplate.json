@@ -28,14 +28,14 @@
         "FunctionName": { "Ref": "serviceName" },
         "Description": { "Ref": "serviceDescription" },
         "Handler": "index.handler",
-        "Runtime": "nodejs12.x",
+        "Runtime": "nodejs16.x",
         "TracingConfig": {
           "Mode": "PassThrough"
         },
         "Code": {
           "ZipFile": "exports.handler = async() => Promise.resolve()"
         },
-        "MemorySize": 256,
+        "MemorySize": 1769,
         "Timeout": 60,
         "Role": { "Fn::GetAtt": ["LambdaRole", "Arn"] },
         "Tags": [
@@ -116,6 +116,14 @@
         "FunctionName": { "Fn::GetAtt": ["LambdaFunction", "Arn"] },
         "FunctionVersion": { "Fn::GetAtt": ["LambdaFunctionVersion", "Version"] },
         "Name": "production"
+      }
+    },
+
+    "CloudWatchLambdaLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": { "Fn::Sub": "/aws/lambda/${serviceName}" },
+        "RetentionInDays": 365
       }
     },
 
@@ -324,6 +332,20 @@
       }
     },
 
+    "Route53MapToCustomDomainIpv6": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt": [ "ServiceDomainName", "RegionalDomainName" ] },
+          "HostedZoneId": { "Fn::GetAtt": [ "ServiceDomainName", "RegionalHostedZoneId" ] }
+        },
+        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "Comment": { "Fn::Sub": "Created for service ${serviceName}" },
+        "Name": { "Fn::Sub": "${dnsName}.${hostedName}." },
+        "Type": "AAAA"
+      }
+    },
+
     "Route53MapToCustomDomainTst": {
       "Type": "AWS::Route53::RecordSet",
       "Properties": {
@@ -335,6 +357,20 @@
         "Comment": { "Fn::Sub": "Created for service ${serviceName}" },
         "Name": { "Fn::Sub": "tst-${dnsName}.${hostedName}." },
         "Type": "A"
+      }
+    },
+
+    "Route53MapToCustomDomainTstIpv6": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "AliasTarget": {
+          "DNSName": { "Fn::GetAtt": [ "ServiceDomainNameTst", "RegionalDomainName" ] },
+          "HostedZoneId": { "Fn::GetAtt": [ "ServiceDomainNameTst", "RegionalHostedZoneId" ] }
+        },
+        "HostedZoneName": { "Fn::Sub": "${hostedName}." },
+        "Comment": { "Fn::Sub": "Created for service ${serviceName}" },
+        "Name": { "Fn::Sub": "tst-${dnsName}.${hostedName}." },
+        "Type": "AAAA"
       }
     }
   }
