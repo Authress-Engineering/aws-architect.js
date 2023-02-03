@@ -1,57 +1,59 @@
-const aws = require('aws-sdk');
 const Api = require('openapi-factory');
 const path = require('path');
 const fs = require('fs-extra');
-const { Authorizer, RequestLogger, PlatformClient } = require('microservice-utilities');
+const { TokenVerifier } = require('authress-sdk');
 
-let logger = new RequestLogger();
 const api = new Api({
-	requestMiddleware(request) {
-		logger.log({ title: 'RequestLogger', level: 'INFO', request: request });
-		let userToken = request.requestContext.authorizer && request.requestContext.authorizer.jwt;
-		request.userPlatformClient = new PlatformClient(msg => logger.log(msg), () => userToken);
-		return request;
-	}
+  requestMiddleware(request) {
+    console.log(JSON.stringify({ title: 'RequestLogger', level: 'INFO', request: request }));
+    return request;
+  }
 });
 module.exports = api;
-
-const authorizerConfiguration = { jwkKeyListUrl: 'https://authorization.domain.com/.well-known/jwks.json' };
-let authorizer = new Authorizer(msg => logger.log(msg), authorizerConfiguration);
 
 api.onEvent(trigger => {});
 api.onSchedule(trigger => {});
 
-api.setAuthorizer(request => {
-	return authorizer.getPolicy(request);
+api.setAuthorizer(async request => {
+  try {
+    const userToken = request.headers.Authorization.split(' ')[1];
+    // What should my url be? => https://authress.io/app/#/setup?focus=domain
+    // https://github.com/authress/authress-sdk.js
+    const userIdentity = await TokenVerifier('https://authorization.domain.com', userToken);
+    return userIdentity;
+  } catch (error) {
+    console.log('User is unauthorized', error);
+    return { statusCode: 401 };
+  }
 });
 
 api.get('/.well-known/openapi.json', async () => {
-	let openapiFile = path.join(__dirname, './openapi.json');
-	let data = await fs.readJson(openapiFile);
-	return { statusCode: 200, body: data };
+  let openapiFile = path.join(__dirname, './openapi.json');
+  let data = await fs.readJson(openapiFile);
+  return { statusCode: 200, body: data };
 });
 
 api.get('/livecheck', () => {
-	return { statusCode: 200, body: { field: 'hello world' } };
+  return { statusCode: 200, body: { field: 'hello world' } };
 });
 
 api.get('/v1/resource/{resourceId}', request => {
-	return { statusCode: 200, body: { resourceId: request.pathParameters.resourceId }, headers: { 'Content-Type': 'application/json' } };
+  return { statusCode: 200, body: { resourceId: request.pathParameters.resourceId }, headers: { 'Content-Type': 'application/json' } };
 });
 
 api.options('/{proxy+}', request => {
-	return {
-		statusCode: 200,
-		headers: {
-			'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
-			'Access-Control-Allow-Methods': 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
-			'Access-Control-Allow-Origin': request.headers.Origin || '*'
-		}
-	};
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key',
+      'Access-Control-Allow-Methods': 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
+      'Access-Control-Allow-Origin': request.headers.Origin || '*'
+    }
+  };
 });
 
 api.any('/{proxy+}', request => {
-	/*
+  /*
 		{
 			request: {
 				"resource": "/{proxy+}",
@@ -84,5 +86,5 @@ api.any('/{proxy+}', request => {
 			}
 		}
 	*/
-	return { statusCode: 404 };
+  return { statusCode: 404 };
 });

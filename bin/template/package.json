@@ -14,13 +14,12 @@
     "test": "mocha tests/**/*.js -R spec"
   },
   "dependencies": {
+    "authress-sdk": "^2.0.56",
     "axios": "^0.21.4",
     "ci-build-tools": "^1.0.13",
     "fs-extra": "^7.0.1",
-    "jsonwebtoken": "^8.4.0",
-    "jwk-to-pem": "^2.0.0",
     "microservice-utilities": "^0.1.121",
-    "openapi-factory": "^4.3"
+    "openapi-factory": "^5.3.48"
   },
   "devDependencies": {
     "aws-architect": "^6.5",
