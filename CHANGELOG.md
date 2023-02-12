@@ -1,6 +1,8 @@
 # Change log
 This is the changelog for [AWS Architect](readme.md).
 
+## 6.7 ##
+* Fix handlers for /route and /route/ so that the index.html is always duplicated.
 ## 6.6 ##
 * Add support to `deleteWebsiteVersion(version)`
 * Fix `The function must be in an Active state. The current state for function arn:aws:lambda:Function:514 is Pending`.
