@@ -38,6 +38,11 @@ interface StackSetConfiguration {
   regions: string[];
 }
 
+interface OrganizationalStackSetConfiguration {
+  changeSetName: string;
+  stackSetName: string;
+}
+
 
 interface StageDeploymentOptions {
   stage: string;
@@ -64,6 +69,7 @@ declare class AwsArchitect {
   validateTemplate(stackTemplate: object): Promise<object>;
   deployTemplate(stackTemplate: object, stackConfiguration: StackConfiguration, parameters: object): Promise<object>;
   deployStackSetTemplate(stackTemplate: object, stackSetConfiguration: StackSetConfiguration, parameters: object): Promise<object>;
+  configureStackSetForAwsOrganization(stackTemplate: object, stackSetConfiguration: OrganizationalStackSetConfiguration, parameters: object): Promise<object>;
   deployStagePromise(stage: string, lambdaVersion: string): Promise<object>;
   removeStagePromise(stage: string, functionName: string): Promise<object>;
   cleanupPreviousFunctionVersions(functionName: string, forceRemovalOfAliases: string): Promise<object>;

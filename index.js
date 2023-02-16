@@ -151,6 +151,28 @@ AwsArchitect.prototype.deployStackSetTemplate = async function(stackTemplate, st
   return this.CloudFormationDeployer.deployStackSetTemplate(accountId, stackTemplate, stackConfiguration, parameters, `${this.PackageMetadata.name}/${this.PackageMetadata.version}`);
 };
 
+AwsArchitect.prototype.configureStackSetForAwsOrganization = async function(stackTemplate, stackConfiguration, parameters) {
+  try {
+    await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetExecutionRole' }).promise();
+  } catch (error) {
+    if (error.code === 'NoSuchEntity') {
+      throw { title: 'Role "AWSCloudFormationStackSetExecutionRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
+    }
+    throw error;
+  }
+
+  try {
+    await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetAdministrationRole' }).promise();
+  } catch (error) {
+    if (error.code === 'NoSuchEntity') {
+      throw { title: 'Role "AWSCloudFormationStackSetAdministrationRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
+    }
+    throw error;
+  }
+
+  return this.CloudFormationDeployer.configureStackSetForAwsOrganization(stackTemplate, stackConfiguration, parameters);
+};
+
 AwsArchitect.prototype.deployStagePromise = AwsArchitect.prototype.DeployStagePromise = function(stage, lambdaVersion) {
   if (!stage) { throw new Error('Deployment stage is not defined.'); }
   if (!lambdaVersion) { throw new Error('Deployment lambdaVersion is not defined.'); }
