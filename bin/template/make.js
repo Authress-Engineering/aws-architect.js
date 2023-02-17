@@ -118,10 +118,8 @@ commander
     await awsArchitect.validateTemplate(stackTemplate, stackConfiguration);
     if (isMasterBranch) {
       let parameters = {
-        serviceName: 'example-service', // must result in a valid Lambda name; for example cannot contain "."
-        dnsName: packageMetadata.name.toLowerCase(),
-        hostedZoneId: 'ZHostedZoneID-Route53',
-        useRoot: 'true'
+        dnsName: 'your-app.example.com',
+        hostedZoneId: 'Z_Your_HostedZoneID_Route53'
       };
       await awsArchitect.deployTemplate(stackTemplate, stackConfiguration, parameters);
     } else {

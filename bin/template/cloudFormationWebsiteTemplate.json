@@ -6,7 +6,7 @@
       "Description": "The full DNS name for the site."
     },
     "hostedZoneId": {
-      "Type": "String",
+      "Type": "AWS::Route53::HostedZone::Id",
       "Description": "The hostedZone ID"
     }
   },
