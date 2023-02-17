@@ -21,11 +21,7 @@
           "Key": "Service",
           "Value": { "Ref": "dnsName" }
           }
-        ],
-        "WebsiteConfiguration" : {
-          "ErrorDocument" : "index.html",
-          "IndexDocument" : "index.html"
-        }
+        ]
       }
     },
 
