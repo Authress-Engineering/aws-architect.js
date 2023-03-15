@@ -4,6 +4,7 @@ This is the changelog for [AWS Architect](readme.md).
 ## 6.7 ##
 * Fix handlers for /route and /route/ so that the index.html is always duplicated.
 * Add support for organizational stack set deployment
+* Remove invalid regions from organizational deployment [eu-central-2, ap-south-2, eu-south-2, me-central-1, ap-southeast-4]
 
 ## 6.6 ##
 * Add support to `deleteWebsiteVersion(version)`
