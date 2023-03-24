@@ -9,7 +9,7 @@ describe('lib/lockFinder.js', function() {
     {
       name: 'find aws-architect lock file.',
       startLocation: __dirname,
-      expectedResult: { type: 'yarn', file: path.join(__dirname, '..', 'yarn.lock') }
+      expectedResult: { type: 'yarn', file: path.join(__dirname, '..', 'yarn.lock'), command: 'yarn --prod --frozen-lockfile' }
     },
     {
       name: 'Does not find aws-architect lock file.',

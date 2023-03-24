@@ -81,9 +81,10 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
 
   // (default: true) If set to true, will attempt to copy and install packages related to deployment (i.e. package.json for node)
   if (options.autoHandleCompileOfSourceDirectory !== false) {
-    await new LockFinder().findLockFile(this.SourceDirectory).then(lockFile => {
-      return lockFile ? fs.copy(lockFile.file, path.join(tmpDir, path.basename(lockFile.file))) : Promise.resolve();
-    });
+    const lockFile = await new LockFinder().findLockFile(this.SourceDirectory);
+    if (lockFile.file) {
+      await fs.copy(lockFile.file, path.join(tmpDir, path.basename(lockFile.file)));
+    }
 
     try {
       await fs.writeJson(path.join(tmpDir, 'package.json'), this.PackageMetadata);
@@ -91,8 +92,7 @@ AwsArchitect.prototype.publishLambdaArtifactPromise = AwsArchitect.prototype.Pub
       throw { Error: 'Failed writing production package.json file.', Details: error };
     }
 
-    const exists = await fs.pathExists(path.join(tmpDir, 'yarn.lock')).catch(() => false);
-    let cmd = exists ? 'yarn --prod --frozen-lockfile' : 'npm install --production';
+    let cmd = lockFile.command;
     await new Promise((resolve, reject) => {
       /* eslint-disable-next-line no-unused-vars */
       exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
