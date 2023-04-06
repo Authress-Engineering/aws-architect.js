@@ -6,6 +6,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Add support for organizational stack set deployment
 * Remove invalid regions from organizational deployment [eu-central-2, ap-south-2, eu-south-2, me-central-1, ap-southeast-4]
 * Support pnpm lock files
+* Support the new version of openapi-factory 5.4.
 
 ## 6.6 ##
 * Add support to `deleteWebsiteVersion(version)`
