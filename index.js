@@ -195,6 +195,31 @@ AwsArchitect.prototype.removeStagePromise = AwsArchitect.prototype.RemoveStagePr
   return { title: 'Successfully deleted stage', stage: stageName, details: result };
 };
 
+AwsArchitect.prototype.deployLambdaFunctionVersion = async function(options = {}) {
+  let stage = options.stage;
+  let stageName = getStageName(stage);
+  let functionName = options.functionName;
+  let bucket = options.deploymentBucketName || this.deploymentBucket;
+  let deploymentKey = options.deploymentKeyName;
+  if (!stage) { throw new Error('Deployment stage is not defined.'); }
+
+  try {
+    const lambda = await this.LambdaManager.PublishNewVersion(functionName, bucket, deploymentKey);
+    const lambdaArn = lambda.FunctionArn;
+    const lambdaVersion = lambda.Version;
+    await this.LambdaManager.SetAlias(functionName, stageName, lambdaVersion);
+
+    return {
+      LambdaResult: {
+        LambdaFunctionArn: lambdaArn,
+        LambdaVersion: lambdaVersion
+      }
+    };
+  } catch (failure) {
+    throw { Error: 'Failed to create and deploy updates.', Details: failure };
+  }
+};
+
 AwsArchitect.prototype.publishAndDeployStagePromise = AwsArchitect.prototype.PublishAndDeployStagePromise = async function(options = {}) {
   let stage = options.stage;
   let stageName = getStageName(stage);

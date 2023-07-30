@@ -112,6 +112,14 @@ publishAndDeployStagePromise(options) {
   // options.deploymentKeyName
 }
 
+// Deploy just a new version of a lambda function
+deployLambdaFunctionVersion(options) {
+  // options.stage
+  // options.functionName
+  // options.deploymentBucketName
+  // options.deploymentKeyName
+}
+
 // Removes a deployed stage, to be used on pull-request created stages (API gateway has a limit fo 5 stages)
 removeStagePromise(stage) {...}
 
