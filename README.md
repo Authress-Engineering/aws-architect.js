@@ -4,7 +4,7 @@ A hardened orchestrator for deploying Lambda microservices and S3 backed website
 
 This is an open source project managed by the [Authress Engineering team](https://authress.io).
   
-[![Authress Engineering - DynamoDB-Armor](https://img.shields.io/static/v1?label=Authress+Engineering&message=DynamoDB-Armor&color=%23FBAF0B&logo=androidauto&logoColor=%23FBAF0B)](https://authress.io) [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
+[![Authress Engineering](https://img.shields.io/static/v1?label=Authress+Engineering&message=AWS%20Architect&color=%23FBAF0B&logo=androidauto&logoColor=%23FBAF0B)](https://authress.io) [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
 
 ## Usage
 ### Creating a microservice: `init`
