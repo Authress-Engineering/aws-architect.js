@@ -1,7 +1,10 @@
 # AWS Architect
-It should be easy, and it also should be automated. But both of those things usually aren't free.  The ideal world has magic AI which can communicate with each other.  And to such a degree which doesn't require software architects to think about what the global picture is before an organization can deliver something of value.  The AWS Architect, attempts to eliminate the burden of projecting your vision of software to AWS.  AWS Architects your service using [Microservices](./docs/microservices/index.md).
 
-[![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
+A hardened orchestrator for deploying Lambda microservices and S3 backed websites to AWS, using best practices, and an SDK that handles every possible edge case.
+
+This is an open source project managed by the [Authress Engineering team](https://authress.io).
+  
+[![Authress Engineering - DynamoDB-Armor](https://img.shields.io/static/v1?label=Authress+Engineering&message=DynamoDB-Armor&color=%23FBAF0B&logo=androidauto&logoColor=%23FBAF0B)](https://authress.io) [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
 
 ## Usage
 ### Creating a microservice: `init`
