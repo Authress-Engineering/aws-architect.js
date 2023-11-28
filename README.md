@@ -1,75 +1,38 @@
 # AWS Architect
 
-A hardened orchestrator for deploying Lambda microservices and S3 backed websites to AWS, using best practices, and an SDK that handles every possible edge case.
+A hardened orchestrator for deploying Lambda microservices and S3 backed websites to AWS, using best practices, and an SDK that handles every possible edge case, with a focus on **safety**.
 
 This is an open source project managed by the [Authress Engineering team](https://authress.io).
-  
-[![Authress Engineering](https://img.shields.io/static/v1?label=Authress+Engineering&message=AWS%20Architect&color=%23FBAF0B&logo=androidauto&logoColor=%23FBAF0B)](https://authress.io) [![npm version](https://badge.fury.io/js/aws-architect.svg)](https://badge.fury.io/js/aws-architect)
+
+<p align="center">
+    <a href="https://authress.io" alt="Authress Engineering">
+      <img src="https://img.shields.io/static/v1?label=Authress+Engineering&message=OpenAPI%20Explorer&color=%23FBAF0B&logo=androidauto&logoColor=%23FBAF0B"></a>
+    <a href="./LICENSE" alt="apache 2.0 license">
+      <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg"></a>
+    <a href="https://badge.fury.io/js/aws-architect" alt="npm version">
+        <img src="https://badge.fury.io/js/aws-architect.svg"></a>
+    <a href="https://authress.io/community" alt="npm version">
+      <img src="https://img.shields.io/badge/community-Discord-purple.svg"></a>
+</p>
+
+## Features
+
+* Standardized CF template to deploy microservice to Lambda, API Gateway, Route 53, etc..
+* Standardized CF template for S3 bucket hosting for a website
+* Default configuration to automatically handle the creation of pull request deployments to test infrastructure before production
+* Working templated sample and make.js file to run locally and CI build.
+* Lambda/API Gateway setup for seamless integration.
+* Automatic creation of AWS resources when using including:
+  * Lambda functions
+  * API Gateway resources
+  * Environments for managing resources in AWS
+  * S3 Buckets and directories
+  * S3 static website hosting
+* Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally. Integrates with [OpenAPI-Factory](https://github.com/Authress-Engineering/openapi-factory.js#readme)
 
 ## Usage
-### Creating a microservice: `init`
-This will also configure your aws account to allow your build system to automatically deploy to AWS. Run locally
-
-* Create git repository and clone locally
-* `npm install aws-architect -g`
-* `aws-architect init`
-* `npm install`
-* Update:
-  * `package.json`: package name, the package name is used to name your resources
-  * `make.js`: Deployment bucket, Resource, and DNS name parameters which are used for CF deployment
-
-#### API Sample
-Using `openapi-factory` we can create a declarative api to run inside the lambda function.
-
-```javascript
-  let aws = require('aws-sdk');
-  let Api = require('openapi-factory');
-  let api = new Api();
-  module.exports = api;
-
-  api.get('/sample', (request) => {
-    return { statusCode: 200, body: { value: 1} };
-  });
-```
-
-##### Lambda with no API sample
-Additionally, `openapi-factory` is not required, and executing the lambda handler directly can be done as well.
-
-```javascript
-  exports.handler = (event, context, callback) => {
-    console.log(`event: ${JSON.stringify(event, null, 2)}`);
-    console.log(`context: ${JSON.stringify(context, null, 2)}`);
-    callback(null, {Event: event, Context: context});
-  };
-```
-##### Set a custom authorizer
-In some cases authorization is necessary. Cognito is always an option, but for more fine grained control, your lambda can double as an authorizer.
-
-```javascript
-  api.SetAuthorizer(event => {
-    return {
-      principalId: 'computed-authorized-principal-id',
-      policyDocument: {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Action: 'execute-api:Invoke',
-            Effect: 'Deny',
-            Resource: event.methodArn //'arn:aws:execute-api:*:*:*'
-          }
-        ]
-      },
-      context: {
-        "stringKey": "string-val",
-        "numberKey": 123,
-        "booleanKey": true
-      }
-    };
-  });
-```
 
 ### Library Functions
-#### AwsArchitect class functions
 
 ```javascript
 let packageMetadataFile = path.join(__dirname, 'package.json');
@@ -134,7 +97,7 @@ run(port, logger) {...}
 
 ```
 
-#### S3 Website Deployment
+### Example: S3 Website Deployment
 AWS Architect has the ability to set up and configure an S3 bucket for static website hosting. It provides a mechanism as well to deploy your content files directly to S3.
 Specify `bucket` in the configuration options for `contentOptions`, and configure the `PublishWebsite` function in the make.js file.
 
@@ -148,8 +111,7 @@ Specify `bucket` in the configuration options for `contentOptions`, and configur
   .catch((failure) => console.log(`Failed copying stage to production ${failure} - ${JSON.stringify(failure, null, 2)}`));
 ```
 
-##### Website publish options
-Publishing the website has an `options` object which defaults to:
+Configuration Options: Publishing the website has an `options` object which defaults to:
 ```js
 {
   // provide overrides for paths to change bucket cache control policy, default 600 seconds,
@@ -160,22 +122,20 @@ Publishing the website has an `options` object which defaults to:
   ]
 }
 ```
-## Built-in functionality
 
-* Standardize CF template to deploy microservice to Lambda, API Gateway, Route 53, etc..
-* Standardize CF template for S3 bucket hosting for a website
-* Default configuration to automatically handle the creation of pull request deployments to test infrastructure before production
-* Working templated sample and make.js file to run locally and CI build.
-* Lambda/API Gateway setup for seamless integration.
-* Automatic creation of AWS resources when using including:
-  * Lambda functions
-  * API Gateway resources
-  * Environments for managing resources in AWS
-  * S3 Buckets and directories
-  * S3 static website hosting
-* Developer testing platform, to run lambdas and static content as a local express Node.js service, to test locally.
+### CLI: Creating a microservice: `init`
+This will also configure your aws account to allow your build system to automatically deploy to AWS. Run locally
 
-### Service Configuration
+* Create git repository and clone locally
+* `npm install aws-architect -g`
+* `aws-architect init`
+* `npm install`
+* Update:
+  * `package.json`: package name, the package name is used to name your resources
+  * `make.js`: Deployment bucket, Resource, and DNS name parameters which are used for CF deployment
+
+
+## Built-in SAM and CFN templates:
 See [template service documentation](./bin/template/README.md) for how individual parts of the service are configured.
 
 ## Also
