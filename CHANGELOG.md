@@ -8,6 +8,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Support pnpm lock files
 * Support the new version of openapi-factory 5.4.
 * Duplicate all .html files as cleaned files. `file.html` => `file` and `file/`, all three will work
+* Fix validateTemplate so that it actually uses S3 when available.
 
 ## 6.6 ##
 * Add support to `deleteWebsiteVersion(version)`
