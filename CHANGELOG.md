@@ -10,6 +10,7 @@ This is the changelog for [AWS Architect](readme.md).
 * Duplicate all .html files as cleaned files. `file.html` => `file` and `file/`, all three will work
 * Fix validateTemplate so that it actually uses S3 when available.
 * Add support for new status `CONFIGURATION_COMPLETE`
+* Add missing `tags` properties to all interfaces.
 
 ## 6.6 ##
 * Add support to `deleteWebsiteVersion(version)`

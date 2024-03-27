@@ -1,68 +1,70 @@
-interface PackageMetadata {
+export interface PackageMetadata {
   name: string;
   version: string;
 }
 
-interface ApiOptions {
+export interface ApiOptions {
   regions: string[];
   deploymentBucket: string,
   sourceDirectory: string,
   description: string,
 }
 
-interface ContentOptions {
+export interface ContentOptions {
   bucket: string;
   contentDirectory: string;
 }
 
-interface PublishLambdaOptions {
+export interface PublishLambdaOptions {
   zipFileName: string;
   bucket: string;
   autoHandleCompileOfSourceDirectory: boolean;
 }
 
-interface PublishZipOptions {
+export interface PublishZipOptions {
   zipFileName: string;
   sourceDirectory: string;
 }
 
-interface StackConfiguration {
+export interface StackConfiguration {
   changeSetName: string;
   stackName: string;
-  automaticallyProtectStack: boolean;
+  automaticallyProtectStack?: boolean;
+  tags?: Record<string, string>;
 }
 
-interface StackSetConfiguration {
+export interface StackSetConfiguration {
   changeSetName: string;
   stackSetName: string;
   regions: string[];
+  tags?: Record<string, string>;
 }
 
-interface OrganizationalStackSetConfiguration {
+export interface OrganizationalStackSetConfiguration {
   changeSetName: string;
   stackSetName: string;
+  tags?: Record<string, string>;
 }
 
-
-interface StageDeploymentOptions {
+export interface StageDeploymentOptions {
   stage: string;
   functionName: string;
   deploymentBucketName: string;
   deploymentKeyName: string;
 }
 
-interface RegexOption {
+export interface RegexOption {
   explicit?: string,
   regex?: RegExp,
   value: string | number
 }
 
-interface WebsiteDeploymentOptions {
+export interface WebsiteDeploymentOptions {
   cacheControlRegexMap?: RegexOption[];
   contentTypeMappingOverride?: object;
 }
 
-declare class AwsArchitect {
+export class AwsArchitect {
   constructor(packageMetadata: PackageMetadata, apiOptions: ApiOptions, contentOptions: ContentOptions);
 
   publishZipArchive(options: PublishZipOptions): Promise<object>;
@@ -100,5 +102,3 @@ declare class AwsArchitect {
   deleteWebsiteVersion(version: string): Promise<object>;
   /* ****** */
 }
-
-export = AwsArchitect;
