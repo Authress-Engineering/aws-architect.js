@@ -38,11 +38,16 @@
     "aws-sdk": ">=2.877.0"
   },
   "devDependencies": {
+    "@authress/eslint-config": "^1.0.2",
     "aws-sdk": "*",
     "chai": "^3.5.0",
-    "ci-build-tools": "^1.0.13",
     "error-object-polyfill": "^1.1.14",
+    "eslint": "~8.35.0",
     "eslint-config-cimpress-atsquad": "^1.0.67",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-mocha": "^10.0.5",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
     "glob": "^5.0.15",
     "mocha": "^10.1.0",
     "sinon": "^1.17.3"

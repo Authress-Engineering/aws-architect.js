@@ -1,10 +1,9 @@
 /**
  * Module dependencies
  */
-let commander = require('commander');
-let fs = require('fs-extra');
+const commander = require('commander');
+const fs = require('fs-extra');
 
-const githubActionsRunner = require('ci-build-tools')(process.env.GITHUB_TOKEN);
 function getVersion() {
   let release_version = '0.0';
   const pull_request = '';
@@ -51,7 +50,6 @@ commander
   let package_metadata = require('./package.json');
   console.log('After build package %s (%s)', package_metadata.name, version);
   console.log('');
-  githubActionsRunner.MergeDownstream('release/', 'master');
 });
 
 commander.on('*', () => {

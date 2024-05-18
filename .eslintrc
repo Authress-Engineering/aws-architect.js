@@ -4,7 +4,7 @@
     "node": true
   },
   "extends": [
-    "cimpress-atsquad"
+    "@authress/eslint-config"
   ],
   "rules": {
     "arrow-parens": ["error", "as-needed"],
