@@ -1,7 +1,3 @@
-<p align="center">
-  <img height="300px" src="https://authress.io/static/images/media-banner.png" alt="Authress media banner">
-</p>
-
 # AWS Architect
 
 A hardened orchestrator for deploying Lambda microservices and S3 backed websites to AWS, using best practices, and an SDK that handles every possible edge case, with a focus on **safety**.
