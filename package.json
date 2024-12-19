@@ -22,7 +22,7 @@
     "axios": "0.28",
     "body-parser": "^1.18.2",
     "commander": "^2.5.0",
-    "cookie-parser": "^1.4.2",
+    "cookie-parser": "^1.4.7",
     "express": "^5",
     "fs-extra": "^6.0.1",
     "header-case-normalizer": "^1.0.3",
