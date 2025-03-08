@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "authress-sdk": "^2.0.56",
-    "axios": "^0.21.4",
     "fs-extra": "^7.0.1",
     "microservice-utilities": "^0.1.121",
     "openapi-factory": "^5.3.48"
