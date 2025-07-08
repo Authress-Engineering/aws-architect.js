@@ -265,7 +265,7 @@ class AwsArchitect {
         ServiceApi: `https://${apiGateway.Id}.execute-api.${this.Region}.amazonaws.com/${stageName}`
       };
     } catch (failure) {
-      throw { Error: 'Failed to create and deploy updates.', Details: failure };
+      throw { Error: 'Failed to create and deploy updates.', request: options, Details: failure };
     }
   }
 
