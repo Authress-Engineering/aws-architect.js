@@ -293,7 +293,7 @@ class AwsArchitect {
     try {
       let indexPath = path.join(this.SourceDirectory, 'index.js');
       let api = require(indexPath);
-      let server = new Server(this.ContentOptions.contentDirectory, api, logger);
+      let server = new Server(this.ContentOptions.contentDirectory, api.default || api, logger);
       let attemptPort = port || 8080;
       let resolvedPort = await server.Run(attemptPort);
       if (resolvedPort !== attemptPort) {
