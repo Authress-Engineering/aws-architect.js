@@ -20,6 +20,7 @@
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.1000.0",
     "@aws-sdk/client-s3": "^3.1000",
+    "@aws-sdk/client-sts": "^3.1000",
     "archiver": "^5.3.0",
     "body-parser": "^1.18.2",
     "commander": "^2.5.0",
