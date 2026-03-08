@@ -41,6 +41,7 @@ export interface StackSetConfiguration {
 }
 
 export interface OrganizationalStackSetConfiguration {
+  orgIds?: Array<string>;
   changeSetName: string;
   stackSetName: string;
   tags?: Record<string, string>;
