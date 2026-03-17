@@ -14,5 +14,20 @@
     "spaced-comment": "off",
     "no-continue": "off",
     "require-atomic-updates": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.js"],
+      "globals": {
+        "describe": "readonly",
+        "it": "readonly",
+        "expect": "readonly",
+        "beforeEach": "readonly",
+        "afterEach": "readonly",
+        "beforeAll": "readonly",
+        "afterAll": "readonly",
+        "vi": "readonly"
+      }
+    }
+  ]
 }

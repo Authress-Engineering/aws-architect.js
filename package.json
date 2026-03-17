@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "lint": "eslint --ext .js tests lib index.js",
-    "test": "mocha tests/**/*.js -R spec"
+    "test": "vitest run"
   },
   "bin": {
     "aws-architect": "./bin/aws-architect.js"
@@ -42,17 +42,15 @@
   "devDependencies": {
     "@authress/eslint-config": "^1.0.2",
     "aws-sdk": "*",
-    "chai": "^3.5.0",
     "error-object-polyfill": "^1.1.14",
     "eslint": "~8.35.0",
     "eslint-config-cimpress-atsquad": "^1.0.67",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-mocha": "^10.0.5",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "glob": "^5.0.15",
-    "mocha": "^10.1.0",
-    "sinon": "^1.17.3"
+    "sinon": "^1.17.3",
+    "vitest": "^3.0.0"
   },
   "repository": {
     "type": "git",

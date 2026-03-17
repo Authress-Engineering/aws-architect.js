@@ -1,6 +1,3 @@
-
-const { describe, it } = require('mocha');
-const { expect } = require('chai');
 const path = require('path');
 const LockFinder = require('../lib/lockFinder');
 
@@ -22,7 +19,7 @@ describe('lib/lockFinder.js', function() {
     it(test.name, () => {
       return new LockFinder().findLockFile(test.startLocation)
       .then(location => {
-        expect(location).to.eql(test.expectedResult, location && location.file);
+        expect(location).toEqual(test.expectedResult);
       });
     });
   });
