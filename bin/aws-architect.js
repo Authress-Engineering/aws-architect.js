@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-let commander = require('commander');
+const { program } = require('commander');
 let fs = require('fs-extra');
 let path = require('path');
 
 let version = require(path.join(__dirname, '../package.json')).version;
-commander.version(version);
+program.version(version);
 
 let displayHeader = () => {
 	console.log('AWS Architect (%s)', version);
 	console.log('---------------------------');
 };
 
-commander
+program
 .command('init')
 .description('Setup microservice package from template.')
 .action(() => {
@@ -29,12 +29,14 @@ commander
 	.catch(result => console.log(`failure: ${JSON.stringify(result, null, 2)}`));
 });
 
-commander.on('*', () => {
-	if (commander.args.join(' ') === 'tests/**/*.js') { return; }
+program.on('command:*', () => {
+	if (program.args.join(' ') === 'tests/**/*.js') { return; }
 	displayHeader();
-	console.log(`Unknown Command: ${commander.args.join(' ')}`);
-	commander.help();
+	console.log(`Unknown Command: ${program.args.join(' ')}`);
+	program.help();
 	process.exit(0);
 });
 
-commander.parse(process.argv[2] ? process.argv : process.argv.concat(['init']));
+if (require.main === module) {
+	program.parse(process.argv[2] ? process.argv : process.argv.concat(['init']));
+}

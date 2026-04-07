@@ -1,6 +1,6 @@
 require('error-object-polyfill');
 const path = require('path');
-const commander = require('commander');
+const { program } = require('commander');
 const aws = require('aws-sdk');
 const AwsArchitect = require('aws-architect');
 
@@ -23,7 +23,7 @@ function getVersion() {
   return `${release_version}.${(build_number || '0')}.0.0.0.0`.split('.').slice(0, 3).join('.');
 }
 const version = getVersion();
-commander.version(version);
+program.version(version);
 
 let packageMetadataFile = path.join(__dirname, 'package.json');
 let packageMetadata = require(packageMetadataFile);
@@ -39,7 +39,7 @@ let contentOptions = {
   contentDirectory: path.join(__dirname, 'content')
 };
 
-commander
+program
 .command('run')
 .description('Run lambda web service locally.')
 .action(async () => {
@@ -60,7 +60,7 @@ commander
   }
 });
 
-commander
+program
 .command('deploy')
 .description('Deploy to AWS.')
 .action(async () => {
@@ -110,7 +110,7 @@ commander
   }
 });
 
-commander
+program
 .command('deploy-website')
 .description('Depling website to AWS.')
 .action(async () => {
@@ -162,7 +162,7 @@ commander
   }
 });
 
-commander
+program
 .command('deploy-hosted-zone')
 .description('Deploy hosted zone to AWS.')
 .action(async () => {
@@ -190,7 +190,7 @@ commander
   }
 });
 
-commander
+program
 .command('delete')
 .description('Delete Stage from AWS.')
 .action(async () => {
@@ -210,7 +210,7 @@ commander
   }
 });
 
-commander
+program
 .command('delete-website')
 .description('Delete a website version from AWS.')
 .action(async () => {
@@ -230,10 +230,10 @@ commander
   }
 });
 
-commander.on('*', () => {
-  if (commander.args.join(' ') === 'tests/**/*.js') { return; }
-  console.log(`Unknown Command: ${commander.args.join(' ')}`);
-  commander.help();
+program.on('command:*', () => {
+  if (program.args.join(' ') === 'tests/**/*.js') { return; }
+  console.log(`Unknown Command: ${program.args.join(' ')}`);
+  program.help();
   process.exit(0);
 });
-commander.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));
+program.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));

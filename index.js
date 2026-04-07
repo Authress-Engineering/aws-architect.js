@@ -60,7 +60,7 @@ class AwsArchitect {
       let zipStream = fs.createWriteStream(zipArchivePath);
       zipStream.on('close', () => resolve());
 
-      let archive = archiver.create('zip', {});
+      let archive = archiver('zip', {});
       archive.on('error', e => reject({ Error: e }));
       archive.pipe(zipStream);
       archive.glob('**', { dot: true, cwd: tmpDir, ignore: options.zipFileName });
@@ -99,7 +99,6 @@ class AwsArchitect {
 
       let cmd = lockFile.command;
       await new Promise((resolve, reject) => {
-        /* eslint-disable-next-line no-unused-vars */
         exec(cmd, { cwd: tmpDir }, (error, stdout, stderr) => {
           if (error) { return reject({ Error: 'Failed installing production npm modules.', Details: error }); }
           return resolve(tmpDir);
@@ -112,7 +111,7 @@ class AwsArchitect {
       let zipStream = fs.createWriteStream(zipArchivePath);
       zipStream.on('close', () => resolve({ Archive: zipArchivePath }));
 
-      let archive = archiver.create('zip', {});
+      let archive = archiver('zip', {});
       archive.on('error', e => reject({ Error: e }));
       archive.pipe(zipStream);
       archive.glob('**', { dot: true, cwd: tmpDir, ignore: lambdaZip });

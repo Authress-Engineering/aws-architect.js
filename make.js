@@ -1,7 +1,7 @@
 /**
  * Module dependencies
  */
-const commander = require('commander');
+const { program } = require('commander');
 const fs = require('fs-extra');
 
 function getVersion() {
@@ -23,12 +23,12 @@ function getVersion() {
   return `${release_version}.${(build_number)}.0.0.0.0`.split('.').slice(0, 3).join('.');
 }
 const version = getVersion();
-commander.version(version);
+program.version(version);
 
 /**
   * Build
   */
-commander
+program
 .command('build')
 .description('Setup require build files for npm package.')
 .action(async () => {
@@ -43,7 +43,7 @@ commander
 /**
   * After Build
   */
-commander
+program
 .command('after_build')
 .description('Publishes git tags and reports failures.')
 .action(() => {
@@ -52,10 +52,10 @@ commander
   console.log('');
 });
 
-commander.on('*', () => {
-  if (commander.args.join(' ') === 'tests/**/*.js') { return; }
-  console.log(`Unknown Command: ${commander.args.join(' ')}`);
-  commander.help();
+program.on('command:*', () => {
+  if (program.args.join(' ') === 'tests/**/*.js') { return; }
+  console.log(`Unknown Command: ${program.args.join(' ')}`);
+  program.help();
   process.exit(0);
 });
-commander.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));
+program.parse(process.argv[2] ? process.argv : process.argv.concat(['build']));
