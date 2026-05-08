@@ -18,9 +18,9 @@
     "aws-architect": "./bin/aws-architect.js"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.1000.0",
-    "@aws-sdk/client-s3": "^3.1000",
-    "@aws-sdk/client-sts": "^3.1000",
+    "@aws-sdk/client-cloudformation": "^3.1045.0",
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/client-sts": "^3.1045.0",
     "archiver": "^7.0.0",
     "body-parser": "^1.18.2",
     "commander": "^14.0.0",
