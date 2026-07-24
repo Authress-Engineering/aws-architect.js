@@ -18,9 +18,17 @@
     "aws-architect": "./bin/aws-architect.js"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.1045.0",
-    "@aws-sdk/client-s3": "^3.1045.0",
-    "@aws-sdk/client-sts": "^3.1045.0",
+    "@aws-sdk/client-api-gateway": ">=3.1045.0",
+    "@aws-sdk/client-apigatewayv2": ">=3.1045.0",
+    "@aws-sdk/client-cloudformation": ">=3.1045.0",
+    "@aws-sdk/client-ec2": ">=3.1045.0",
+    "@aws-sdk/client-iam": ">=3.1045.0",
+    "@aws-sdk/client-lambda": ">=3.1045.0",
+    "@aws-sdk/client-organizations": ">=3.1045.0",
+    "@aws-sdk/client-s3": ">=3.1045.0",
+    "@aws-sdk/client-sts": ">=3.1045.0",
+    "@aws-sdk/credential-providers": ">=3.1045.0",
+    "@aws-sdk/lib-storage": ">=3.1045.0",
     "archiver": "^7.0.0",
     "body-parser": "^1.18.2",
     "commander": "^14.0.0",
@@ -37,12 +45,8 @@
     "short-uuid": "^4.2.0",
     "tmp": "^0.2.4"
   },
-  "peerDependencies": {
-    "aws-sdk": ">=2.877.0"
-  },
   "devDependencies": {
     "@authress/eslint-config": "^1.0.2",
-    "aws-sdk": "*",
     "error-object-polyfill": "^1.1.14",
     "eslint": "^10.2.0",
     "eslint-config-cimpress-atsquad": "^1.0.67",
@@ -78,6 +82,6 @@
   },
   "homepage": "https://github.com/Authress-Engineering/aws-architect.js#readme",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }

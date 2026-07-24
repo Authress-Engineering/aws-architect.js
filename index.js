@@ -1,5 +1,7 @@
 let archiver = require('archiver');
-let aws = require('aws-sdk');
+const { STSClient, GetCallerIdentityCommand } = require('@aws-sdk/client-sts');
+const { S3Client } = require('@aws-sdk/client-s3');
+const { IAMClient, GetRoleCommand } = require('@aws-sdk/client-iam');
 let exec = require('child_process').exec;
 let fs = require('fs-extra');
 let path = require('path');
@@ -14,8 +16,9 @@ let BucketManager = require('./lib/BucketManager');
 let CloudFormationDeployer = require('./lib/CloudFormationDeployer');
 let LockFinder = require('./lib/lockFinder');
 
-async function GetAccountIdPromise() {
-  const callerData = await new aws.STS().getCallerIdentity().promise();
+async function GetAccountIdPromise(region) {
+  const stsClient = new STSClient({ region });
+  const callerData = await stsClient.send(new GetCallerIdentityCommand({}));
   return callerData.Account;
 }
 
@@ -30,10 +33,8 @@ class AwsArchitect {
     this.deploymentBucket = (apiOptions || {}).deploymentBucket;
     this.SourceDirectory = (apiOptions || {}).sourceDirectory;
 
-    if (!aws.config.region && apiOptions.regions && apiOptions.regions[0]) {
-      aws.config.update({ region: apiOptions.regions[0] });
-    }
-    this.Configuration = new ApiConfiguration(apiOptions, 'index.js', aws.config.region || 'us-east-1');
+    const fallbackRegion = apiOptions.regions && apiOptions.regions[0] || 'us-east-1';
+    this.Configuration = new ApiConfiguration(apiOptions, 'index.js', fallbackRegion);
 
     if (this.Configuration.Regions.length === 0) { throw new Error('A single region must be defined in the apiOptions.'); }
     if (this.Configuration.Regions.length > 1) { throw new Error('Only deployments to a single region are allowed at this time.'); }
@@ -43,8 +44,8 @@ class AwsArchitect {
 
     this.LambdaManager = new LambdaManager(this.Region);
 
-    let s3Factory = new aws.S3({ region: this.Region });
-    this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket);
+    let s3Factory = new S3Client({ region: this.Region });
+    this.BucketManager = new BucketManager(s3Factory, this.ContentOptions.bucket, this.Region);
     this.CloudFormationDeployer = new CloudFormationDeployer(this.Region, this.BucketManager, this.deploymentBucket);
   }
 
@@ -135,42 +136,44 @@ class AwsArchitect {
   }
 
   async deployStackSetTemplate(stackTemplate, stackConfiguration, parameters) {
+    const iamClient = new IAMClient({ region: this.Region });
     try {
-      await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetExecutionRole' }).promise();
+      await iamClient.send(new GetRoleCommand({ RoleName: 'AWSCloudFormationStackSetExecutionRole' }));
     } catch (error) {
-      if (error.code === 'NoSuchEntity') {
+      if (error.name === 'NoSuchEntityException') {
         throw { title: 'Role "AWSCloudFormationStackSetExecutionRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
       }
       throw error;
     }
 
     try {
-      await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetAdministrationRole' }).promise();
+      await iamClient.send(new GetRoleCommand({ RoleName: 'AWSCloudFormationStackSetAdministrationRole' }));
     } catch (error) {
-      if (error.code === 'NoSuchEntity') {
+      if (error.name === 'NoSuchEntityException') {
         throw { title: 'Role "AWSCloudFormationStackSetAdministrationRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
       }
       throw error;
     }
 
-    let accountId = await GetAccountIdPromise();
+    let accountId = await GetAccountIdPromise(this.Region);
     return this.CloudFormationDeployer.deployStackSetTemplate(accountId, stackTemplate, stackConfiguration, parameters, `${this.PackageMetadata.name}/${this.PackageMetadata.version}`);
   }
 
   async configureStackSetForAwsOrganization(stackTemplate, stackConfiguration, parameters) {
+    const iamClient = new IAMClient({ region: this.Region });
     try {
-      await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetExecutionRole' }).promise();
+      await iamClient.send(new GetRoleCommand({ RoleName: 'AWSCloudFormationStackSetExecutionRole' }));
     } catch (error) {
-      if (error.code === 'NoSuchEntity') {
+      if (error.name === 'NoSuchEntityException') {
         throw { title: 'Role "AWSCloudFormationStackSetExecutionRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
       }
       throw error;
     }
 
     try {
-      await new aws.IAM().getRole({ RoleName: 'AWSCloudFormationStackSetAdministrationRole' }).promise();
+      await iamClient.send(new GetRoleCommand({ RoleName: 'AWSCloudFormationStackSetAdministrationRole' }));
     } catch (error) {
-      if (error.code === 'NoSuchEntity') {
+      if (error.name === 'NoSuchEntityException') {
         throw { title: 'Role "AWSCloudFormationStackSetAdministrationRole" must exist. See prerequisite for cloudformation: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html' };
       }
       throw error;
@@ -252,7 +255,7 @@ class AwsArchitect {
         throw error;
       }
 
-      let accountId = await GetAccountIdPromise();
+      let accountId = await GetAccountIdPromise(this.Region);
       await this.LambdaManager.SetPermissionsPromise(accountId, lambdaArn, apiGateway.Id, this.Region, stageName);
       const data = await this.ApiGatewayManager.DeployStagePromise(apiGateway, stageName, stage, lambdaVersion);
       return {

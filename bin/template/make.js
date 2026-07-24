@@ -1,7 +1,6 @@
 require('error-object-polyfill');
 const path = require('path');
 const { program } = require('commander');
-const aws = require('aws-sdk');
 const AwsArchitect = require('aws-architect');
 
 function getVersion() {
@@ -43,7 +42,8 @@ program
 .command('run')
 .description('Run lambda web service locally.')
 .action(async () => {
-  aws.config.credentials = new aws.SharedIniFileCredentials({ profile: 'default' });
+  // AWS credentials are resolved by the default SDK v3 credential provider chain.
+  // Set the AWS_PROFILE environment variable (defaults to "default") to select a named profile.
 
   // default logger is console.log, if you want to override it, that can be done here.
   let logger = logMessage => console.log(logMessage);
